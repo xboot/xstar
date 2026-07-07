@@ -4,7 +4,7 @@ Trigonometric function module based on a precomputed lookup table, providing bot
 
 ## Principle
 
-Uniformly sample 0~2π into 65536 angle units (0x0000~0xFFFF), precompute 1024 cosine values in the [0, π/2] interval as the lookup table. Other quadrants are mapped via symmetry:
+Uniformly sample 0 to 2π into 65536 angle units (0x0000 to 0xFFFF), precompute 1024 cosine values in the [0, π/2] interval as the lookup table. Other quadrants are mapped via symmetry:
 
 - `cos(x)` — direct table lookup
 - `sin(x)` — using `sin(x) = cos(x - π/2)`, add `0xC000` to the angle (i.e. 3π/2, equivalent to -π/2 mod 2π) before performing the table lookup
@@ -27,7 +27,7 @@ int isin(int x);   /* Returns [-32767, 32767] */
 int icos(int x);   /* Returns [-32767, 32767] */
 ```
 
-Input is a 16-bit fixed-point angle (0~65535 represents 0~2π). Output is a 15-bit signed fixed-point number, where 32767 corresponds to 1.0.
+Input is a 16-bit fixed-point angle (0 to 65535 represents 0 to 2π). Output is a 15-bit signed fixed-point number, where 32767 corresponds to 1.0.
 
 ### Floating-Point Trigonometric Functions
 
