@@ -117,6 +117,14 @@ const sidebars = {
     },
     {
       type: 'category',
+      label: '协程系统',
+      items: [
+        'subsys/coroutine/coroutine',
+        'subsys/coroutine/cochannel',
+      ],
+    },
+    {
+      type: 'category',
       label: '字体系统',
       items: [
         'subsys/font/font-system',
