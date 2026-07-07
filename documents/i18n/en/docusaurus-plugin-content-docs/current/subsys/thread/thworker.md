@@ -1,4 +1,4 @@
-# Thread Worker (thworker)
+# Thread Work Queue (thworker)
 
 An asynchronous task executor based on a background thread, maintaining an internal task queue. The worker thread is woken via a semaphore to execute submitted tasks one by one, suitable for offloading time-consuming operations to a background thread.
 
