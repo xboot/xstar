@@ -170,6 +170,14 @@ const sidebars = {
     },
     {
       type: 'category',
+      label: '窗口',
+      items: [
+        'subsys/window/event',
+        'subsys/window/window',
+      ],
+    },
+    {
+      type: 'category',
       label: '字体',
       items: [
         'subsys/font/font-system',
