@@ -115,6 +115,10 @@
     "message": "Persistence",
     "description": "The label for category '持久化' in sidebar 'subsystems'"
   },
+  "sidebar.subsystems.category.文件系统": {
+    "message": "File System",
+    "description": "The label for category '文件系统' in sidebar 'subsystems'"
+  },
   "sidebar.subsystems.category.调试工具": {
     "message": "Debug Tools",
     "description": "The label for category '调试工具' in sidebar 'subsystems'"

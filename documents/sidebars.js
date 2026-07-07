@@ -163,6 +163,13 @@ const sidebars = {
     },
     {
       type: 'category',
+      label: '文件系统',
+      items: [
+        'subsys/xfs/xfs',
+      ],
+    },
+    {
+      type: 'category',
       label: '字体',
       items: [
         'subsys/font/font-system',
