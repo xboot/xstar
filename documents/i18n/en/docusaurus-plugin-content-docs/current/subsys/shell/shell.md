@@ -1,6 +1,6 @@
-# Shell (shell)
+# Interpreter (shell)
 
-XSTAR's command-line interpreter, providing interactive command input, command parsing, command lookup and execution, with support for semicolon-separated multiple commands, quoted arguments, and password protection.
+XSTAR's command interpreter, providing interactive command input, command parsing, command lookup and execution, with support for semicolon-separated multiple commands, quoted arguments, and password protection.
 
 ## How It Works
 
