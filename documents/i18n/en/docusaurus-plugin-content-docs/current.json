@@ -107,6 +107,10 @@
     "message": "Time",
     "description": "The label for category '时间' in sidebar 'subsystems'"
   },
+  "sidebar.subsystems.category.命令行": {
+    "message": "Shell",
+    "description": "The label for category '命令行' in sidebar 'subsystems'"
+  },
   "sidebar.subsystems.category.调试工具": {
     "message": "Debug Tools",
     "description": "The label for category '调试工具' in sidebar 'subsystems'"

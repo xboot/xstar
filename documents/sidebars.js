@@ -149,6 +149,13 @@ const sidebars = {
     },
     {
       type: 'category',
+      label: '命令行',
+      items: [
+        'subsys/shell/shell',
+      ],
+    },
+    {
+      type: 'category',
       label: '字体',
       items: [
         'subsys/font/font-system',
