@@ -125,6 +125,14 @@ const sidebars = {
     },
     {
       type: 'category',
+      label: '线程',
+      items: [
+        'subsys/thread/thchannel',
+        'subsys/thread/thworker',
+      ],
+    },
+    {
+      type: 'category',
       label: '字体',
       items: [
         'subsys/font/font-system',

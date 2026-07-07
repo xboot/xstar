@@ -95,6 +95,10 @@
     "message": "Coroutine",
     "description": "The label for category '协程' in sidebar 'subsystems'"
   },
+  "sidebar.subsystems.category.线程": {
+    "message": "Thread",
+    "description": "The label for category '线程' in sidebar 'subsystems'"
+  },
   "sidebar.subsystems.category.调试工具": {
     "message": "Debug Tools",
     "description": "The label for category '调试工具' in sidebar 'subsystems'"
