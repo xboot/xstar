@@ -58,7 +58,7 @@ An object is an unordered collection of name/value pairs. An object begins with 
 }
 ```
 
-![JSON Object](../images/json-object.gif)
+![JSON Object](images/json-object.gif)
 
 #### 2. Array
 
@@ -68,7 +68,7 @@ An array is an ordered collection of values. An array begins with `[` (left brac
 [1, 2, 3, 4, 5]
 ```
 
-![JSON Array](../images/json-array.gif)
+![JSON Array](images/json-array.gif)
 
 #### 3. Value
 
@@ -95,7 +95,7 @@ These structures can be nested.
 }
 ```
 
-![JSON Value](../images/json-value.gif)
+![JSON Value](images/json-value.gif)
 
 #### 4. String
 
@@ -108,7 +108,7 @@ Strings are very similar to strings in C or Java.
 "This is an English string"
 ```
 
-![JSON String](../images/json-string.gif)
+![JSON String](images/json-string.gif)
 
 #### 5. Number
 
@@ -121,7 +121,7 @@ Numbers are very similar to numbers in C or Java, but octal and hexadecimal form
 1e10
 ```
 
-![JSON Number](../images/json-number.gif)
+![JSON Number](images/json-number.gif)
 
 ## Device Node Structure
 
@@ -903,23 +903,23 @@ struct dtnode_t * dt_read_array_object(struct dtnode_t * n, const char * name, i
 
 ### Loading Mechanism
 
-The device tree file is specified via the `json` parameter of the `xstar_init` function. The function prototype is:
+The device tree file is specified via the `dtree` parameter of the `xstar_init` function. The function prototype is:
 
 ```c
-void xstar_init(struct xos_environ_t * env, const char * json);
+void xstar_init(struct xos_environ_t * env, const char * dtree);
 ```
 
 **Parameters:**
 - `env`: System environment parameters
-- `json`: Device tree file path
+- `dtree`: Device tree file path
 
 **Default path:**
-If the `json` parameter is `NULL`, the system automatically uses the default path `/romdisk/boot/boot.json`.
+If the `dtree` parameter is `NULL`, the system automatically uses the default path `/romdisk/dtree/default.json`.
 
 **Usage example:**
 
 ```c
-xstar_init(&env, "/romdisk/boot/custom.json");
+xstar_init(&env, "/romdisk/dtree/custom.json");
 ```
 
 Or use the default device tree:
@@ -932,16 +932,16 @@ xstar_init(&env, NULL);
 
 The device tree loading flow at system startup is:
 
-1. `xstar_init` is called, receiving the `json` parameter
-2. `do_init_dtree(json)` is called to initialize the device tree
-3. `do_init_dtree` checks the `json` parameter:
+1. `xstar_init` is called, receiving the `dtree` parameter
+2. `do_init_dtree(dtree)` is called to initialize the device tree
+3. `do_init_dtree` checks the `dtree` parameter:
    - If not `NULL`, uses the specified file path
-   - If `NULL`, uses the default path `/romdisk/boot/boot.json`
+   - If `NULL`, uses the default path `/romdisk/dtree/default.json`
 4. Reads the device tree JSON file content from the file system
 5. Parses the JSON and calls `probe_device` to register all devices
 
 ## Summary
 
-The device tree is the core configuration mechanism of the XSTAR system, describing the properties and configuration of all devices in JSON format. The device tree file can be specified via the parameter of the `xstar_init` function, or the default `/romdisk/boot/boot.json` can be used.
+The device tree is the core configuration mechanism of the XSTAR system, describing the properties and configuration of all devices in JSON format. The device tree file can be specified via the parameter of the `xstar_init` function, or the default `/romdisk/dtree/default.json` can be used.
 
 For device tree API usage, refer to the various driver implementations.

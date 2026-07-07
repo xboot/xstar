@@ -87,7 +87,7 @@ psub_subscribe("limiter.released",  on_limiter_released,  NULL);
 
 ### 设备树配置
 
-在 `/romdisk/boot/boot.json` 中以 `limiter-gpio-polled` 为节点名添加配置：
+在 `/romdisk/dtree/default.json` 中以 `limiter-gpio-polled` 为节点名添加配置：
 
 ```json
 "limiter-gpio-polled@0": {

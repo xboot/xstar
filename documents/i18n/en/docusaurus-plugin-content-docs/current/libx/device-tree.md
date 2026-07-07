@@ -1,6 +1,6 @@
 # Device Tree (dtree)
 
-Device tree node abstraction layer for reading configuration from JSON-based device tree data. Primary interface for drivers to read configuration from boot.json.
+Device tree node abstraction layer for reading configuration from JSON-based device tree data. Primary interface for drivers to read configuration from default.json.
 
 ## Data Structure
 

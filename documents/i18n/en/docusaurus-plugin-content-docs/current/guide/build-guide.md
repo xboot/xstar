@@ -262,8 +262,8 @@ projects/<project-name>/
 ├── baremetal/            # Bare-metal platform implementation (baremetal projects)
 │   └── baremetal.c       # XOS environment initialization, startup code
 └── romdisk/              # Read-only file system
-    ├── boot/
-    │   └── boot.json     # Device tree JSON configuration
+    ├── dtree/
+    │   └── default.json  # Device tree JSON configuration
     └── assets/           # Resource files (fonts, images, etc.)
 ```
 
@@ -328,7 +328,7 @@ distclean:
 
 5. Create the platform implementation code (`linux/linux.c` or `baremetal/baremetal.c`) and `main.c`
 
-6. Create the `romdisk/boot/boot.json` device tree configuration
+6. Create the `romdisk/dtree/default.json` device tree configuration
 
 7. Build the project:
 
@@ -362,7 +362,7 @@ projects/<project-name>/output/
 
 The ROMDISK is a read-only file system embedded at compile time, linked into the executable via the `__romdisk_start`/`__romdisk_end` linker symbols. It contains:
 
-- `boot/boot.json`: Device tree configuration
+- `dtree/default.json`: Device tree configuration
 - `assets/`: Resource files (fonts, images, etc.)
 
 ### Debug Information

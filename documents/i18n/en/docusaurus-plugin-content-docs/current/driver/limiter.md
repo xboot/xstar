@@ -87,7 +87,7 @@ A GPIO software-timer polling based limiter driver. Suitable for platforms witho
 
 ### Device Tree Configuration
 
-Add the following entry under `/romdisk/boot/boot.json` using `limiter-gpio-polled` as the node name:
+Add the following entry under `/romdisk/dtree/default.json` using `limiter-gpio-polled` as the node name:
 
 ```json
 "limiter-gpio-polled@0": {

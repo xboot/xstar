@@ -87,9 +87,13 @@
     "message": "Font",
     "description": "The label for category '字体系统' in sidebar 'subsystems'"
   },
-  "sidebar.subsystems.category.内核工具": {
-    "message": "Kernel Tools",
-    "description": "The label for category '内核工具' in sidebar 'subsystems'"
+  "sidebar.subsystems.category.设备树": {
+    "message": "Device Tree",
+    "description": "The label for category '设备树' in sidebar 'subsystems'"
+  },
+  "sidebar.subsystems.category.调试工具": {
+    "message": "Debug Tools",
+    "description": "The label for category '调试工具' in sidebar 'subsystems'"
   },
   "sidebar.package.category.扩展包": {
     "message": "Packages",
@@ -185,7 +189,7 @@
   },
   "sidebar.subsystems.doc.性能分析器": {
     "message": "Profiler",
-    "description": "The label for the doc item '性能分析器' in sidebar 'subsystems', linking to the doc kernel/profiler"
+    "description": "The label for the doc item '性能分析器' in sidebar 'subsystems', linking to the doc debug/profiler"
   },
   "sidebar.package.doc.libcjson": {
     "message": "libcjson",

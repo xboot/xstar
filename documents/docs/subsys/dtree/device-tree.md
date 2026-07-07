@@ -58,7 +58,7 @@ JSON 有两种基本结构：
 }
 ```
 
-![JSON 对象](../images/json-object.gif)
+![JSON 对象](images/json-object.gif)
 
 #### 2. 数组（Array）
 
@@ -68,7 +68,7 @@ JSON 有两种基本结构：
 [1, 2, 3, 4, 5]
 ```
 
-![JSON 数组](../images/json-array.gif)
+![JSON 数组](images/json-array.gif)
 
 #### 3. 值（Value）
 
@@ -95,7 +95,7 @@ JSON 有两种基本结构：
 }
 ```
 
-![JSON 值](../images/json-value.gif)
+![JSON 值](images/json-value.gif)
 
 #### 4. 字符串（String）
 
@@ -108,7 +108,7 @@ JSON 有两种基本结构：
 "这是一个中文字符串"
 ```
 
-![JSON 字符串](../images/json-string.gif)
+![JSON 字符串](images/json-string.gif)
 
 #### 5. 数值（Number）
 
@@ -121,7 +121,7 @@ JSON 有两种基本结构：
 1e10
 ```
 
-![JSON 数值](../images/json-number.gif)
+![JSON 数值](images/json-number.gif)
 
 ## 设备节点结构
 
@@ -903,23 +903,23 @@ struct dtnode_t * dt_read_array_object(struct dtnode_t * n, const char * name, i
 
 ### 加载机制
 
-设备树文件通过 `xstar_init` 函数的 `json` 参数指定。函数原型如下：
+设备树文件通过 `xstar_init` 函数的 `dtree` 参数指定。函数原型如下：
 
 ```c
-void xstar_init(struct xos_environ_t * env, const char * json);
+void xstar_init(struct xos_environ_t * env, const char * dtree);
 ```
 
 **参数说明：**
 - `env`：系统环境参数
-- `json`：设备树文件路径
+- `dtree`：设备树文件路径
 
 **默认路径：**
-如果 `json` 参数为 `NULL`，系统将自动使用默认路径 `/romdisk/boot/boot.json`。
+如果 `dtree` 参数为 `NULL`，系统将自动使用默认路径 `/romdisk/dtree/default.json`。
 
 **使用示例：**
 
 ```c
-xstar_init(&env, "/romdisk/boot/custom.json");
+xstar_init(&env, "/romdisk/dtree/custom.json");
 ```
 
 或使用默认设备树：
@@ -932,16 +932,16 @@ xstar_init(&env, NULL);
 
 系统启动时的设备树加载流程如下：
 
-1. `xstar_init` 被调用，接收 `json` 参数
-2. 调用 `do_init_dtree(json)` 初始化设备树
-3. `do_init_dtree` 检查 `json` 参数：
+1. `xstar_init` 被调用，接收 `dtree` 参数
+2. 调用 `do_init_dtree(dtree)` 初始化设备树
+3. `do_init_dtree` 检查 `dtree` 参数：
    - 如果不为 `NULL`，使用指定的文件路径
-   - 如果为 `NULL`，使用默认路径 `/romdisk/boot/boot.json`
+   - 如果为 `NULL`，使用默认路径 `/romdisk/dtree/default.json`
 4. 从文件系统读取设备树 JSON 文件内容
 5. 解析 JSON 并调用 `probe_device` 注册所有设备
 
 ## 总结
 
-设备树是 XSTAR 系统的核心配置机制，通过 JSON 格式描述所有设备的属性和配置。设备树文件可以通过 `xstar_init` 函数的参数指定，或使用默认的 `/romdisk/boot/boot.json`。
+设备树是 XSTAR 系统的核心配置机制，通过 JSON 格式描述所有设备的属性和配置。设备树文件可以通过 `xstar_init` 函数的参数指定，或使用默认的 `/romdisk/dtree/default.json`。
 
 设备树操作 API 使用请参考各种驱动实现。

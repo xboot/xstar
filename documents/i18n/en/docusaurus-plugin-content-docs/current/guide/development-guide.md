@@ -206,7 +206,7 @@ driver_exitcall(xxx_driver_exit);
 
 ### Device Tree Configuration
 
-Add the device configuration in `romdisk/boot/boot.json`:
+Add the device configuration in `romdisk/dtree/default.json`:
 
 ```json
 {

@@ -262,8 +262,8 @@ projects/<project-name>/
 ├── baremetal/            # 裸机平台实现（baremetal 项目）
 │   └── baremetal.c       # XOS 环境初始化、启动代码
 └── romdisk/              # 只读文件系统
-    ├── boot/
-    │   └── boot.json     # 设备树 JSON 配置
+    ├── dtree/
+    │   └── default.json  # 设备树 JSON 配置
     └── assets/           # 资源文件（字体、图片等）
 ```
 
@@ -328,7 +328,7 @@ distclean:
 
 5. 创建平台实现代码（`linux/linux.c` 或 `baremetal/baremetal.c`）和 `main.c`
 
-6. 创建 `romdisk/boot/boot.json` 设备树配置
+6. 创建 `romdisk/dtree/default.json` 设备树配置
 
 7. 构建项目：
 
@@ -362,7 +362,7 @@ projects/<project-name>/output/
 
 ROMDISK 是编译时嵌入的只读文件系统，通过链接器符号 `__romdisk_start`/`__romdisk_end` 嵌入到可执行文件中。包含：
 
-- `boot/boot.json`：设备树配置
+- `dtree/default.json`：设备树配置
 - `assets/`：资源文件（字体、图片等）
 
 ### 调试信息

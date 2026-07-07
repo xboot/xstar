@@ -63,7 +63,7 @@ main() → xstar_init()
   ├── xos_environ_init(env)         安装平台抽象函数表
   ├── do_initcalls()                按级别执行所有 initcall (0→9)
   ├── do_init_romdisk()             注册 romdisk 块设备
-  ├── do_init_dtree(json)           解析设备树 JSON，探测所有设备
+  ├── do_init_dtree(dtree)         解析设备树 JSON，探测所有设备
   ├── do_init_memory()              注册内存信息 KOBJ
   ├── do_init_logger()              注册日志控制 KOBJ
   ├── do_init_version()             注册版本信息 KOBJ
@@ -79,7 +79,7 @@ main() → xstar_init()
 
 - **`xos_environ_init(env)`**：将平台提供的函数指针安装到全局 `__xos_environ` 结构体中，仅覆盖非 NULL 的条目
 - **`do_initcalls()`**：按级别 0-9 顺序执行链接器段中的初始化函数，驱动注册、子系统初始化、命令注册都在此阶段完成
-- **`do_init_dtree(json)`**：解析设备树 JSON，对每个设备节点匹配驱动并调用 `probe()`，创建设备实例
+- **`do_init_dtree(dtree)`**：解析设备树 JSON，对每个设备节点匹配驱动并调用 `probe()`，创建设备实例
 
 ## 跨平台抽象层 (XOS)
 
@@ -783,7 +783,7 @@ subdirs-y += adc                              # 递归子目录
 - `xstarcfg.h`：项目特定的类型定义和平台头文件
 - `main.c`：平台特定的入口点
 - `linux/` 或 `baremetal/`：平台实现代码
-- `romdisk/`：只读文件系统（含 `boot/boot.json` 设备树）
+- `romdisk/`：只读文件系统（含 `dtree/default.json` 设备树）
 
 ### 构建输出
 

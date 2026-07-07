@@ -206,7 +206,7 @@ driver_exitcall(xxx_driver_exit);
 
 ### 设备树配置
 
-在 `romdisk/boot/boot.json` 中添加设备配置：
+在 `romdisk/dtree/default.json` 中添加设备配置：
 
 ```json
 {

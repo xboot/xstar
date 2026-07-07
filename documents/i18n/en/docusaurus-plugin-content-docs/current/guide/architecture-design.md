@@ -63,7 +63,7 @@ main() → xstar_init()
   ├── xos_environ_init(env)         Install the platform abstraction function table
   ├── do_initcalls()                Execute all initcalls by level (0→9)
   ├── do_init_romdisk()             Register the romdisk block device
-  ├── do_init_dtree(json)           Parse the device tree JSON and probe all devices
+  ├── do_init_dtree(dtree)         Parse the device tree JSON and probe all devices
   ├── do_init_memory()              Register the memory info KOBJ
   ├── do_init_logger()              Register the log control KOBJ
   ├── do_init_version()             Register the version info KOBJ
@@ -79,7 +79,7 @@ Key steps:
 
 - **`xos_environ_init(env)`**: Installs the function pointers provided by the platform into the global `__xos_environ` struct, only overwriting non-NULL entries.
 - **`do_initcalls()`**: Executes the initialization functions in the linker sections in level order 0-9. Driver registration, subsystem initialization, and command registration all happen in this phase.
-- **`do_init_dtree(json)`**: Parses the device tree JSON, matches a driver for each device node, calls `probe()`, and creates device instances.
+- **`do_init_dtree(dtree)`**: Parses the device tree JSON, matches a driver for each device node, calls `probe()`, and creates device instances.
 
 ## Cross-Platform Abstraction Layer (XOS)
 
@@ -783,7 +783,7 @@ Each project lives under the `projects/` directory and contains:
 - `xstarcfg.h`: Project-specific type definitions and platform header
 - `main.c`: Platform-specific entry point
 - `linux/` or `baremetal/`: Platform implementation code
-- `romdisk/`: Read-only file system (containing `boot/boot.json` device tree)
+- `romdisk/`: Read-only file system (containing `dtree/default.json` device tree)
 
 ### Build Output
 
