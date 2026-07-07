@@ -191,6 +191,10 @@
     "message": "Profiler",
     "description": "The label for the doc item '性能分析器' in sidebar 'subsystems', linking to the doc debug/profiler"
   },
+  "sidebar.subsystems.doc.日志器": {
+    "message": "Logger",
+    "description": "The label for the doc item '日志器' in sidebar 'subsystems', linking to the doc debug/logger"
+  },
   "sidebar.package.doc.libcjson": {
     "message": "libcjson",
     "description": "The label for the doc item 'libcjson' in sidebar 'package', linking to the doc package/libcjson"

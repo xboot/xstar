@@ -171,6 +171,7 @@ const sidebars = {
       type: 'category',
       label: '调试工具',
       items: [
+        'subsys/debug/logger',
         'subsys/debug/profiler',
       ],
     },
