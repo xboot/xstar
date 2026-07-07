@@ -111,6 +111,10 @@
     "message": "Shell",
     "description": "The label for category '命令行' in sidebar 'subsystems'"
   },
+  "sidebar.subsystems.category.持久化": {
+    "message": "Persistence",
+    "description": "The label for category '持久化' in sidebar 'subsystems'"
+  },
   "sidebar.subsystems.category.调试工具": {
     "message": "Debug Tools",
     "description": "The label for category '调试工具' in sidebar 'subsystems'"

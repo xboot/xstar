@@ -156,6 +156,13 @@ const sidebars = {
     },
     {
       type: 'category',
+      label: '持久化',
+      items: [
+        'subsys/setting/setting',
+      ],
+    },
+    {
+      type: 'category',
       label: '字体',
       items: [
         'subsys/font/font-system',
