@@ -1,54 +1,54 @@
-# 设备树 (JSON)
+# Device Tree (JSON)
 
-本文档详细介绍 XSTAR 的设备树系统，包括 JSON 语法、设备节点结构、设备树 API 使用等内容。
+This document introduces the XSTAR device tree system in detail, including JSON syntax, device node structure, and usage of the device tree API.
 
-## 目录
+## Table of Contents
 
-- [引言](#引言)
-- [JSON 语法](#json-语法)
-- [设备节点结构](#设备节点结构)
-- [获取设备节点信息](#获取设备节点信息)
-- [访问设备节点属性](#访问设备节点属性)
-- [设备树配置示例](#设备树配置示例)
-- [设备树文件加载](#设备树文件加载)
-- [API 参考](#api-参考)
+- [Introduction](#introduction)
+- [JSON Syntax](#json-syntax)
+- [Device Node Structure](#device-node-structure)
+- [Getting Device Node Info](#getting-device-node-info)
+- [Accessing Device Node Properties](#accessing-device-node-properties)
+- [Device Tree Configuration Examples](#device-tree-configuration-examples)
+- [Device Tree File Loading](#device-tree-file-loading)
+- [API Reference](#api-reference)
 
-## 引言
+## Introduction
 
-### 设备树的作用
+### The Role of the Device Tree
 
-驱动与设备的关系，可以类比为函数与变量的关系。函数负责具体的执行动作，变量负责描述自身属性，两者之间互相依存，缺一不可。
+The relationship between a driver and a device can be likened to the relationship between a function and a variable. The function is responsible for the specific actions to execute, while the variable describes its own attributes. The two are interdependent and indispensable.
 
-通常情况下，驱动与设备是一对一的关系，即一个驱动对应一个设备。但更多时候是一对多的关系，即一个驱动对应多个设备。例如，一颗主控芯片集成了四个串口，不可能写四份驱动来分别注册设备，通常只写一份驱动，然后分别执行四次注册。
+Typically, a driver and a device have a one-to-one relationship, meaning one driver corresponds to one device. But more often it is a one-to-many relationship, where one driver corresponds to multiple devices. For example, if a main control chip integrates four serial ports, you would not write four separate drivers to register the devices; instead, you write a single driver and then perform registration four times.
 
-使用变量直接描述设备属性灵活性不够，每次添加设备都需要重新编译，代码可读性也较差。设备树应运而生，只需将所有设备用文本的方式描述好，然后解析文件，依据内容自动生成相应的设备。
+Using variables to directly describe device attributes is not flexible enough — every time a device is added, a recompilation is required, and code readability is poor. The device tree was created to address this: simply describe all devices in text form, then parse the file and automatically generate the corresponding devices based on its content.
 
-### JSON 格式的选择
+### Choosing the JSON Format
 
-设备树本质上是一个配置文件，描述了所有设备的属性。JSON 作为一种轻量级的数据交换格式，具有以下优点：
+The device tree is essentially a configuration file that describes the attributes of all devices. As a lightweight data interchange format, JSON offers the following advantages:
 
-- 简洁的层次结构
-- 易于编写和阅读
-- 易于机器生成和解析
+- Concise hierarchical structure
+- Easy to write and read
+- Easy for machines to generate and parse
 
-选择 JSON 作为设备树的存储格式再合适不过了。
+JSON is a natural choice as the storage format for the device tree.
 
-## JSON 语法
+## JSON Syntax
 
-### 两种基本结构
+### Two Basic Structures
 
-JSON 有两种基本结构：
+JSON has two basic structures:
 
-1. **"名称/值"对的集合**：在不同语言中被理解为对象（object）、纪录（record）、结构（struct）、字典（dictionary）、哈希表（hash table）、有键列表（keyed list）或关联数组（associative array）
-2. **值的有序列表**：在大部分语言中被理解为数组（array）
+1. **A collection of name/value pairs**: Understood in different languages as an object, record, struct, dictionary, hash table, keyed list, or associative array.
+2. **An ordered list of values**: Understood in most languages as an array.
 
-这些都是常见的数据结构，大部分现代计算机语言都以某种形式支持它们，使得一种数据格式在同样基于这些结构的编程语言之间交换成为可能。
+These are common data structures. Most modern programming languages support them in some form, making it possible to exchange a data format between languages that are likewise based on these structures.
 
-### 五种数据形式
+### Five Data Forms
 
-#### 1. 对象（Object）
+#### 1. Object
 
-对象是一个无序的"名称/值"对集合。一个对象以 `{`（左括号）开始，`}`（右括号）结束。每个"名称"后跟一个 `:`（冒号）；"名称/值"对之间使用 `,`（逗号）分隔。
+An object is an unordered collection of name/value pairs. An object begins with `{` (left brace) and ends with `}` (right brace). Each name is followed by `:` (colon); name/value pairs are separated by `,` (comma).
 
 ```json
 {
@@ -58,29 +58,29 @@ JSON 有两种基本结构：
 }
 ```
 
-![JSON 对象](../images/json-object.gif)
+![JSON Object](../images/json-object.gif)
 
-#### 2. 数组（Array）
+#### 2. Array
 
-数组是值的有序集合。一个数组以 `[`（左中括号）开始，`]`（右中括号）结束。值之间使用 `,`（逗号）分隔。
+An array is an ordered collection of values. An array begins with `[` (left bracket) and ends with `]` (right bracket). Values are separated by `,` (comma).
 
 ```json
 [1, 2, 3, 4, 5]
 ```
 
-![JSON 数组](../images/json-array.gif)
+![JSON Array](../images/json-array.gif)
 
-#### 3. 值（Value）
+#### 3. Value
 
-值可以是：
-- 双引号括起来的字符串（string）
-- 数值（number）
-- 布尔值（true/false）
-- 空值（null）
-- 对象（object）
-- 数组（array）
+A value can be:
+- A string in double quotes (string)
+- A number
+- A boolean (true/false)
+- A null value (null)
+- An object
+- An array
 
-这些结构可以嵌套。
+These structures can be nested.
 
 ```json
 {
@@ -95,24 +95,24 @@ JSON 有两种基本结构：
 }
 ```
 
-![JSON 值](../images/json-value.gif)
+![JSON Value](../images/json-value.gif)
 
-#### 4. 字符串（String）
+#### 4. String
 
-字符串是由双引号包围的任意数量 Unicode 字符的集合，使用反斜线转义。一个字符（character）即一个单独的字符串（character string）。
+A string is a collection of any number of Unicode characters enclosed in double quotes, escaped with backslashes. A character is a single character string.
 
-字符串与 C 或者 Java 的字符串非常相似。
+Strings are very similar to strings in C or Java.
 
 ```json
 "Hello, World!"
-"这是一个中文字符串"
+"This is an English string"
 ```
 
-![JSON 字符串](../images/json-string.gif)
+![JSON String](../images/json-string.gif)
 
-#### 5. 数值（Number）
+#### 5. Number
 
-数值与 C 或者 Java 的数值非常相似，但未曾使用八进制与十六进制格式。
+Numbers are very similar to numbers in C or Java, but octal and hexadecimal formats are not used.
 
 ```json
 42
@@ -121,17 +121,17 @@ JSON 有两种基本结构：
 1e10
 ```
 
-![JSON 数值](../images/json-number.gif)
+![JSON Number](../images/json-number.gif)
 
-## 设备节点结构
+## Device Node Structure
 
-### dtnode 结构体定义
+### dtnode Structure Definition
 
-XSTAR 规定设备树中描述的每一个设备节点都是一个 JSON 对象，对象里面可以包含各种形式的键值对。每个设备节点包含如下关键信息：
+XSTAR requires that every device node described in the device tree is a JSON object, which can contain various forms of key-value pairs. Each device node contains the following key information:
 
-- 设备节点名称
-- 设备自动分配起始索引或设备物理地址
-- 具体的 JSON 对象
+- Device node name
+- Device auto-allocation starting index or device physical address
+- The concrete JSON object
 
 ```c
 struct dtnode_t {
@@ -142,24 +142,24 @@ struct dtnode_t {
 };
 ```
 
-### 字段说明
+### Field Description
 
-- **name**：设备节点名称，对应驱动名称
-- **id**：设备自动分配的起始索引 ID
-- **addr**：设备物理地址
-- **value**：包含设备属性的 JSON 对象
+- **name**: Device node name, corresponding to the driver name
+- **id**: Device auto-assigned starting index ID
+- **addr**: Device physical address
+- **value**: The JSON object containing the device properties
 
-## 获取设备节点信息
+## Getting Device Node Info
 
-### 设备节点命名格式
+### Device Node Naming Format
 
-设备节点的命名格式为：`"driver-name:id"` 或 `"driver-name:0xaddress"`
+The device node naming format is: `"driver-name:id"` or `"driver-name:0xaddress"`
 
-- **driver-name**：驱动名称，自动匹配同名驱动
-- **id**：设备分配的起始索引 ID（数值）
-- **0xaddress**：设备物理地址（十六进制格式）
+- **driver-name**: Driver name, automatically matches a driver with the same name
+- **id**: Starting index ID assigned to the device (numeric)
+- **0xaddress**: Device physical address (hexadecimal format)
 
-### 示例节点
+### Example Nodes
 
 ```json
 {
@@ -183,99 +183,99 @@ struct dtnode_t {
 }
 ```
 
-### 获取设备节点名称
+### Getting the Device Node Name
 
-获取 `:` 左侧部分，这个节点名称就是对应的驱动名称。在依据设备树添加设备时，会自动匹配同名驱动。
+Get the part to the left of `:`; this node name is the corresponding driver name. When adding a device based on the device tree, a driver with the same name is automatically matched.
 
-**函数原型：**
+**Function prototype:**
 ```c
 const char * dt_read_name(struct dtnode_t * n);
 ```
 
-**使用示例：**
+**Usage example:**
 ```c
 const char * name = dt_read_name(n);
 ```
 
-**设备匹配顺序：**
-写在设备树前面的设备节点先匹配，写在后面的设备节点后匹配。这提供了优先级机制，解决设备间互相依赖的问题。
+**Device matching order:**
+Device nodes written earlier in the device tree are matched first, and nodes written later are matched later. This provides a priority mechanism to resolve inter-device dependencies.
 
-如果一个设备依赖于另一个设备，该设备的节点必须写在依赖设备的后面。如果顺序颠倒，在注册设备时会因找不到依赖设备而出现注册失败。
+If a device depends on another device, its node must be written after the dependency device. If the order is reversed, registration will fail because the dependency device cannot be found when registering the device.
 
-**设备节点排列建议：**
-- 最前面：底层驱动设备（如 `clk`、`irq`、`gpio`）
-- 后面：高等级设备（如 `framebuffer`、`uart`）
+**Device node ordering recommendations:**
+- At the very front: low-level driver devices (e.g. `clk`, `irq`, `gpio`)
+- After: higher-level devices (e.g. `framebuffer`, `uart`)
 
-### 获取设备自动分配起始索引
+### Getting the Auto-Allocation Starting Index
 
-获取 `:` 右侧部分（数值类型）。起始索引 ID 主要用于同一个驱动注册多个设备时，可以手动指定设备尾缀，以 `.0`、`.1`、`.2` 等形式存在。
+Get the part to the right of `:` (numeric type). The starting index ID is mainly used when the same driver registers multiple devices; you can manually specify the device suffix, which exists in the form `.0`, `.1`, `.2`, etc.
 
-**函数原型：**
+**Function prototype:**
 ```c
 int dt_read_id(struct dtnode_t * n);
 ```
 
-**使用示例：**
+**Usage example:**
 ```c
 int id = dt_read_id(n);
 ```
 
-**设备尾缀分配规则：**
-- 如果设备节点提供了 ID，则使用指定的尾缀
-- 如果该尾缀已被占用，则自动加一，直到找到空闲尾缀
-- 如果设备节点没有提供 ID，则从 `.0` 开始
+**Device suffix allocation rules:**
+- If the device node provides an ID, the specified suffix is used.
+- If that suffix is already taken, it is incremented by one until a free suffix is found.
+- If the device node does not provide an ID, it starts from `.0`.
 
-### 获取设备物理地址
+### Getting the Device Physical Address
 
-这个函数与获取自动分配起始索引几乎一模一样，唯一的差异是返回值的类型。
+This function is almost identical to getting the auto-allocation starting index; the only difference is the return value type.
 
-**函数原型：**
+**Function prototype:**
 ```c
 uint64_t dt_read_address(struct dtnode_t * n);
 ```
 
-**使用示例：**
+**Usage example:**
 ```c
 uint64_t addr = dt_read_address(n);
 ```
 
-**设备节点形态：**
-- 带设备物理地址的节点（如 `uart-pl011:0x10009000`）
-- 不带设备物理地址的节点（如 `led-gpio:0`）
+**Device node forms:**
+- Nodes with a device physical address (e.g. `uart-pl011:0x10009000`)
+- Nodes without a device physical address (e.g. `led-gpio:0`)
 
-两种形态在描述设备时不加以区分，仅在注册设备时，驱动才显式调用对应的方法获取设备信息。
+The two forms are not distinguished when describing devices; only when registering a device does the driver explicitly call the corresponding method to get the device information.
 
-## 访问设备节点属性
+## Accessing Device Node Properties
 
-设备节点对象包含各种形式的键值对，包括布尔逻辑、整型、浮点、字符串、对象、数组。
+A device node object contains various forms of key-value pairs, including booleans, integers, floating-point numbers, strings, objects, and arrays.
 
-每个具体的实现函数都提供了默认值参数，如果找不到该键值对，就返回传递的默认值。
+Each concrete implementation function provides a default value parameter. If the key-value pair cannot be found, the passed default value is returned.
 
-### 读取布尔值
+### Reading a Boolean
 
-**函数原型：**
+**Function prototype:**
 ```c
 int dt_read_bool(struct dtnode_t * n, const char * name, int def);
 ```
 
-**参数说明：**
-- `n`：设备节点
-- `name`：属性名称
-- `def`：默认值
+**Parameters:**
+- `n`: Device node
+- `name`: Property name
+- `def`: Default value
 
-**返回值：**
-- 如果属性存在且为布尔类型，返回其值（0 或 1）
-- 否则返回默认值
+**Return value:**
+- If the property exists and is a boolean, returns its value (0 or 1)
+- Otherwise returns the default value
 
-**使用示例：**
+**Usage example:**
 ```c
 int active_low = dt_read_bool(n, "active-low", FALSE);
 if(active_low) {
-    /* 激活低电平 */
+    /* Active low */
 }
 ```
 
-**配置示例：**
+**Configuration example:**
 ```json
 {
   "led-gpio:0": {
@@ -284,31 +284,31 @@ if(active_low) {
 }
 ```
 
-### 读取整型数据
+### Reading an Integer
 
-**函数原型：**
+**Function prototype:**
 ```c
 int dt_read_int(struct dtnode_t * n, const char * name, int def);
 ```
 
-**参数说明：**
-- `n`：设备节点
-- `name`：属性名称
-- `def`：默认值
+**Parameters:**
+- `n`: Device node
+- `name`: Property name
+- `def`: Default value
 
-**返回值：**
-- 如果属性存在且为整型，返回其值
-- 否则返回默认值
+**Return value:**
+- If the property exists and is an integer, returns its value
+- Otherwise returns the default value
 
-**使用示例：**
+**Usage example:**
 ```c
 int gpio = dt_read_int(n, "gpio", -1);
 if(gpio >= 0) {
-    /* 使用 GPIO */
+    /* Use GPIO */
 }
 ```
 
-**配置示例：**
+**Configuration example:**
 ```json
 {
   "uart-pl011:0x10009000": {
@@ -320,28 +320,28 @@ if(gpio >= 0) {
 }
 ```
 
-### 读取长整型数据
+### Reading a Long Integer
 
-**函数原型：**
+**Function prototype:**
 ```c
 long long dt_read_long(struct dtnode_t * n, const char * name, long long def);
 ```
 
-**参数说明：**
-- `n`：设备节点
-- `name`：属性名称
-- `def`：默认值
+**Parameters:**
+- `n`: Device node
+- `name`: Property name
+- `def`: Default value
 
-**返回值：**
-- 如果属性存在且为长整型，返回其值
-- 否则返回默认值
+**Return value:**
+- If the property exists and is a long integer, returns its value
+- Otherwise returns the default value
 
-**使用示例：**
+**Usage example:**
 ```c
 long long freq = dt_read_long(n, "clock-frequency", 24000000LL);
 ```
 
-**配置示例：**
+**Configuration example:**
 ```json
 {
   "clk-fixed:0": {
@@ -350,9 +350,9 @@ long long freq = dt_read_long(n, "clock-frequency", 24000000LL);
 }
 ```
 
-### 读取无符号定宽整型
+### Reading Unsigned Fixed-Width Integers
 
-提供 8/16/32/64 位的无符号定宽整型读取函数：
+Provides 8/16/32/64-bit unsigned fixed-width integer read functions:
 
 ```c
 uint8_t  dt_read_u8(struct dtnode_t * n, const char * name, uint8_t def);
@@ -361,28 +361,28 @@ uint32_t dt_read_u32(struct dtnode_t * n, const char * name, uint32_t def);
 uint64_t dt_read_u64(struct dtnode_t * n, const char * name, uint64_t def);
 ```
 
-### 读取浮点型数据
+### Reading a Floating-Point Number
 
-**函数原型：**
+**Function prototype:**
 ```c
 double dt_read_double(struct dtnode_t * n, const char * name, double def);
 ```
 
-**参数说明：**
-- `n`：设备节点
-- `name`：属性名称
-- `def`：默认值
+**Parameters:**
+- `n`: Device node
+- `name`: Property name
+- `def`: Default value
 
-**返回值：**
-- 如果属性存在且为浮点型，返回其值
-- 否则返回默认值
+**Return value:**
+- If the property exists and is a floating-point number, returns its value
+- Otherwise returns the default value
 
-**使用示例：**
+**Usage example:**
 ```c
 double voltage = dt_read_double(n, "reference-voltage", 3.3);
 ```
 
-**配置示例：**
+**Configuration example:**
 ```json
 {
   "adc-linux:0": {
@@ -392,31 +392,31 @@ double voltage = dt_read_double(n, "reference-voltage", 3.3);
 }
 ```
 
-### 读取字符串
+### Reading a String
 
-**函数原型：**
+**Function prototype:**
 ```c
 char * dt_read_string(struct dtnode_t * n, const char * name, char * def);
 ```
 
-**参数说明：**
-- `n`：设备节点
-- `name`：属性名称
-- `def`：默认值
+**Parameters:**
+- `n`: Device node
+- `name`: Property name
+- `def`: Default value
 
-**返回值：**
-- 如果属性存在且为字符串类型，返回其值
-- 否则返回默认值
+**Return value:**
+- If the property exists and is a string, returns its value
+- Otherwise returns the default value
 
-**使用示例：**
+**Usage example:**
 ```c
 const char * device = dt_read_string(n, "device", NULL);
 if(device) {
-    /* 使用设备路径 */
+    /* Use the device path */
 }
 ```
 
-**配置示例：**
+**Configuration example:**
 ```json
 {
   "gpio-v1-linux:0": {
@@ -426,23 +426,23 @@ if(device) {
 }
 ```
 
-### 读取 JSON 对象
+### Reading a JSON Object
 
-**函数原型：**
+**Function prototype:**
 ```c
 struct dtnode_t * dt_read_object(struct dtnode_t * n, const char * name, struct dtnode_t * o);
 ```
 
-**参数说明：**
-- `n`：设备节点
-- `name`：属性名称
-- `o`：用于存储结果的设备节点
+**Parameters:**
+- `n`: Device node
+- `name`: Property name
+- `o`: Device node used to store the result
 
-**返回值：**
-- 如果属性存在且为对象类型，返回设备节点指针
-- 否则返回 NULL
+**Return value:**
+- If the property exists and is an object, returns the device node pointer
+- Otherwise returns NULL
 
-**使用示例：**
+**Usage example:**
 ```c
 struct dtnode_t subnode;
 if(dt_read_object(n, "sub-node", &subnode)) {
@@ -450,7 +450,7 @@ if(dt_read_object(n, "sub-node", &subnode)) {
 }
 ```
 
-**配置示例：**
+**Configuration example:**
 ```json
 {
   "my-device:0": {
@@ -461,31 +461,31 @@ if(dt_read_object(n, "sub-node", &subnode)) {
 }
 ```
 
-### 读取数组长度
+### Reading the Array Length
 
-**函数原型：**
+**Function prototype:**
 ```c
 int dt_read_array_length(struct dtnode_t * n, const char * name);
 ```
 
-**参数说明：**
-- `n`：设备节点
-- `name`：数组属性名称
+**Parameters:**
+- `n`: Device node
+- `name`: Array property name
 
-**返回值：**
-- 如果属性存在且为数组类型，返回数组长度
-- 否则返回 0
+**Return value:**
+- If the property exists and is an array, returns the array length
+- Otherwise returns 0
 
-**使用示例：**
+**Usage example:**
 ```c
 int len = dt_read_array_length(n, "gpio-list");
 for(int i = 0; i < len; i++) {
     int gpio = dt_read_array_int(n, "gpio-list", i, -1);
-    /* 处理每个 GPIO */
+    /* Process each GPIO */
 }
 ```
 
-**配置示例：**
+**Configuration example:**
 ```json
 {
   "led-gpio:0": {
@@ -494,63 +494,63 @@ for(int i = 0; i < len; i++) {
 }
 ```
 
-### 读取数组中的布尔值
+### Reading a Boolean from an Array
 
-**函数原型：**
+**Function prototype:**
 ```c
 int dt_read_array_bool(struct dtnode_t * n, const char * name, int idx, int def);
 ```
 
-**参数说明：**
-- `n`：设备节点
-- `name`：数组属性名称
-- `idx`：数组索引
-- `def`：默认值
+**Parameters:**
+- `n`: Device node
+- `name`: Array property name
+- `idx`: Array index
+- `def`: Default value
 
-**返回值：**
-- 如果数组索引有效且为布尔类型，返回其值
-- 否则返回默认值
+**Return value:**
+- If the array index is valid and is a boolean, returns its value
+- Otherwise returns the default value
 
-### 读取数组中的整型数据
+### Reading an Integer from an Array
 
-**函数原型：**
+**Function prototype:**
 ```c
 int dt_read_array_int(struct dtnode_t * n, const char * name, int idx, int def);
 ```
 
-**参数说明：**
-- `n`：设备节点
-- `name`：数组属性名称
-- `idx`：数组索引
-- `def`：默认值
+**Parameters:**
+- `n`: Device node
+- `name`: Array property name
+- `idx`: Array index
+- `def`: Default value
 
-**返回值：**
-- 如果数组索引有效且为整型，返回其值
-- 否则返回默认值
+**Return value:**
+- If the array index is valid and is an integer, returns its value
+- Otherwise returns the default value
 
-**使用示例：**
+**Usage example:**
 ```c
 int gpio = dt_read_array_int(n, "gpio-list", 0, -1);
 ```
 
-### 读取数组中的长整型数据
+### Reading a Long Integer from an Array
 
-**函数原型：**
+**Function prototype:**
 ```c
 long long dt_read_array_long(struct dtnode_t * n, const char * name, int idx, long long def);
 ```
 
-**参数说明：**
-- `n`：设备节点
-- `name`：数组属性名称
-- `idx`：数组索引
-- `def`：默认值
+**Parameters:**
+- `n`: Device node
+- `name`: Array property name
+- `idx`: Array index
+- `def`: Default value
 
-**返回值：**
-- 如果数组索引有效且为长整型，返回其值
-- 否则返回默认值
+**Return value:**
+- If the array index is valid and is a long integer, returns its value
+- Otherwise returns the default value
 
-### 读取数组中的无符号定宽整型
+### Reading Unsigned Fixed-Width Integers from an Array
 
 ```c
 uint8_t  dt_read_array_u8(struct dtnode_t * n, const char * name, int idx, uint8_t def);
@@ -559,41 +559,41 @@ uint32_t dt_read_array_u32(struct dtnode_t * n, const char * name, int idx, uint
 uint64_t dt_read_array_u64(struct dtnode_t * n, const char * name, int idx, uint64_t def);
 ```
 
-### 读取数组中的浮点型数据
+### Reading a Floating-Point Number from an Array
 
-**函数原型：**
+**Function prototype:**
 ```c
 double dt_read_array_double(struct dtnode_t * n, const char * name, int idx, double def);
 ```
 
-**参数说明：**
-- `n`：设备节点
-- `name`：数组属性名称
-- `idx`：数组索引
-- `def`：默认值
+**Parameters:**
+- `n`: Device node
+- `name`: Array property name
+- `idx`: Array index
+- `def`: Default value
 
-**返回值：**
-- 如果数组索引有效且为浮点型，返回其值
-- 否则返回默认值
+**Return value:**
+- If the array index is valid and is a floating-point number, returns its value
+- Otherwise returns the default value
 
-### 读取数组中的字符串
+### Reading a String from an Array
 
-**函数原型：**
+**Function prototype:**
 ```c
 char * dt_read_array_string(struct dtnode_t * n, const char * name, int idx, char * def);
 ```
 
-**参数说明：**
-- `n`：设备节点
-- `name`：数组属性名称
-- `idx`：数组索引
-- `def`：默认值
+**Parameters:**
+- `n`: Device node
+- `name`: Array property name
+- `idx`: Array index
+- `def`: Default value
 
-**返回值：**
-- 如果数组索引有效且为字符串类型，返回其值
-- 否则返回默认值
+**Return value:**
+- If the array index is valid and is a string, returns its value
+- Otherwise returns the default value
 
-**配置示例：**
+**Configuration example:**
 ```json
 {
   "my-device:0": {
@@ -602,24 +602,24 @@ char * dt_read_array_string(struct dtnode_t * n, const char * name, int idx, cha
 }
 ```
 
-### 读取数组中的 JSON 对象
+### Reading a JSON Object from an Array
 
-**函数原型：**
+**Function prototype:**
 ```c
 struct dtnode_t * dt_read_array_object(struct dtnode_t * n, const char * name, int idx, struct dtnode_t * o);
 ```
 
-**参数说明：**
-- `n`：设备节点
-- `name`：数组属性名称
-- `idx`：数组索引
-- `o`：用于存储结果的设备节点
+**Parameters:**
+- `n`: Device node
+- `name`: Array property name
+- `idx`: Array index
+- `o`: Device node used to store the result
 
-**返回值：**
-- 如果数组索引有效且为对象类型，返回设备节点指针
-- 否则返回 NULL
+**Return value:**
+- If the array index is valid and is an object, returns the device node pointer
+- Otherwise returns NULL
 
-**配置示例：**
+**Configuration example:**
 ```json
 {
   "my-device:0": {
@@ -637,9 +637,9 @@ struct dtnode_t * dt_read_array_object(struct dtnode_t * n, const char * name, i
 }
 ```
 
-## 设备树配置示例
+## Device Tree Configuration Examples
 
-### GPIO 设备配置
+### GPIO Device Configuration
 
 ```json
 {
@@ -650,7 +650,7 @@ struct dtnode_t * dt_read_array_object(struct dtnode_t * n, const char * name, i
 }
 ```
 
-### LED 设备配置
+### LED Device Configuration
 
 ```json
 {
@@ -662,7 +662,7 @@ struct dtnode_t * dt_read_array_object(struct dtnode_t * n, const char * name, i
 }
 ```
 
-### UART 设备配置
+### UART Device Configuration
 
 ```json
 {
@@ -680,7 +680,7 @@ struct dtnode_t * dt_read_array_object(struct dtnode_t * n, const char * name, i
 }
 ```
 
-### I2C 设备配置
+### I2C Device Configuration
 
 ```json
 {
@@ -692,7 +692,7 @@ struct dtnode_t * dt_read_array_object(struct dtnode_t * n, const char * name, i
 }
 ```
 
-### LCD 面板配置
+### LCD Panel Configuration
 
 ```json
 {
@@ -706,7 +706,7 @@ struct dtnode_t * dt_read_array_object(struct dtnode_t * n, const char * name, i
 }
 ```
 
-### 时钟设备配置
+### Clock Device Configuration
 
 ```json
 {
@@ -716,7 +716,7 @@ struct dtnode_t * dt_read_array_object(struct dtnode_t * n, const char * name, i
 }
 ```
 
-### ADC 设备配置
+### ADC Device Configuration
 
 ```json
 {
@@ -728,7 +728,7 @@ struct dtnode_t * dt_read_array_object(struct dtnode_t * n, const char * name, i
 }
 ```
 
-### 复杂设备树示例
+### Complex Device Tree Example
 
 ```json
 {
@@ -759,13 +759,13 @@ struct dtnode_t * dt_read_array_object(struct dtnode_t * n, const char * name, i
 }
 ```
 
-## 设备引用
+## Device References
 
-### 引用其他设备
+### Referencing Other Devices
 
-设备属性可以引用其他设备，通过 `"driver-name:id"` 格式指定。
+Device properties can reference other devices, specified via the `"driver-name:id"` format.
 
-**示例：**
+**Example:**
 ```json
 {
     "i2c-t113:0": {
@@ -787,7 +787,7 @@ struct dtnode_t * dt_read_array_object(struct dtnode_t * n, const char * name, i
 }
 ```
 
-**代码中解析引用：**
+**Parsing the reference in code:**
 ```c
 static struct device_t * my_device_probe(struct driver_t * drv, struct dtnode_t * n)
 {
@@ -797,22 +797,22 @@ static struct device_t * my_device_probe(struct driver_t * drv, struct dtnode_t 
     if(!i2c)
         return NULL;
 
-    /* 使用 i2c */
+    /* Use i2c */
     return register_my_device(drv, pdat);
 }
 ```
 
-### 引用规则
+### Reference Rules
 
-- 被引用的设备必须在引用设备之前定义
-- 引用格式为 `"driver-name:id"` 或 `"driver-name:0xaddress"`
-- 系统在解析设备树时会自动解析引用关系
+- The referenced device must be defined before the referencing device
+- The reference format is `"driver-name:id"` or `"driver-name:0xaddress"`
+- The system automatically resolves references when parsing the device tree
 
-### 禁用设备
+### Disabling a Device
 
-可以通过 `"status": "disabled"` 来禁用某个设备。
+A device can be disabled via `"status": "disabled"`.
 
-**示例：**
+**Example:**
 ```json
 {
   "my-device:0": {
@@ -821,9 +821,9 @@ static struct device_t * my_device_probe(struct driver_t * drv, struct dtnode_t 
 }
 ```
 
-## API 参考
+## API Reference
 
-### 获取设备节点信息
+### Getting Device Node Info
 
 ```c
 const char * dt_read_name(struct dtnode_t * n);
@@ -831,7 +831,7 @@ int dt_read_id(struct dtnode_t * n);
 uint64_t dt_read_address(struct dtnode_t * n);
 ```
 
-### 读取简单属性
+### Reading Simple Properties
 
 ```c
 int dt_read_bool(struct dtnode_t * n, const char * name, int def);
@@ -845,13 +845,13 @@ double dt_read_double(struct dtnode_t * n, const char * name, double def);
 char * dt_read_string(struct dtnode_t * n, const char * name, char * def);
 ```
 
-### 读取对象属性
+### Reading Object Properties
 
 ```c
 struct dtnode_t * dt_read_object(struct dtnode_t * n, const char * name, struct dtnode_t * o);
 ```
 
-### 读取数组属性
+### Reading Array Properties
 
 ```c
 int dt_read_array_length(struct dtnode_t * n, const char * name);
@@ -867,81 +867,81 @@ char * dt_read_array_string(struct dtnode_t * n, const char * name, int idx, cha
 struct dtnode_t * dt_read_array_object(struct dtnode_t * n, const char * name, int idx, struct dtnode_t * o);
 ```
 
-## 最佳实践
+## Best Practices
 
-### 1. 设备树组织
+### 1. Device Tree Organization
 
-- 将底层设备放在前面（如 `clk`、`irq`、`gpio`）
-- 将高层设备放在后面（如 `framebuffer`、`uart`）
-- 保持依赖关系正确：被依赖的设备必须先定义
+- Place low-level devices first (e.g. `clk`, `irq`, `gpio`)
+- Place high-level devices later (e.g. `framebuffer`, `uart`)
+- Keep dependencies correct: depended-upon devices must be defined first
 
-### 2. 属性命名
+### 2. Property Naming
 
-- 使用小写字母和连字符（kebab-case）
-- 名称要具有描述性
-- 保持命名一致性
+- Use lowercase letters and hyphens (kebab-case)
+- Names should be descriptive
+- Keep naming consistent
 
-### 3. 默认值
+### 3. Default Values
 
-- 为所有可选属性提供合理的默认值
-- 使用 `-1` 作为无效的 GPIO 引脚号
-- 使用 `0` 作为禁用或关闭的标志
+- Provide reasonable default values for all optional properties
+- Use `-1` for invalid GPIO pin numbers
+- Use `0` as the flag for disabled or off
 
-### 4. 错误处理
+### 4. Error Handling
 
-- 始终检查返回值
-- 提供有意义的默认值
-- 在日志中记录解析错误
+- Always check return values
+- Provide meaningful default values
+- Log parsing errors
 
-### 5. 文档说明
+### 5. Documentation
 
-- 为每个设备类型编写配置示例
-- 说明每个属性的作用和取值范围
-- 提供完整的设备树示例
+- Write configuration examples for each device type
+- Explain the purpose and value range of each property
+- Provide complete device tree examples
 
-## 设备树文件加载
+## Device Tree File Loading
 
-### 加载机制
+### Loading Mechanism
 
-设备树文件通过 `xstar_init` 函数的 `json` 参数指定。函数原型如下：
+The device tree file is specified via the `json` parameter of the `xstar_init` function. The function prototype is:
 
 ```c
 void xstar_init(struct xos_environ_t * env, const char * json);
 ```
 
-**参数说明：**
-- `env`：系统环境参数
-- `json`：设备树文件路径
+**Parameters:**
+- `env`: System environment parameters
+- `json`: Device tree file path
 
-**默认路径：**
-如果 `json` 参数为 `NULL`，系统将自动使用默认路径 `/romdisk/boot/boot.json`。
+**Default path:**
+If the `json` parameter is `NULL`, the system automatically uses the default path `/romdisk/boot/boot.json`.
 
-**使用示例：**
+**Usage example:**
 
 ```c
 xstar_init(&env, "/romdisk/boot/custom.json");
 ```
 
-或使用默认设备树：
+Or use the default device tree:
 
 ```c
 xstar_init(&env, NULL);
 ```
 
-### 加载流程
+### Loading Flow
 
-系统启动时的设备树加载流程如下：
+The device tree loading flow at system startup is:
 
-1. `xstar_init` 被调用，接收 `json` 参数
-2. 调用 `do_init_dtree(json)` 初始化设备树
-3. `do_init_dtree` 检查 `json` 参数：
-   - 如果不为 `NULL`，使用指定的文件路径
-   - 如果为 `NULL`，使用默认路径 `/romdisk/boot/boot.json`
-4. 从文件系统读取设备树 JSON 文件内容
-5. 解析 JSON 并调用 `probe_device` 注册所有设备
+1. `xstar_init` is called, receiving the `json` parameter
+2. `do_init_dtree(json)` is called to initialize the device tree
+3. `do_init_dtree` checks the `json` parameter:
+   - If not `NULL`, uses the specified file path
+   - If `NULL`, uses the default path `/romdisk/boot/boot.json`
+4. Reads the device tree JSON file content from the file system
+5. Parses the JSON and calls `probe_device` to register all devices
 
-## 总结
+## Summary
 
-设备树是 XSTAR 系统的核心配置机制，通过 JSON 格式描述所有设备的属性和配置。设备树文件可以通过 `xstar_init` 函数的参数指定，或使用默认的 `/romdisk/boot/boot.json`。
+The device tree is the core configuration mechanism of the XSTAR system, describing the properties and configuration of all devices in JSON format. The device tree file can be specified via the parameter of the `xstar_init` function, or the default `/romdisk/boot/boot.json` can be used.
 
-设备树操作 API 使用请参考各种驱动实现。
+For device tree API usage, refer to the various driver implementations.

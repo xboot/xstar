@@ -1,28 +1,28 @@
-# XSTAR 开发指南
+# XSTAR Development Guide
 
-本文档提供 XSTAR 开发的详细指南，包括代码规范、驱动开发、命令开发、测试等内容。
+This document provides a detailed guide for XSTAR development, including code conventions, driver development, command development, testing, and more.
 
-## 目录
+## Table of Contents
 
-- [代码规范](#代码规范)
-- [驱动开发](#驱动开发)
-- [命令开发](#命令开发)
-- [内核子系统开发](#内核子系统开发)
-- [测试开发](#测试开发)
-- [XOS 平台移植](#xos-平台移植)
-- [常见开发任务](#常见开发任务)
-- [调试技巧](#调试技巧)
+- [Code Conventions](#code-conventions)
+- [Driver Development](#driver-development)
+- [Command Development](#command-development)
+- [Kernel Subsystem Development](#kernel-subsystem-development)
+- [Test Development](#test-development)
+- [XOS Platform Porting](#xos-platform-porting)
+- [Common Development Tasks](#common-development-tasks)
+- [Debugging Tips](#debugging-tips)
 
-## 代码规范
+## Code Conventions
 
-### 文件命名
+### File Naming
 
-- 源文件：`kebab-case.c`（如 `clk-fixed.c`、`i2c-gpio.c`）
-- 头文件：`kebab-case.h`（与源文件同名）
+- Source files: `kebab-case.c` (e.g. `clk-fixed.c`, `i2c-gpio.c`)
+- Header files: `kebab-case.h` (same name as the source file)
 
-### 文件头注释
+### File Header Comment
 
-每个源文件必须包含 MIT 许可证头：
+Every source file must contain the MIT license header:
 
 ```c
 /*
@@ -50,35 +50,35 @@
  */
 ```
 
-### 代码格式
+### Code Format
 
-- **缩进**：使用 Tab（不使用空格）
-- **行宽**：约 120 字符（不严格强制，但保持合理）
-- **大括号**：函数和控制结构使用 Allman 风格（左大括号在下一行）；struct/enum 定义和初始化列表使用 K&R 风格（左大括号在同一行）
-- **注释**：尽量减少注释，不主动添加代码注释（除非明确要求）；现有代码中的设备树文档注释和结构体字段注释仅供参考
+- **Indentation**: Use tabs (not spaces)
+- **Line width**: About 120 characters (not strictly enforced, but keep it reasonable)
+- **Braces**: Functions and control structures use Allman style (opening brace on the next line); struct/enum definitions and initializer lists use K&R style (opening brace on the same line)
+- **Comments**: Keep comments to a minimum; do not proactively add code comments (unless explicitly required); existing device-tree documentation comments and struct field comments in the code are for reference only
 
-### 命名规范
+### Naming Conventions
 
-- **函数**：`snake_case`（如 `clk_fixed_probe`、`register_driver`）
-- **变量**：`snake_case`（如 `pdat`、`rate`、`kobj`）
-- **类型**：`snake_case_t` 后缀（如 `struct driver_t`、`enum device_type_t`）
-- **常量**：`ALL_CAPS_WITH_UNDERSCORES`（如 `DEVICE_TYPE_MAX_COUNT`、`TRUE`、`FALSE`）
-- **宏**：`ALL_CAPS`（如 `ARRAY_SIZE`、`container_of`、`offsetof`）
+- **Functions**: `snake_case` (e.g. `clk_fixed_probe`, `register_driver`)
+- **Variables**: `snake_case` (e.g. `pdat`, `rate`, `kobj`)
+- **Types**: `snake_case_t` suffix (e.g. `struct driver_t`, `enum device_type_t`)
+- **Constants**: `ALL_CAPS_WITH_UNDERSCORES` (e.g. `DEVICE_TYPE_MAX_COUNT`, `TRUE`, `FALSE`)
+- **Macros**: `ALL_CAPS` (e.g. `ARRAY_SIZE`, `container_of`, `offsetof`)
 
-### 头文件保护
+### Header Guards
 
-格式：`__PATH_TO_FILE_H__`，示例：
+Format: `__PATH_TO_FILE_H__`. Example:
 
 ```c
 #ifndef __XSTAR_DRIVER_CLK_H__
 #define __XSTAR_DRIVER_CLK_H__
 
-/* 头文件内容 */
+/* Header content */
 
 #endif /* __XSTAR_DRIVER_CLK_H__ */
 ```
 
-### 包含顺序
+### Include Order
 
 ```c
 #include <xstar.h>
@@ -89,17 +89,17 @@
 #include <libx/json.h>
 ```
 
-1. 本地项目头文件（`#include <xstar.h>` 或 `#include <xos/xos.h>`）
-2. 驱动/内核头文件（如 `#include <driver/clk/clk.h>`）
-3. LibX 头文件（如 `#include <libx/json.h>`）
-4. 标准/外部头文件（如果有）
+1. Local project headers (`#include <xstar.h>` or `#include <xos/xos.h>`)
+2. Driver/kernel headers (e.g. `#include <driver/clk/clk.h>`)
+3. LibX headers (e.g. `#include <libx/json.h>`)
+4. Standard/external headers (if any)
 
-### 错误处理
+### Error Handling
 
-- 布尔函数：成功返回 `TRUE`，失败返回 `FALSE`
-- 指针函数：成功返回指针，失败返回 `NULL`
-- 始终检查返回值
-- 错误路径中清理分配的资源
+- Boolean functions: return `TRUE` on success, `FALSE` on failure
+- Pointer functions: return a pointer on success, `NULL` on failure
+- Always check return values
+- Free allocated resources in the error path
 
 ```c
 static struct device_t * my_probe(struct driver_t * drv, struct dtnode_t * n)
@@ -118,50 +118,50 @@ static struct device_t * my_probe(struct driver_t * drv, struct dtnode_t * n)
         return NULL;
     }
 
-    /* 初始化和注册 */
+    /* Initialize and register */
 
     return dev;
 }
 ```
 
-### 类型使用
+### Type Usage
 
-使用标准类型（通过 `<xos/xos.h>` 经 `<xstarcfg.h>` 提供）：
+Use standard types (provided via `<xos/xos.h>` through `<xstarcfg.h>`):
 
-- `uint8_t`、`uint16_t`、`uint32_t`、`uint64_t`
-- `int8_t`、`int16_t`、`int32_t`、`int64_t`
-- `size_t`、`ssize_t`
+- `uint8_t`, `uint16_t`, `uint32_t`, `uint64_t`
+- `int8_t`, `int16_t`, `int32_t`, `int64_t`
+- `size_t`, `ssize_t`
 - `io_addr_t`
-- `NULL`、`TRUE`、`FALSE`（从 `libx/xdef.h`）
+- `NULL`, `TRUE`, `FALSE` (from `libx/xdef.h`)
 
-## 驱动开发
+## Driver Development
 
-### 驱动模板
+### Driver Template
 
 ```c
 #include <xstar.h>
 #include <driver/xxx/xxx.h>
 
 struct xxx_pdata_t {
-    /* 私有数据 */
+    /* Private data */
 };
 
 static struct device_t * xxx_probe(struct driver_t * drv, struct dtnode_t * n)
 {
     struct xxx_pdata_t *pdat;
 
-    /* 解析设备树属性 */
+    /* Parse device tree properties */
     const char *name = dt_read_string(n, "name", NULL);
     int value = dt_read_int(n, "value", 0);
 
-    /* 分配私有数据 */
+    /* Allocate private data */
     pdat = xos_mem_malloc(sizeof(struct xxx_pdata_t));
     if(!pdat)
         return NULL;
 
-    /* 初始化硬件 */
+    /* Initialize hardware */
 
-    /* 创建并注册设备 */
+    /* Create and register the device */
     return register_xxx(drv, pdat);
 }
 
@@ -169,7 +169,7 @@ static void xxx_remove(struct device_t * dev)
 {
     struct xxx_pdata_t *pdat = (struct xxx_pdata_t *)dev->priv;
 
-    /* 释放资源 */
+    /* Release resources */
 
     xos_mem_free(pdat);
 }
@@ -204,9 +204,9 @@ driver_initcall(xxx_driver_init);
 driver_exitcall(xxx_driver_exit);
 ```
 
-### 设备树配置
+### Device Tree Configuration
 
-在 `romdisk/boot/boot.json` 中添加设备配置：
+Add the device configuration in `romdisk/boot/boot.json`:
 
 ```json
 {
@@ -217,27 +217,27 @@ driver_exitcall(xxx_driver_exit);
 }
 ```
 
-设备树键名格式为 `"driver-name:id@address"`：
-- `driver-name`：驱动名称，必须与 `driver_t.name` 匹配
-- `id`：设备实例编号（可选）
-- `address`：物理地址（可选）
+The device tree key format is `"driver-name:id@address"`:
+- `driver-name`: Driver name, must match `driver_t.name`
+- `id`: Device instance number (optional)
+- `address`: Physical address (optional)
 
-设置 `"status": "disabled"` 可跳过设备探测。
+Setting `"status": "disabled"` skips device probing.
 
-### 设备属性读取
+### Device Property Reading
 
-| 函数 | 返回类型 | 说明 |
-|------|---------|------|
-| `dt_read_string(n, name, def)` | `char *` | 读取字符串 |
-| `dt_read_int(n, name, def)` | `int` | 读取整数 |
-| `dt_read_long(n, name, def)` | `long long` | 读取长整数 |
-| `dt_read_bool(n, name, def)` | `int` | 读取布尔值 |
-| `dt_read_double(n, name, def)` | `double` | 读取双精度浮点 |
-| `dt_read_object(n, name)` | `struct dtnode_t` | 读取子对象 |
+| Function | Return Type | Description |
+|----------|-------------|-------------|
+| `dt_read_string(n, name, def)` | `char *` | Read a string |
+| `dt_read_int(n, name, def)` | `int` | Read an integer |
+| `dt_read_long(n, name, def)` | `long long` | Read a long integer |
+| `dt_read_bool(n, name, def)` | `int` | Read a boolean |
+| `dt_read_double(n, name, def)` | `double` | Read a double |
+| `dt_read_object(n, name)` | `struct dtnode_t` | Read a sub-object |
 
-### 设备引用
+### Device References
 
-在 JSON 中通过 `"driver-name:id"` 格式引用其他设备：
+Reference other devices in JSON via the `"driver-name:id"` format:
 
 ```json
 {
@@ -248,7 +248,7 @@ driver_exitcall(xxx_driver_exit);
 }
 ```
 
-在代码中解析引用并查找设备：
+Parse the reference in code and look up the device:
 
 ```c
 static struct device_t * xxx_probe(struct driver_t * drv, struct dtnode_t * n)
@@ -257,39 +257,39 @@ static struct device_t * xxx_probe(struct driver_t * drv, struct dtnode_t * n)
     struct device_t *gpio_dev = search_device(gpio_name, DEVICE_TYPE_GPIOCHIP);
     if(!gpio_dev)
         return NULL;
-    /* 使用 gpio_dev */
+    /* Use gpio_dev */
 }
 ```
 
-### Kbuild 文件
+### Kbuild File
 
-在驱动目录下创建 `Kbuild` 文件：
+Create a `Kbuild` file in the driver directory:
 
 ```makefile
 obj-y += core.o
 obj-$(CONFIG_DRV_XXX) += xxx-driver.o
 ```
 
-### 设备类型
+### Device Types
 
-系统定义了 51 种设备类型（`enum device_type_t`），驱动注册设备时需指定对应类型。常用类型：
+The system defines 51 device types (`enum device_type_t`). When registering a device, the driver must specify the corresponding type. Common types:
 
-| 类别 | 类型枚举 |
-|------|---------|
-| 时钟 | `DEVICE_TYPE_CLK`, `DEVICE_TYPE_CLOCKEVENT`, `DEVICE_TYPE_CLOCKSOURCE` |
+| Category | Type Enum |
+|----------|-----------|
+| Clock | `DEVICE_TYPE_CLK`, `DEVICE_TYPE_CLOCKEVENT`, `DEVICE_TYPE_CLOCKSOURCE` |
 | GPIO | `DEVICE_TYPE_GPIOCHIP`, `DEVICE_TYPE_IRQCHIP`, `DEVICE_TYPE_RESETCHIP` |
-| 通信 | `DEVICE_TYPE_I2C`, `DEVICE_TYPE_SPI`, `DEVICE_TYPE_UART`, `DEVICE_TYPE_NET` |
-| 显示 | `DEVICE_TYPE_FRAMEBUFFER`, `DEVICE_TYPE_G2D`, `DEVICE_TYPE_CONSOLE` |
-| 音频 | `DEVICE_TYPE_AUDIOCAPTURE`, `DEVICE_TYPE_AUDIOPLAYBACK` |
-| 输入 | `DEVICE_TYPE_INPUT`, `DEVICE_TYPE_CAMERA` |
-| 存储 | `DEVICE_TYPE_BLOCK`, `DEVICE_TYPE_NVMEM` |
-| 输出 | `DEVICE_TYPE_LED`, `DEVICE_TYPE_PWM`, `DEVICE_TYPE_SERVO` |
+| Communication | `DEVICE_TYPE_I2C`, `DEVICE_TYPE_SPI`, `DEVICE_TYPE_UART`, `DEVICE_TYPE_NET` |
+| Display | `DEVICE_TYPE_FRAMEBUFFER`, `DEVICE_TYPE_G2D`, `DEVICE_TYPE_CONSOLE` |
+| Audio | `DEVICE_TYPE_AUDIOCAPTURE`, `DEVICE_TYPE_AUDIOPLAYBACK` |
+| Input | `DEVICE_TYPE_INPUT`, `DEVICE_TYPE_CAMERA` |
+| Storage | `DEVICE_TYPE_BLOCK`, `DEVICE_TYPE_NVMEM` |
+| Output | `DEVICE_TYPE_LED`, `DEVICE_TYPE_PWM`, `DEVICE_TYPE_SERVO` |
 
-完整列表参见 `xstar/driver/device.h`。
+See `xstar/driver/device.h` for the complete list.
 
-## 命令开发
+## Command Development
 
-### 命令结构体
+### Command Structure
 
 ```c
 struct command_t
@@ -302,7 +302,7 @@ struct command_t
 };
 ```
 
-### 命令模板
+### Command Template
 
 ```c
 #include <xstar.h>
@@ -347,25 +347,25 @@ command_initcall(mycmd_init);
 command_exitcall(mycmd_exit);
 ```
 
-### 命令使用
+### Command Usage
 
 ```bash
-# 在 Shell 中执行命令
+# Execute the command in the shell
 mycmd
 mycmd arg1 arg2
 ```
 
-### Kbuild 文件
+### Kbuild File
 
 ```makefile
 obj-$(CONFIG_CMD_MYCMD) += cmd-mycmd.o
 ```
 
-命令的 Kconfig 选项前缀为 `CONFIG_CMD_*`，每个命令可单独启用/禁用。核心框架 `command.o` 始终编译（`obj-y`）。
+The Kconfig option prefix for commands is `CONFIG_CMD_*`; each command can be enabled/disabled individually. The core framework `command.o` is always compiled (`obj-y`).
 
-## 内核子系统开发
+## Kernel Subsystem Development
 
-### 子系统接口定义
+### Subsystem Interface Definition
 
 ```c
 /* kernel/mysubsystem/my-subsystem.h */
@@ -389,7 +389,7 @@ int my_subsystem_do_something(struct my_subsystem_handle_t *handle, int arg);
 #endif /* __XSTAR_KERNEL_MYSUBSYSTEM_MY_SUBSYSTEM_H__ */
 ```
 
-### 子系统实现
+### Subsystem Implementation
 
 ```c
 /* kernel/mysubsystem/my-subsystem.c */
@@ -397,7 +397,7 @@ int my_subsystem_do_something(struct my_subsystem_handle_t *handle, int arg);
 #include <kernel/mysubsystem/my-subsystem.h>
 
 struct my_subsystem_handle_t {
-    /* 私有数据 */
+    /* Private data */
 };
 
 struct my_subsystem_handle_t * my_subsystem_open(void)
@@ -408,7 +408,7 @@ struct my_subsystem_handle_t * my_subsystem_open(void)
     if(!handle)
         return NULL;
 
-    /* 初始化 */
+    /* Initialize */
 
     return handle;
 }
@@ -417,7 +417,7 @@ void my_subsystem_close(struct my_subsystem_handle_t *handle)
 {
     if(handle)
     {
-        /* 清理 */
+        /* Cleanup */
         xos_mem_free(handle);
     }
 }
@@ -427,38 +427,38 @@ int my_subsystem_do_something(struct my_subsystem_handle_t *handle, int arg)
     if(!handle)
         return -1;
 
-    /* 实现功能 */
+    /* Implement functionality */
 
     return 0;
 }
 ```
 
-### 子系统初始化
+### Subsystem Initialization
 
 ```c
 static void my_subsystem_init(void)
 {
-    /* 初始化子系统 */
+    /* Initialize the subsystem */
 }
 
 subsys_initcall(my_subsystem_init);
 ```
 
-### Kbuild 文件
+### Kbuild File
 
-内核子系统当前无条件编译，Kbuild 文件使用 `obj-y`：
+Kernel subsystems are currently compiled unconditionally; the Kbuild file uses `obj-y`:
 
 ```makefile
 obj-y += my-subsystem.o
 ```
 
-## 测试开发
+## Test Development
 
-### 测试框架
+### Test Framework
 
-XSTAR 使用 wboxtest 测试框架，位于 `packages/wboxtest-0.0.0/`。
+XSTAR uses the wboxtest testing framework, located at `packages/wboxtest-0.0.0/`.
 
-### 测试结构体
+### Test Structure
 
 ```c
 struct wboxtest_t
@@ -473,13 +473,13 @@ struct wboxtest_t
 };
 ```
 
-### 测试模板
+### Test Template
 
 ```c
 #include <wboxtest.h>
 
 struct wbt_xxx_pdata_t {
-    /* 测试私有数据 */
+    /* Test private data */
 };
 
 static void * xxx_setup(struct wboxtest_t * wbt)
@@ -490,7 +490,7 @@ static void * xxx_setup(struct wboxtest_t * wbt)
     if(!pdat)
         return NULL;
 
-    /* 初始化测试环境 */
+    /* Initialize the test environment */
 
     return pdat;
 }
@@ -501,7 +501,7 @@ static void xxx_clean(struct wboxtest_t * wbt, void * data)
 
     if(pdat)
     {
-        /* 清理测试环境 */
+        /* Clean up the test environment */
         xos_mem_free(pdat);
     }
 }
@@ -513,7 +513,7 @@ static void xxx_run(struct wboxtest_t * wbt, void * data)
     if(!pdat)
         return;
 
-    /* 测试逻辑 */
+    /* Test logic */
     assert_true(condition);
     assert_equal(expected, actual);
 }
@@ -540,62 +540,62 @@ wboxtest_initcall(xxx_wbt_init);
 wboxtest_exitcall(xxx_wbt_exit);
 ```
 
-### 断言宏
+### Assertion Macros
 
-| 宏 | 说明 |
-|-----|------|
-| `assert_null(x)` | 断言为 NULL |
-| `assert_not_null(x)` | 断言不为 NULL |
-| `assert_true(x)` | 断言为真 |
-| `assert_false(x)` | 断言为假 |
-| `assert_equal(a, b)` | 断言相等 |
-| `assert_not_equal(a, b)` | 断言不相等 |
-| `assert_string_equal(a, b)` | 断言字符串相等 |
-| `assert_string_not_equal(a, b)` | 断言字符串不相等 |
-| `assert_memory_equal(a, b, l)` | 断言内存相等 |
-| `assert_memory_not_equal(a, b, l)` | 断言内存不相等 |
-| `assert_inrange(v, min, max)` | 断言在范围内 |
-| `assert_not_inrange(v, min, max)` | 断言不在范围内 |
+| Macro | Description |
+|-------|-------------|
+| `assert_null(x)` | Assert that x is NULL |
+| `assert_not_null(x)` | Assert that x is not NULL |
+| `assert_true(x)` | Assert that x is true |
+| `assert_false(x)` | Assert that x is false |
+| `assert_equal(a, b)` | Assert equality |
+| `assert_not_equal(a, b)` | Assert inequality |
+| `assert_string_equal(a, b)` | Assert strings are equal |
+| `assert_string_not_equal(a, b)` | Assert strings are not equal |
+| `assert_memory_equal(a, b, l)` | Assert memory is equal |
+| `assert_memory_not_equal(a, b, l)` | Assert memory is not equal |
+| `assert_inrange(v, min, max)` | Assert value is in range |
+| `assert_not_inrange(v, min, max)` | Assert value is not in range |
 
-### 测试运行
+### Running Tests
 
 ```bash
-# 运行所有测试
+# Run all tests
 wboxtest
 
-# 列出所有测试
+# List all tests
 wboxtest -l
 
-# 运行指定组的所有测试
+# Run all tests in a group
 wboxtest thread
 
-# 运行指定测试
+# Run a specific test
 wboxtest thread mutex
 
-# 运行指定测试 N 次
+# Run a specific test N times
 wboxtest thread mutex -c 100
 ```
 
-### Kbuild 文件
+### Kbuild File
 
 ```makefile
 obj-$(CONFIG_WBOXTEST_MYGROUP) += xxx.o
 ```
 
-核心框架由 `CONFIG_PKG_WBOXTEST` 控制，子测试组由 `CONFIG_WBOXTEST_*` 控制。
+The core framework is controlled by `CONFIG_PKG_WBOXTEST`, and sub-test groups are controlled by `CONFIG_WBOXTEST_*`.
 
-## XOS 平台移植
+## XOS Platform Porting
 
-移植 XOS 到新平台需要实现 `xos_environ_t` 函数指针表，并在项目 `main.c` 中传递给 `xstar_init()`。
+Porting XOS to a new platform requires implementing the `xos_environ_t` function pointer table and passing it to `xstar_init()` in the project's `main.c`.
 
-### 移植步骤
+### Porting Steps
 
-1. 在项目目录下创建平台实现文件（如 `linux/linux.c` 或 `baremetal/baremetal.c`）
-2. 实现 `xos_environ_t` 中所需的函数指针
-3. 在 `main.c` 中构建 `xos_environ_t` 实例并调用 `xstar_init(&env, NULL)`
-4. 如需协程支持，编写架构特定的协程汇编代码
+1. Create a platform implementation file in the project directory (e.g. `linux/linux.c` or `baremetal/baremetal.c`)
+2. Implement the required function pointers in `xos_environ_t`
+3. Build an `xos_environ_t` instance in `main.c` and call `xstar_init(&env, NULL)`
+4. For coroutine support, write architecture-specific coroutine assembly code
 
-### xos_environ_t 接口
+### xos_environ_t Interface
 
 ```c
 static struct xos_environ_t env = {
@@ -676,7 +676,7 @@ static struct xos_environ_t env = {
         .post = my_semaphore_post,
     },
     .other = {
-        /* 其他平台特定操作 */
+        /* Other platform-specific operations */
     },
 };
 
@@ -691,124 +691,124 @@ int main(int argc, char * argv[])
 }
 ```
 
-`xos_environ_init(env)` 会将非 NULL 的函数指针安装到全局 `__xos_environ` 中，未设置的条目保持默认空实现。
+`xos_environ_init(env)` installs the non-NULL function pointers into the global `__xos_environ`; entries that are not set keep their default empty implementations.
 
-### 协程移植
+### Coroutine Porting
 
-需要为特定架构实现两个协程原语：`coroutine_make` 和 `coroutine_jump`。
+Two coroutine primitives must be implemented for the specific architecture: `coroutine_make` and `coroutine_jump`.
 
 ```c
 /* x64-coroutine.S */
 .global x64_coroutine_make
 x64_coroutine_make:
-    /* 在栈上创建协程上下文，设置入口函数 */
-    /* 参数：RDI=stack, RSI=size, RDX=func */
-    /* 返回：RAX=context pointer */
+    /* Create the coroutine context on the stack, set the entry function */
+    /* Args: RDI=stack, RSI=size, RDX=func */
+    /* Return: RAX=context pointer */
 
 .global x64_coroutine_jump
 x64_coroutine_jump:
-    /* 保存当前上下文，切换到目标上下文 */
-    /* 参数：RDI=target_ctx, RSI=priv */
-    /* 返回：struct co_transfer_t { fctx, priv } */
+    /* Save the current context, switch to the target context */
+    /* Args: RDI=target_ctx, RSI=priv */
+    /* Return: struct co_transfer_t { fctx, priv } */
     stp x19, x20, [x1], #16
-    /* ... 保存/恢复 callee-saved 寄存器 ... */
+    /* ... save/restore callee-saved registers ... */
     ret
 ```
 
-命名规则为 `<arch>_coroutine_make` 和 `<arch>_coroutine_jump`，汇编文件位于项目的平台目录下。
+The naming convention is `<arch>_coroutine_make` and `<arch>_coroutine_jump`, and the assembly file lives in the project's platform directory.
 
-现有架构实现：
-- x64：`projects/x64-linux-sdl-helloworld/linux/x64-coroutine.S`
-- ARM64：裸机项目中的 `arm64-coroutine.S`
-- RISC-V32/64：对应项目中的 `riscv32-coroutine.S` / `riscv64-coroutine.S`
+Existing architecture implementations:
+- x64: `projects/x64-linux-sdl-helloworld/linux/x64-coroutine.S`
+- ARM64: `arm64-coroutine.S` in bare-metal projects
+- RISC-V32/64: `riscv32-coroutine.S` / `riscv64-coroutine.S` in the corresponding projects
 
-## 常见开发任务
+## Common Development Tasks
 
-### 添加新的设备类型
+### Adding a New Device Type
 
-1. 在 `xstar/driver/device.h` 的 `enum device_type_t` 中添加新类型
-2. 在 `xstar/driver/device.c` 中更新 `__device_head` 数组大小和类型名称表
-3. 创建对应的设备接口头文件（如 `xstar/driver/xxx/xxx.h`）
-4. 实现设备注册/搜索函数（如 `register_xxx`、`search_xxx`）
-5. 在驱动中使用新设备类型
+1. Add the new type to `enum device_type_t` in `xstar/driver/device.h`
+2. Update the `__device_head` array size and the type name table in `xstar/driver/device.c`
+3. Create the corresponding device interface header (e.g. `xstar/driver/xxx/xxx.h`)
+4. Implement device registration/search functions (e.g. `register_xxx`, `search_xxx`)
+5. Use the new device type in drivers
 
-### 添加新的内核子系统
+### Adding a New Kernel Subsystem
 
-1. 在 `xstar/kernel/` 下创建子系统目录
-2. 定义子系统接口头文件
-3. 实现子系统功能
-4. 使用适当的 initcall 级别注册
-5. 在 `xstar/kernel/Kbuild` 中添加编译规则（目前内核子系统无条件编译）
+1. Create a subsystem directory under `xstar/kernel/`
+2. Define the subsystem interface header
+3. Implement the subsystem functionality
+4. Register using an appropriate initcall level
+5. Add build rules in `xstar/kernel/Kbuild` (kernel subsystems are currently compiled unconditionally)
 
-### 添加新的 LibX 工具函数
+### Adding a New LibX Utility Function
 
-1. 在 `xstar/libx/` 目录下创建 `.c` 和 `.h` 文件
-2. 实现函数
-3. 在 `xstar/libx/Kbuild` 中添加编译规则（目前 LibX 无条件编译）
+1. Create `.c` and `.h` files under `xstar/libx/`
+2. Implement the function
+3. Add build rules in `xstar/libx/Kbuild` (LibX is currently compiled unconditionally)
 
-### 添加新的外部包
+### Adding a New External Package
 
-1. 在 `packages/` 目录下创建包目录（如 `mypkg-1.0.0/`）
-2. 编写 `Kbuild` 文件
-3. 在 `packages/Kconfig` 中添加配置选项
-4. 在项目 defconfig 中启用包
+1. Create a package directory under `packages/` (e.g. `mypkg-1.0.0/`)
+2. Write the `Kbuild` file
+3. Add a configuration option in `packages/Kconfig`
+4. Enable the package in the project defconfig
 
-## 调试技巧
+## Debugging Tips
 
-### 使用 GDB
+### Using GDB
 
-默认编译包含调试信息（`-g -ggdb`），可直接使用 GDB 调试：
+Debug information is included by default (`-g -ggdb`), so you can debug directly with GDB:
 
 ```bash
-# 启动 GDB
+# Start GDB
 gdb ./projects/<project-name>/output/xstar
 
-# GDB 常用命令
-break <function>    # 设置断点
-run                 # 运行
-next                # 单步执行（跳过函数）
-step                # 单步执行（进入函数）
-continue            # 继续执行
-print <var>         # 打印变量
-backtrace           # 查看调用栈
+# Common GDB commands
+break <function>    # Set a breakpoint
+run                 # Run
+next                # Step over (skip function calls)
+step                # Step into (enter function calls)
+continue            # Continue execution
+print <var>         # Print a variable
+backtrace           # View the call stack
 ```
 
-### 使用 Shell 命令
+### Using Shell Commands
 
-XSTAR 提供丰富的 Shell 命令用于调试：
+XSTAR provides rich shell commands for debugging:
 
 ```bash
-# 查看设备列表
+# List devices
 ls /kobj/device/
 
-# 查看设备信息
+# View device information
 cat /kobj/device/framebuffer/fb.0/width
 
-# 查看内存信息
+# View memory information
 cat /kobj/class/memory/meminfo
 
-# 查看时钟信息
+# View clock information
 clk
 
-# 查看日期时间
+# View date and time
 date
 
-# 运行测试
+# Run tests
 wboxtest -l
 wboxtest thread mutex -c 10
 ```
 
-### 使用日志输出
+### Using Log Output
 
 ```c
-/* Shell 输出（适用于命令和交互式代码） */
+/* Shell output (for commands and interactive code) */
 shell_printf("Debug message: %d\n", value);
 
-/* 日志系统（需要 CONFIG_XSTAR_LOG） */
+/* Log system (requires CONFIG_XSTAR_LOG) */
 LOG("value = %d\n", value);
 ```
 
-### 使用 KOBJ 导出调试信息
+### Exporting Debug Info via KOBJ
 
 ```c
 static ssize_t my_debug_read(struct kobj_t * kobj, void * buf, size_t size)
@@ -816,45 +816,45 @@ static ssize_t my_debug_read(struct kobj_t * kobj, void * buf, size_t size)
     return xos_snprintf(buf, size, "Debug info: %d\n", my_value);
 }
 
-/* 在设备 probe 中创建 KOBJ 调试节点 */
+/* Create a KOBJ debug node in the device probe */
 kobj_add_regular(dev->kobj, "debug", my_debug_read, NULL, NULL);
 ```
 
-KOBJ API 常用函数：
+Common KOBJ API functions:
 
-| 函数 | 说明 |
-|------|------|
-| `kobj_alloc_directory(name)` | 分配目录节点 |
-| `kobj_alloc_regular(name, read, write, priv)` | 分配文件节点 |
-| `kobj_add(parent, kobj)` | 添加子节点 |
-| `kobj_remove(parent, kobj)` | 移除子节点 |
-| `kobj_add_directory(parent, name)` | 一步创建并添加目录 |
-| `kobj_add_regular(parent, name, read, write, priv)` | 一步创建并添加文件 |
-| `kobj_search(parent, name)` | 搜索子节点 |
-| `kobj_search_directory_with_create(parent, name)` | 搜索目录，不存在则创建 |
+| Function | Description |
+|----------|-------------|
+| `kobj_alloc_directory(name)` | Allocate a directory node |
+| `kobj_alloc_regular(name, read, write, priv)` | Allocate a file node |
+| `kobj_add(parent, kobj)` | Add a child node |
+| `kobj_remove(parent, kobj)` | Remove a child node |
+| `kobj_add_directory(parent, name)` | Create and add a directory in one step |
+| `kobj_add_regular(parent, name, read, write, priv)` | Create and add a file in one step |
+| `kobj_search(parent, name)` | Search for a child node |
+| `kobj_search_directory_with_create(parent, name)` | Search for a directory, create it if it does not exist |
 
-## 最佳实践
+## Best Practices
 
-### 内存管理
+### Memory Management
 
-- 始终检查内存分配是否成功
-- 在错误路径中释放已分配的内存
-- 使用 XOS API（`xos_mem_malloc`/`xos_mem_free`）而非平台原生函数
+- Always check whether memory allocation succeeded
+- Free already-allocated memory in error paths
+- Use the XOS API (`xos_mem_malloc`/`xos_mem_free`) instead of platform-native functions
 
-### 错误处理
+### Error Handling
 
-- 布尔函数返回 `TRUE`/`FALSE`，指针函数返回 `NULL` 表示失败
-- 错误路径中逐层清理已分配的资源
-- 设备 probe 失败时释放所有已分配内存后返回 `NULL`
+- Boolean functions return `TRUE`/`FALSE`; pointer functions return `NULL` on failure
+- Clean up allocated resources layer by layer in error paths
+- On device probe failure, free all allocated memory before returning `NULL`
 
-### 可移植性
+### Portability
 
-- 始终使用 XOS API（`xos_io_read32`、`xos_mem_malloc` 等）而非平台原生函数
-- 使用 `libx/xdef.h` 中的 `TRUE`/`FALSE`/`NULL` 而非 `<stdbool.h>`
-- 使用标准整数类型（`uint32_t` 等）而非平台特定类型
+- Always use the XOS API (`xos_io_read32`, `xos_mem_malloc`, etc.) instead of platform-native functions
+- Use `TRUE`/`FALSE`/`NULL` from `libx/xdef.h` instead of `<stdbool.h>`
+- Use standard integer types (e.g. `uint32_t`) instead of platform-specific types
 
-### 代码复用
+### Code Reuse
 
-- 使用 LibX 提供的通用函数（数据结构、算法、加密等）
-- 驱动间复用设备类接口（如 `register_clk`、`search_gpiochip`）
-- 提取公共代码为独立函数
+- Use the common functions provided by LibX (data structures, algorithms, cryptography, etc.)
+- Reuse device class interfaces between drivers (e.g. `register_clk`, `search_gpiochip`)
+- Extract common code into standalone functions

@@ -1,4 +1,4 @@
-.PHONY: deps start build serve clean distclean help
+.PHONY: deps start build serve deploy clean distclean help
 
 help:
 	@echo "XSTAR Documentation"
@@ -7,6 +7,7 @@ help:
 	@echo "  make start     - Start dev server with hot-reload"
 	@echo "  make build     - Production build"
 	@echo "  make serve     - Build and serve locally"
+	@echo "  make deploy    - Deploy to GitHub Pages"
 	@echo "  make clean     - Remove build artifacts and cache"
 	@echo "  make distclean - Remove all generated files including dependencies"
 
@@ -21,6 +22,9 @@ build: deps
 
 serve: build
 	npm run serve
+
+deploy:
+	gh workflow run deploy.yml
 
 clean:
 	rm -rf build .docusaurus

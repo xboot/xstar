@@ -1,6 +1,6 @@
 module.exports = {
   title: 'XSTAR 文档',
-  url: 'https://xstar.org',
+  url: 'https://xstar.xboot.org',
   baseUrl: '/',
   onBrokenLinks: 'warn',
   markdown: {
@@ -33,6 +33,7 @@ module.exports = {
         language: ['zh', 'en'],
         indexBlog: false,
         indexDocs: true,
+        docsRouteBasePath: '/',
         explicitSearchResultPath: true,
         highlightSearchTermsOnTargetPage: true,
       },

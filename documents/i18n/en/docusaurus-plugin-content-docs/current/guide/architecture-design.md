@@ -1,104 +1,104 @@
-# XSTAR 架构设计
+# XSTAR Architecture Design
 
-本文档详细说明 XSTAR 的系统架构和核心组件设计。
+This document describes in detail the system architecture and core component design of XSTAR.
 
-## 目录
+## Table of Contents
 
-- [整体架构](#整体架构)
-- [启动流程](#启动流程)
-- [跨平台抽象层 (XOS)](#跨平台抽象层-xos)
-- [设备驱动框架](#设备驱动框架)
-- [内核子系统](#内核子系统)
-- [协程系统](#协程系统)
-- [图形系统](#图形系统)
-- [KOBJ 虚拟文件系统](#kobj-虚拟文件系统)
-- [发布订阅系统](#发布订阅系统)
-- [Initcall 机制](#initcall-机制)
-- [设备树 (JSON)](#设备树-json)
-- [工具库 (LibX)](#工具库-libx)
-- [构建系统](#构建系统)
+- [Overall Architecture](#overall-architecture)
+- [Boot Flow](#boot-flow)
+- [Cross-Platform Abstraction Layer (XOS)](#cross-platform-abstraction-layer-xos)
+- [Device Driver Framework](#device-driver-framework)
+- [Kernel Subsystems](#kernel-subsystems)
+- [Coroutine System](#coroutine-system)
+- [Graphics System](#graphics-system)
+- [KOBJ Virtual File System](#kobj-virtual-file-system)
+- [Publish-Subscribe System](#publish-subscribe-system)
+- [Initcall Mechanism](#initcall-mechanism)
+- [Device Tree (JSON)](#device-tree-json)
+- [Utility Library (LibX)](#utility-library-libx)
+- [Build System](#build-system)
 
-## 整体架构
+## Overall Architecture
 
-XSTAR 采用分层架构设计，从底层到上层依次为：
+XSTAR adopts a layered architecture, from bottom to top:
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
-│                       应用层 (Applications)                       │
+│                        Application Layer                          │
 ├──────────────────────────────────────────────────────────────────┤
-│              内核子系统 (Kernel Subsystems)                        │
+│                       Kernel Subsystems                           │
 │  Audio | Command | Core | Font | Graphic | Shell | Time          │
-│  Vision | Window | XFS                                           │
+│  Vision | Window | XFS                                            │
 ├──────────────────────────────────────────────────────────────────┤
-│               设备驱动框架 (Driver Framework)                      │
+│                       Driver Framework                            │
 │          Driver | Device | Class | KOBJ | DTREE (JSON)            │
 ├──────────────────────────────────────────────────────────────────┤
-│                 平台抽象层 (XOS)                                   │
+│                  Platform Abstraction (XOS)                       │
 │  Memory | DMA | I/O | File | Thread | Mutex | Semaphore          │
-│  Coroutine | PM | Stdio                                          │
+│  Coroutine | PM | Stdio                                           │
 ├──────────────────────────────────────────────────────────────────┤
-│                  工具库 (LibX)                                     │
+│                      Utility Library (LibX)                       │
 │  Algorithm | Data Structure | Crypto | JSON | DTREE | Encoding   │
 ├──────────────────────────────────────────────────────────────────┤
-│          硬件平台 (Hardware Platforms)                              │
+│                      Hardware Platforms                           │
 │  ARM32/64 | RISC-V32/64 | x64 (Baremetal/Linux/FreeRTOS)         │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
-### 分层说明
+### Layer Description
 
-1. **硬件平台层**：提供基础的硬件支持，包括 CPU、内存、外设等
-2. **LibX 工具库**：提供通用的算法、数据结构、加密、编码等工具函数
-3. **XOS 抽象层**：屏蔽底层差异，提供统一的系统调用接口
-4. **设备驱动框架**：管理设备驱动和设备实例，实现驱动的自动探测和注册
-5. **内核子系统**：提供音频、图形、命令、Shell、时间、视觉、窗口、文件系统等核心功能
-6. **应用层**：基于内核子系统构建的上层应用
+1. **Hardware Platform Layer**: Provides foundational hardware support, including CPU, memory, peripherals, etc.
+2. **LibX Utility Library**: Provides common utility functions for algorithms, data structures, cryptography, encoding, etc.
+3. **XOS Abstraction Layer**: Shields lower-layer differences and provides a unified system call interface.
+4. **Device Driver Framework**: Manages device drivers and device instances, implementing automatic driver probing and registration.
+5. **Kernel Subsystems**: Provides core functionality such as audio, graphics, command, shell, time, vision, window, and file system.
+6. **Application Layer**: Upper-layer applications built on top of the kernel subsystems.
 
-## 启动流程
+## Boot Flow
 
-系统入口为 `xstar_init()`（`xstar/xstar.c`），平台特定的 `main()` 调用 `xstar_init(&env, json)` 完成整个系统初始化：
+The system entry point is `xstar_init()` (`xstar/xstar.c`). The platform-specific `main()` calls `xstar_init(&env, json)` to complete the entire system initialization:
 
 ```
 main() → xstar_init()
-  ├── xos_environ_init(env)         安装平台抽象函数表
-  ├── do_initcalls()                按级别执行所有 initcall (0→9)
-  ├── do_init_romdisk()             注册 romdisk 块设备
-  ├── do_init_dtree(json)           解析设备树 JSON，探测所有设备
-  ├── do_init_memory()              注册内存信息 KOBJ
-  ├── do_init_logger()              注册日志控制 KOBJ
-  ├── do_init_version()             注册版本信息 KOBJ
-  ├── do_init_copyright()           注册版权验证 KOBJ
-  ├── do_init_random()              初始化随机数生成器
-  ├── do_init_feature()             检测协程/线程支持特性
-  ├── do_init_font()                加载 TrueType 字体
-  ├── do_init_setting()             初始化持久化设置系统
-  └── do_show_logo()                在帧缓冲上显示启动 Logo
+  ├── xos_environ_init(env)         Install the platform abstraction function table
+  ├── do_initcalls()                Execute all initcalls by level (0→9)
+  ├── do_init_romdisk()             Register the romdisk block device
+  ├── do_init_dtree(json)           Parse the device tree JSON and probe all devices
+  ├── do_init_memory()              Register the memory info KOBJ
+  ├── do_init_logger()              Register the log control KOBJ
+  ├── do_init_version()             Register the version info KOBJ
+  ├── do_init_copyright()           Register the copyright verification KOBJ
+  ├── do_init_random()              Initialize the random number generator
+  ├── do_init_feature()             Detect coroutine/thread support features
+  ├── do_init_font()                Load the TrueType font
+  ├── do_init_setting()             Initialize the persistent settings system
+  └── do_show_logo()                Display the boot logo on the framebuffer
 ```
 
-关键步骤说明：
+Key steps:
 
-- **`xos_environ_init(env)`**：将平台提供的函数指针安装到全局 `__xos_environ` 结构体中，仅覆盖非 NULL 的条目
-- **`do_initcalls()`**：按级别 0-9 顺序执行链接器段中的初始化函数，驱动注册、子系统初始化、命令注册都在此阶段完成
-- **`do_init_dtree(json)`**：解析设备树 JSON，对每个设备节点匹配驱动并调用 `probe()`，创建设备实例
+- **`xos_environ_init(env)`**: Installs the function pointers provided by the platform into the global `__xos_environ` struct, only overwriting non-NULL entries.
+- **`do_initcalls()`**: Executes the initialization functions in the linker sections in level order 0-9. Driver registration, subsystem initialization, and command registration all happen in this phase.
+- **`do_init_dtree(json)`**: Parses the device tree JSON, matches a driver for each device node, calls `probe()`, and creates device instances.
 
-## 跨平台抽象层 (XOS)
+## Cross-Platform Abstraction Layer (XOS)
 
-XOS 是 XSTAR 的核心抽象层，通过函数指针表屏蔽不同平台和运行环境的差异。
+XOS is the core abstraction layer of XSTAR. It uses a function pointer table to shield the differences between platforms and runtime environments.
 
-### 接口抽象
+### Interface Abstraction
 
 ```c
 struct xos_environ_t {
-    /* 内存管理 */
+    /* Memory management */
     void *(*malloc)(size_t size);
     void (*free)(void *ptr);
     void *(*realloc)(void *ptr, size_t size);
 
-    /* DMA 操作 */
+    /* DMA operations */
     int (*dma_alloc)(void *addr, size_t size, uint64_t pa);
     int (*dma_free)(void *addr, size_t size);
 
-    /* IO 操作 */
+    /* IO operations */
     void (*write8)(io_addr_t addr, uint8_t value);
     void (*write16)(io_addr_t addr, uint16_t value);
     void (*write32)(io_addr_t addr, uint32_t value);
@@ -106,80 +106,80 @@ struct xos_environ_t {
     uint16_t (*read16)(io_addr_t addr);
     uint32_t (*read32)(io_addr_t addr);
 
-    /* 文件系统 */
+    /* File system */
     void *(*fopen)(const char *path, const char *mode);
     int (*fclose)(void *file);
     size_t (*fread)(void *ptr, size_t size, size_t nmemb, void *file);
     size_t (*fwrite)(const void *ptr, size_t size, size_t nmemb, void *file);
 
-    /* 协程 */
+    /* Coroutine */
     void (*coroutine_make)(void *stack, size_t size, void (*func)(struct co_transfer_t));
     struct co_transfer_t (*coroutine_jump)(void *fctx, void *priv);
 
-    /* 线程 */
+    /* Thread */
     void *(*thread_create)(const char *name, void (*func)(void *), void *data, int stksz);
     void (*thread_destroy)(void *thread);
     void (*thread_wait)(void *thread);
     void (*thread_sleep)(uint64_t ns);
 
-    /* 互斥锁 */
+    /* Mutex */
     int (*mutex_init)(void *mutex);
     int (*mutex_lock)(void *mutex);
     int (*mutex_unlock)(void *mutex);
     int (*mutex_exit)(void *mutex);
 
-    /* 信号量 */
+    /* Semaphore */
     int (*semaphore_init)(void *sem, uint32_t count);
     int (*semaphore_wait)(void *sem, uint32_t timeout);
     int (*semaphore_post)(void *sem);
     int (*semaphore_exit)(void *sem);
 
-    /* 电源管理 */
+    /* Power management */
     void (*shutdown)(void);
     void (*reboot)(void);
     void (*standby)(void);
 };
 ```
 
-### API 分类
+### API Categories
 
-XOS 通过 `xos_environ_t` 提供平台相关的操作，同时还直接提供大量平台无关的可移植 API：
+XOS provides platform-related operations through `xos_environ_t`, and also directly provides a large number of platform-independent portable APIs:
 
-| 分类 | 关键函数 |
-|------|---------|
-| **内存管理** | `xos_mem_malloc`, `xos_mem_free`, `xos_mem_realloc`, `xos_mem_calloc`, `xos_mem_memalign`, `xos_mem_meminfo` |
-| **DMA 操作** | `xos_dma_alloc_coherent`, `xos_dma_free_coherent`, `xos_dma_alloc_noncoherent`, `xos_dma_sync` |
-| **硬件 I/O** | `xos_io_read8/16/32/64`, `xos_io_write8/16/32/64`, `xos_io_clrbits/setbits/clrsetbits` |
-| **标准 I/O** | `xos_stdio_read`, `xos_stdio_write` |
-| **文件系统** | `xos_file_open/close/read/write/seek`, `xos_file_mkdir/remove/walk`, `xos_file_isdir/isfile` |
-| **协程** | `xos_coroutine_make`, `xos_coroutine_jump` |
-| **线程** | `xos_thread_create/destroy/wait/sleep` |
-| **互斥锁** | `xos_mutex_init/exit/lock/unlock/trylock` |
-| **信号量** | `xos_semaphore_init/exit/wait/post` |
-| **电源管理** | `xos_pm_shutdown/reboot/standby` |
-| **字符串操作** | `xos_strcmp/strcpy/strcat/strlen/strstr/strdup/strtok` 等 |
-| **格式化** | `xos_sprintf/snprintf/printf/sscanf` 等 |
-| **数值转换** | `xos_strtol/strtoll/strtod/atoi/atol` 等 |
-| **排序搜索** | `xos_qsort`, `xos_bsearch` |
-| **随机数** | `xos_srand/rand/random_int/random_float` |
+| Category | Key Functions |
+|----------|---------------|
+| **Memory Management** | `xos_mem_malloc`, `xos_mem_free`, `xos_mem_realloc`, `xos_mem_calloc`, `xos_mem_memalign`, `xos_mem_meminfo` |
+| **DMA Operations** | `xos_dma_alloc_coherent`, `xos_dma_free_coherent`, `xos_dma_alloc_noncoherent`, `xos_dma_sync` |
+| **Hardware I/O** | `xos_io_read8/16/32/64`, `xos_io_write8/16/32/64`, `xos_io_clrbits/setbits/clrsetbits` |
+| **Standard I/O** | `xos_stdio_read`, `xos_stdio_write` |
+| **File System** | `xos_file_open/close/read/write/seek`, `xos_file_mkdir/remove/walk`, `xos_file_isdir/isfile` |
+| **Coroutine** | `xos_coroutine_make`, `xos_coroutine_jump` |
+| **Thread** | `xos_thread_create/destroy/wait/sleep` |
+| **Mutex** | `xos_mutex_init/exit/lock/unlock/trylock` |
+| **Semaphore** | `xos_semaphore_init/exit/wait/post` |
+| **Power Management** | `xos_pm_shutdown/reboot/standby` |
+| **String Operations** | `xos_strcmp/strcpy/strcat/strlen/strstr/strdup/strtok`, etc. |
+| **Formatting** | `xos_sprintf/snprintf/printf/sscanf`, etc. |
+| **Numeric Conversion** | `xos_strtol/strtoll/strtod/atoi/atol`, etc. |
+| **Sort & Search** | `xos_qsort`, `xos_bsearch` |
+| **Random Numbers** | `xos_srand/rand/random_int/random_float` |
 
-### 平台实现
+### Platform Implementations
 
-每个平台提供对应的 `xos_environ_t` 实现：
+Each platform provides a corresponding `xos_environ_t` implementation:
 
-- `xos-linux.c`：Linux/SDL 平台实现
-- `xos-baremetal-arm64.c`：ARM64 裸机实现
-- `xos-baremetal-arm32.c`：ARM32 裸机实现
-- `xos-baremetal-riscv64.c`：RISC-V64 裸机实现
-- `xos-baremetal-riscv32.c`：RISC-V32 裸机实现
-- `xos-freertos.c`：FreeRTOS 平台实现
-- `xos-windows.c`：Windows 平台实现
+- `xos-linux.c`: Linux/SDL platform implementation
+- `xos-baremetal-arm64.c`: ARM64 bare-metal implementation
+- `xos-baremetal-arm32.c`: ARM32 bare-metal implementation
+- `xos-baremetal-riscv64.c`: RISC-V64 bare-metal implementation
+- `xos-baremetal-riscv32.c`: RISC-V32 bare-metal implementation
+- `xos-freertos.c`: FreeRTOS platform implementation
+- `xos-windows.c`: Windows platform implementation
 
-## 设备驱动框架
+## Device Driver Framework
 
-设备驱动框架采用驱动/设备分离设计，实现驱动的自动探测和注册。
+The device driver framework uses a driver/device separation design, implementing automatic driver probing and registration.
 
-### 核心数据结构
+### Core Data Structures
 
 ```c
 struct driver_t {
@@ -204,27 +204,27 @@ struct device_t {
 };
 ```
 
-### 设备类型
+### Device Types
 
-系统定义了 51 种设备类型（`enum device_type_t`）：
+The system defines 51 device types (`enum device_type_t`):
 
-| 类别 | 类型 |
-|------|------|
-| 时钟 | `CLK`, `CLOCKEVENT`, `CLOCKSOURCE` |
-| 存储 | `BLOCK`, `NVMEM`, `SDHCI` |
-| 显示 | `FRAMEBUFFER`, `G2D`, `CONSOLE` |
-| 音频 | `AUDIOCAPTURE`, `AUDIOPLAYBACK`, `BUZZER` |
-| 输入 | `INPUT`, `CAMERA` |
-| 通信 | `I2C`, `SPI`, `UART`, `NET`, `ATNET`, `GNSS` |
+| Category | Types |
+|----------|-------|
+| Clock | `CLK`, `CLOCKEVENT`, `CLOCKSOURCE` |
+| Storage | `BLOCK`, `NVMEM`, `SDHCI` |
+| Display | `FRAMEBUFFER`, `G2D`, `CONSOLE` |
+| Audio | `AUDIOCAPTURE`, `AUDIOPLAYBACK`, `BUZZER` |
+| Input | `INPUT`, `CAMERA` |
+| Communication | `I2C`, `SPI`, `UART`, `NET`, `ATNET`, `GNSS` |
 | GPIO | `GPIOCHIP`, `IRQCHIP`, `RESETCHIP` |
-| 传感器 | `ADC`, `COMPASS`, `GMETER`, `GYROSCOPE`, `HYGROMETER`, `LIGHT`, `OXIMETER`, `PRESSURE`, `PROXIMITY`, `THERMOMETER` |
-| 输出 | `LED`, `LEDSTRIP`, `LEDTRIGGER`, `DAC`, `PWM`, `SERVO`, `MOTOR`, `STEPPER`, `VIBRATOR` |
-| 电源 | `BATTERY`, `REGULATOR`, `RNG`, `RTC` |
-| 其他 | `ATOMIC`, `DMA`, `LIMITER`, `PRINTER`, `SPINLOCK`, `WATCHDOG` |
+| Sensors | `ADC`, `COMPASS`, `GMETER`, `GYROSCOPE`, `HYGROMETER`, `LIGHT`, `OXIMETER`, `PRESSURE`, `PROXIMITY`, `THERMOMETER` |
+| Output | `LED`, `LEDSTRIP`, `LEDTRIGGER`, `DAC`, `PWM`, `SERVO`, `MOTOR`, `STEPPER`, `VIBRATOR` |
+| Power | `BATTERY`, `REGULATOR`, `RNG`, `RTC` |
+| Other | `ATOMIC`, `DMA`, `LIMITER`, `PRINTER`, `SPINLOCK`, `WATCHDOG` |
 
-### 驱动注册
+### Driver Registration
 
-驱动通过 `driver_initcall` 宏自动注册：
+Drivers are registered automatically via the `driver_initcall` macro:
 
 ```c
 static struct driver_t my_driver = {
@@ -249,55 +249,55 @@ driver_initcall(my_driver_init);
 driver_exitcall(my_driver_exit);
 ```
 
-### 驱动查找
+### Driver Lookup
 
-驱动存储在哈希表中（521 个桶，使用 `shash()` 哈希函数），查找效率接近 O(1)：
+Drivers are stored in a hash table (521 buckets, using the `shash()` hash function), with lookup efficiency close to O(1):
 
-- `register_driver(drv)`：创建 KOBJ 目录 `/class/driver/<name>/`，添加 `probe` 写入入口，插入哈希表
-- `unregister_driver(drv)`：从哈希表和 KOBJ 树中移除
-- `search_driver(name)`：按名称在哈希表中查找驱动
+- `register_driver(drv)`: Creates the KOBJ directory `/class/driver/<name>/`, adds a `probe` write entry, and inserts into the hash table.
+- `unregister_driver(drv)`: Removes from the hash table and the KOBJ tree.
+- `search_driver(name)`: Looks up a driver by name in the hash table.
 
-### 设备注册
+### Device Registration
 
-设备通过三重索引进行管理：
+Devices are managed via a triple index:
 
-- 全局链表 `__device_list`
-- 按类型链表 `__device_head[type]`
-- 按名称哈希表
+- Global list `__device_list`
+- Per-type list `__device_head[type]`
+- Per-name hash table
 
-`register_device(dev)` 添加设备到三重索引，并通过 `psub_publish("device.add", dev)` 发布设备添加事件。
+`register_device(dev)` adds the device to the triple index and publishes a device-added event via `psub_publish("device.add", dev)`.
 
-### 设备探测
+### Device Probing
 
-系统启动时，`probe_device()` 解析设备树 JSON，对每个节点自动匹配驱动并探测：
-
-```
-解析 JSON → 提取键名 "driver-name:id@addr" → search_driver(name)
-→ 调用 drv->probe(drv, n) → 创建设备实例 → 注册到系统
-```
-
-## 内核子系统
-
-### 音频系统 (Audio)
-
-完整的音频处理链路：
+At system startup, `probe_device()` parses the device tree JSON, automatically matches and probes a driver for each node:
 
 ```
-Source (音频源) → Mixer (混音器) → Effect (音效处理) → Sink (输出设备)
+Parse JSON → extract key "driver-name:id@addr" → search_driver(name)
+→ call drv->probe(drv, n) → create device instance → register into the system
 ```
 
-- **Source**：音频输入抽象，支持文件（WAV、QOA）、捕获设备、内存缓冲、AFSK 调制解调、音调生成器、噪声生成器、混音器
-  - 关键 API：`audio_source_alloc_from_xfs()`, `audio_source_read()`, `audio_source_seek()`
-- **Mixer**：多路音频混音，混音器本身也可作为 Source 使用
-  - 关键 API：`audio_mixer_alloc()`, `audio_mixer_add/remove()`, `audio_mixer_read()`
-- **Effect**：可插拔的音效过滤器链，支持 crystalizer、duplicate、IIR、mono、panning、resample、reshape、tremolo、volume 等效果
-  - 关键 API：`audio_filter_alloc(json, len)`, `audio_effect_process()`
-- **Sink**：音频输出抽象，支持播放设备、幅度计、频谱分析、VAD 语音活动检测、AFSK 解码
-  - 关键 API：`audio_sink_alloc_from_playback()`, `audio_sink_write()`, `audio_sink_ioctl()`
+## Kernel Subsystems
 
-### 命令系统 (Command)
+### Audio System (Audio)
 
-统一的命令接口，支持 32+ 内置命令：
+Complete audio processing chain:
+
+```
+Source (audio source) → Mixer (mixer) → Effect (audio effects) → Sink (output device)
+```
+
+- **Source**: Audio input abstraction, supporting files (WAV, QOA), capture devices, memory buffers, AFSK modem, tone generator, noise generator, and mixers.
+  - Key APIs: `audio_source_alloc_from_xfs()`, `audio_source_read()`, `audio_source_seek()`
+- **Mixer**: Multi-channel audio mixing; the mixer itself can also be used as a Source.
+  - Key APIs: `audio_mixer_alloc()`, `audio_mixer_add/remove()`, `audio_mixer_read()`
+- **Effect**: Pluggable audio filter chain, supporting effects such as crystalizer, duplicate, IIR, mono, panning, resample, reshape, tremolo, and volume.
+  - Key APIs: `audio_filter_alloc(json, len)`, `audio_effect_process()`
+- **Sink**: Audio output abstraction, supporting playback devices, level meters, spectrum analysis, VAD voice activity detection, and AFSK decoding.
+  - Key APIs: `audio_sink_alloc_from_playback()`, `audio_sink_write()`, `audio_sink_ioctl()`
+
+### Command System (Command)
+
+Unified command interface, supporting 32+ built-in commands:
 
 ```c
 struct command_t {
@@ -308,55 +308,55 @@ struct command_t {
 };
 ```
 
-内置命令包括：aplay、autoshell、cat、cd、clear、clk、date、dcp、delay、echo、event、go、help、iplay、ls、md、mkdir、mw、net、ntpdate、pwd、reboot、rm、setting、shutdown、standby、sync、test、tscal、uniqueid、version、write。
+Built-in commands include: aplay, autoshell, cat, cd, clear, clk, date, dcp, delay, echo, event, go, help, iplay, ls, md, mkdir, mw, net, ntpdate, pwd, reboot, rm, setting, shutdown, standby, sync, test, tscal, uniqueid, version, write.
 
-### 核心工具 (Core)
+### Core Utilities (Core)
 
-| 模块 | 说明 | 关键 API |
-|------|------|---------|
-| **Coroutine** | 协作式多任务 | `coroutine_start()`, `coroutine_yield()`, `coroutine_msleep()` |
-| **Logger** | 循环缓冲区日志 | `LOG(fmt, ...)`, `logger_enable/disable()` |
-| **Profiler** | 性能分析 | `profiler_begin/end()`, `profiler_search()`, `profiler_foreach()` |
-| **Setting** | 持久化键值存储 | `setting_set/get/clear/sync/foreach()` |
-| **ThChannel** | 线程安全环形缓冲通道 | `thchannel_alloc()`, `thchannel_send/recv(buf, len, timeout)` |
-| **ThWorker** | 线程工作队列 | `thworker_alloc()`, `thworker_submit(func, data)`, `thworker_wait()` |
-| **CoChannel** | 协程安全通道（无锁） | `cochannel_alloc()`, `cochannel_send/recv(sched, buf, len)` |
-| **PSub** | 发布订阅系统 | `psub_publish(topic, data)`, `psub_subscribe(topic, cb, oneshot)` |
+| Module | Description | Key APIs |
+|--------|-------------|----------|
+| **Coroutine** | Cooperative multitasking | `coroutine_start()`, `coroutine_yield()`, `coroutine_msleep()` |
+| **Logger** | Ring-buffer logging | `LOG(fmt, ...)`, `logger_enable/disable()` |
+| **Profiler** | Performance profiling | `profiler_begin/end()`, `profiler_search()`, `profiler_foreach()` |
+| **Setting** | Persistent key-value store | `setting_set/get/clear/sync/foreach()` |
+| **ThChannel** | Thread-safe ring-buffer channel | `thchannel_alloc()`, `thchannel_send/recv(buf, len, timeout)` |
+| **ThWorker** | Thread work queue | `thworker_alloc()`, `thworker_submit(func, data)`, `thworker_wait()` |
+| **CoChannel** | Coroutine-safe channel (lock-free) | `cochannel_alloc()`, `cochannel_send/recv(sched, buf, len)` |
+| **PSub** | Publish-subscribe system | `psub_publish(topic, data)`, `psub_subscribe(topic, cb, oneshot)` |
 
-### 字体系统 (Font)
+### Font System (Font)
 
-支持 4 种字型（regular、italic、bold、bolditalic）的字体管理：
+Font management supporting 4 font styles (regular, italic, bold, bolditalic):
 
-- **Font**：字体族管理，从 XFS 或缓冲区安装字体
-  - 关键 API：`font_install_from_xfs/buf()`, `font_text_bound/render()`, `font_icon_bound/render()`
-- **TrueType**：TrueType/CFF 字体解析器
-  - 关键 API：`truetype_init()`, `truetype_scale_for_pixel_height()`, `truetype_make_glyph_bitmap()`
+- **Font**: Font family management, install fonts from XFS or a buffer.
+  - Key APIs: `font_install_from_xfs/buf()`, `font_text_bound/render()`, `font_icon_bound/render()`
+- **TrueType**: TrueType/CFF font parser.
+  - Key APIs: `truetype_init()`, `truetype_scale_for_pixel_height()`, `truetype_make_glyph_bitmap()`
 
-### Shell 系统 (Shell)
+### Shell System (Shell)
 
-交互式 Shell，支持：
+Interactive shell, supporting:
 
-- 命令自动补全
-- 历史记录导航
-- Ctrl+C 中断处理
-- 工作目录管理
+- Command auto-completion
+- History navigation
+- Ctrl+C interrupt handling
+- Working directory management
 
-关键 API：`shell_system(cmdline)`, `shell_readline(prompt)`, `shell_password(prompt)`, `shell_getcwd/setcwd()`
+Key APIs: `shell_system(cmdline)`, `shell_readline(prompt)`, `shell_password(prompt)`, `shell_getcwd/setcwd()`
 
-### 时间系统 (Time)
+### Time System (Time)
 
-高精度时间管理：
+High-precision time management:
 
-| 模块 | 说明 | 关键 API |
-|------|------|---------|
-| **Timer** | 基于红黑树的高精度定时器 | `timer_init()`, `timer_start()`, `timer_forward()`, `timer_cancel()` |
-| **WallClock** | 墙钟时间 | `wallclock_gettimeofday/settimeofday()`, `wallclock_gettime/settime()` |
-| **Delay** | 忙等待延时 | `ndelay(ns)`, `udelay(us)`, `mdelay(ms)` |
-| **DelayCall** | 一次性延时调用 | `delaycall(ms, func, data)` |
+| Module | Description | Key APIs |
+|--------|-------------|----------|
+| **Timer** | High-precision timer based on a red-black tree | `timer_init()`, `timer_start()`, `timer_forward()`, `timer_cancel()` |
+| **WallClock** | Wall clock time | `wallclock_gettimeofday/settimeofday()`, `wallclock_gettime/settime()` |
+| **Delay** | Busy-wait delay | `ndelay(ns)`, `udelay(us)`, `mdelay(ms)` |
+| **DelayCall** | One-shot delayed call | `delaycall(ms, func, data)` |
 
-### 视觉系统 (Vision)
+### Vision System (Vision)
 
-图像处理算法库，支持两种像素格式：`VISION_TYPE_GRAY`（8 位灰度）和 `VISION_TYPE_RGB`（24 位 RGB888）。
+Image processing algorithm library, supporting two pixel formats: `VISION_TYPE_GRAY` (8-bit grayscale) and `VISION_TYPE_RGB` (24-bit RGB888).
 
 ```c
 struct vision_t {
@@ -369,15 +369,15 @@ struct vision_t {
 };
 ```
 
-关键 API：`vision_alloc()`, `vision_free()`, `vision_clone()`, `vision_convert()`, `vision_clear()`
+Key APIs: `vision_alloc()`, `vision_free()`, `vision_clone()`, `vision_convert()`, `vision_clear()`
 
-支持的操作包括：bitwise（位运算）、colormap（色彩映射）、dilate（膨胀）、erode（腐蚀）、threshold（阈值化）、gamma（伽马校正）、gray（灰度化）、sepia（怀旧色调）、inrange（范围过滤）、invert（反转）、resize（缩放）、dither（抖动）、rectangle（矩形绘制）、text（文本渲染）。
+Supported operations include: bitwise (bit operations), colormap (color mapping), dilate (dilation), erode (erosion), threshold (thresholding), gamma (gamma correction), gray (grayscale), sepia (sepia tone), inrange (range filtering), invert (inversion), resize (scaling), dither (dithering), rectangle (rectangle drawing), text (text rendering).
 
-视觉系统与图形系统可互相转换：`vision_apply_surface()` / `surface_apply_vision()`。
+The vision system and graphics system can be converted to each other: `vision_apply_surface()` / `surface_apply_vision()`.
 
-### 窗口系统 (Window)
+### Window System (Window)
 
-窗口管理和事件处理：
+Window management and event handling:
 
 ```c
 struct window_t {
@@ -394,17 +394,17 @@ struct window_t {
 };
 ```
 
-- 窗口创建与管理：`window_alloc()`, `window_free()`, `window_exit()`
-- 屏幕方向：支持 4 种旋转（0/90/180/270）和 4 种翻转（水平/垂直/主对角线/反对角线）
-- 脏矩形管理：`window_dirtylist_fullscreen()`, `window_dirtylist_add()`, `window_dirtylist_clear()`
-- 渲染提交：`window_present_clear()`, `window_present_commit()`
-- 事件泵：`window_pump_event()`, `push_event()`
-- 背光控制：`window_set_backlight()`, `window_get_backlight()`
-- dp/px 转换：`window_dp_to_px()`
+- Window creation & management: `window_alloc()`, `window_free()`, `window_exit()`
+- Screen orientation: supports 4 rotations (0/90/180/270) and 4 flips (horizontal/vertical/main-diagonal/anti-diagonal)
+- Dirty-rectangle management: `window_dirtylist_fullscreen()`, `window_dirtylist_add()`, `window_dirtylist_clear()`
+- Render submission: `window_present_clear()`, `window_present_commit()`
+- Event pump: `window_pump_event()`, `push_event()`
+- Backlight control: `window_set_backlight()`, `window_get_backlight()`
+- dp/px conversion: `window_dp_to_px()`
 
-### 文件系统 (XFS)
+### File System (XFS)
 
-虚拟文件系统，支持多挂载点：
+Virtual file system supporting multiple mount points:
 
 ```c
 struct xfs_context_t {
@@ -413,28 +413,28 @@ struct xfs_context_t {
 };
 ```
 
-关键 API：
+Key APIs:
 
-- 挂载管理：`xfs_mount()`, `xfs_umount()`
-- 文件操作：`xfs_open_read/write/append()`, `xfs_read/write/seek/tell/length()`, `xfs_flush()`, `xfs_close()`
-- 目录操作：`xfs_walk()`, `xfs_isdir/isfile()`, `xfs_mkdir()`, `xfs_remove()`
-- 归档器：`xfs_archiver_t` 提供可插拔的归档格式支持
+- Mount management: `xfs_mount()`, `xfs_umount()`
+- File operations: `xfs_open_read/write/append()`, `xfs_read/write/seek/tell/length()`, `xfs_flush()`, `xfs_close()`
+- Directory operations: `xfs_walk()`, `xfs_isdir/isfile()`, `xfs_mkdir()`, `xfs_remove()`
+- Archiver: `xfs_archiver_t` provides pluggable archive format support
 
-## 协程系统
+## Coroutine System
 
-XSTAR 提供汇编级协程实现，支持多种架构。
+XSTAR provides assembly-level coroutine implementations, supporting multiple architectures.
 
-### 协程上下文
+### Coroutine Context
 
-为每种架构提供完整的上下文保存和恢复：
+Each architecture provides complete context save and restore:
 
-- **ARM32**：保存 R0-R15、CPSR 等
-- **ARM64**：保存 X0-X30、SP、PC、PSTATE 等
-- **RISC-V32**：保存 x0-x31、SP、PC 等
-- **RISC-V64**：保存 x0-x31、SP、PC 等
-- **x64**：保存 RAX-R15、RSP、RIP 等
+- **ARM32**: Saves R0-R15, CPSR, etc.
+- **ARM64**: Saves X0-X30, SP, PC, PSTATE, etc.
+- **RISC-V32**: Saves x0-x31, SP, PC, etc.
+- **RISC-V64**: Saves x0-x31, SP, PC, etc.
+- **x64**: Saves RAX-R15, RSP, RIP, etc.
 
-### 协程调度器
+### Coroutine Scheduler
 
 ```c
 struct scheduler_t {
@@ -444,7 +444,7 @@ struct scheduler_t {
 };
 ```
 
-### 协程 API
+### Coroutine API
 
 ```c
 void coroutine_start(struct scheduler_t *sched, void (*func)(void *), void *data, size_t ssize);
@@ -454,13 +454,13 @@ void coroutine_usleep(struct scheduler_t *sched, int us);
 void coroutine_nsleep(struct scheduler_t *sched, uint64_t ns);
 ```
 
-## 图形系统
+## Graphics System
 
-完整的 2D 图形渲染系统。
+A complete 2D graphics rendering system.
 
-### Surface 抽象
+### Surface Abstraction
 
-Surface 是图形系统的核心对象，像素格式为 32 位预乘 ARGB：
+Surface is the core object of the graphics system, with a pixel format of 32-bit premultiplied ARGB:
 
 ```c
 struct surface_t {
@@ -472,24 +472,24 @@ struct surface_t {
 };
 ```
 
-### 创建与加载
+### Creation and Loading
 
-- `surface_alloc(w, h)`：创建空白 Surface
-- `surface_alloc_from_xfs()`：从 XFS 加载图像（支持 QOI、PNG、JPEG）
-- `surface_alloc_from_buf()`：从内存缓冲加载
-- `surface_alloc_qrcode()`：生成二维码 Surface
+- `surface_alloc(w, h)`: Create a blank Surface
+- `surface_alloc_from_xfs()`: Load an image from XFS (supports QOI, PNG, JPEG)
+- `surface_alloc_from_buf()`: Load from a memory buffer
+- `surface_alloc_qrcode()`: Generate a QR code Surface
 
-### 渲染操作
+### Rendering Operations
 
-- **基础绘制**：`surface_fill()`（填充）、`surface_blit()`（位块传输）、`surface_text()`（文本）、`surface_icon()`（图标）
-- **矢量形状**：`surface_shape_rectangle()`、`surface_shape_circle()`、`surface_shape_arc()`、`surface_shape_curve_to()` 等
-- **变换**：`surface_shape_translate/scale/rotate/transform()`
-- **特效**：`surface_effect_glass()`（毛玻璃）、`surface_effect_shadow()`（阴影）、`surface_effect_gradient()`（渐变）、`surface_effect_checkerboard()`（棋盘格）
-- **滤镜**：`surface_filter_gray/sepia/invert/gamma/hue/saturate/brightness/contrast/opacity/blur()`
+- **Basic drawing**: `surface_fill()` (fill), `surface_blit()` (bit-block transfer), `surface_text()` (text), `surface_icon()` (icon)
+- **Vector shapes**: `surface_shape_rectangle()`, `surface_shape_circle()`, `surface_shape_arc()`, `surface_shape_curve_to()`, etc.
+- **Transforms**: `surface_shape_translate/scale/rotate/transform()`
+- **Effects**: `surface_effect_glass()` (frosted glass), `surface_effect_shadow()` (shadow), `surface_effect_gradient()` (gradient), `surface_effect_checkerboard()` (checkerboard)
+- **Filters**: `surface_filter_gray/sepia/invert/gamma/hue/saturate/brightness/contrast/opacity/blur()`
 
-### 矩阵变换
+### Matrix Transform
 
-2D 仿射变换矩阵：
+2D affine transformation matrix:
 
 ```c
 struct matrix2d_t {
@@ -497,9 +497,9 @@ struct matrix2d_t {
 };
 ```
 
-关键 API：`matrix2d_init_identity/translate/scale/rotate()`、`matrix2d_multiply/invert()`、`matrix2d_transform_point/distance/bounds/region()`
+Key APIs: `matrix2d_init_identity/translate/scale/rotate()`, `matrix2d_multiply/invert()`, `matrix2d_transform_point/distance/bounds/region()`
 
-### 脏矩形优化
+### Dirty-Rectangle Optimization
 
 ```c
 struct dirtylist_t {
@@ -507,13 +507,13 @@ struct dirtylist_t {
 };
 ```
 
-关键 API：`dirtylist_alloc()`、`dirtylist_add()`、`dirtylist_clear()`、`dirtylist_merge()`、`dirtylist_clone()`
+Key APIs: `dirtylist_alloc()`, `dirtylist_add()`, `dirtylist_clear()`, `dirtylist_merge()`, `dirtylist_clone()`
 
-## KOBJ 虚拟文件系统
+## KOBJ Virtual File System
 
-类似 Linux sysfs 的虚拟文件系统，用于访问设备状态和配置。
+A virtual file system similar to Linux sysfs, used to access device state and configuration.
 
-### 节点类型
+### Node Types
 
 ```c
 struct kobj_t {
@@ -522,24 +522,24 @@ struct kobj_t {
     struct list_head_t children;
     struct list_head_t sibling;
 
-    /* 目录节点 */
+    /* Directory node */
     struct list_head_t list;
 
-    /* 文件节点 */
+    /* File node */
     ssize_t (*read)(struct kobj_t *kobj, char *buf, size_t size);
     ssize_t (*write)(struct kobj_t *kobj, const char *buf, size_t size);
 };
 ```
 
-### 路径示例
+### Path Examples
 
-- `/class/driver/clk-fixed/probe`：写入 JSON 动态探测设备
-- `/class/memory/meminfo`：读取内存信息
-- `/device/clk/clk.0/rate`：读取时钟频率
+- `/class/driver/clk-fixed/probe`: Write JSON to dynamically probe a device
+- `/class/memory/meminfo`: Read memory information
+- `/device/clk/clk.0/rate`: Read the clock frequency
 
-## 发布订阅系统
+## Publish-Subscribe System
 
-基于主题的发布订阅模式，用于事件驱动架构。
+A topic-based publish-subscribe pattern, used for event-driven architecture.
 
 ### API
 
@@ -549,42 +549,42 @@ void psub_subscribe(const char *topic, void (*callback)(void *, void *), void *p
 void psub_unsubscribe(const char *topic, void (*callback)(void *, void *), void *priv);
 ```
 
-### 内置事件
+### Built-in Events
 
-- `device.add`：设备添加事件
-- `device.remove`：设备移除事件
-- `device.suspend`：设备挂起事件
-- `device.resume`：设备恢复事件
+- `device.add`: Device added event
+- `device.remove`: Device removed event
+- `device.suspend`: Device suspended event
+- `device.resume`: Device resumed event
 
-## Initcall 机制
+## Initcall Mechanism
 
-分级初始化机制，通过链接器段实现。
+A leveled initialization mechanism implemented via linker sections.
 
-### Initcall 级别
+### Initcall Levels
 
 ```c
-pure_initcall()      // 0 - 纯初始化（哈希表、设备/驱动列表）
-machine_initcall()   // 1 - 机器初始化
-core_initcall()      // 2 - 核心初始化
-postcore_initcall()  // 3 - 核心后初始化
-driver_initcall()    // 4 - 驱动初始化（最常用）
-subsys_initcall()    // 5 - 子系统初始化
-command_initcall()   // 6 - 命令初始化
-server_initcall()    // 7 - 服务器初始化
-wboxtest_initcall()  // 8 - 测试初始化
-late_initcall()      // 9 - 延迟初始化
+pure_initcall()      // 0 - Pure initialization (hash tables, device/driver lists)
+machine_initcall()   // 1 - Machine initialization
+core_initcall()      // 2 - Core initialization
+postcore_initcall()  // 3 - Post-core initialization
+driver_initcall()    // 4 - Driver initialization (most commonly used)
+subsys_initcall()    // 5 - Subsystem initialization
+command_initcall()   // 6 - Command initialization
+server_initcall()    // 7 - Server initialization
+wboxtest_initcall()  // 8 - Test initialization
+late_initcall()      // 9 - Late initialization
 ```
 
-### 实现原理
+### Implementation Principle
 
 ```c
-/* 链接器段定义 */
+/* Linker section definition */
 #define __define_initcall(level, fn) \
     static initcall_t __initcall_##fn \
     __attribute__((used)) \
     __attribute__((__section__("xstar_initcall_" #level))) = fn
 
-/* 初始化执行 - 按级别 0-9 顺序 */
+/* Initialization execution - in level order 0-9 */
 void do_initcalls(void)
 {
     initcall_t *fn;
@@ -593,28 +593,28 @@ void do_initcalls(void)
             (*fn)();
 }
 
-/* 退出执行 - 按级别 9-0 逆序 */
+/* Exit execution - in reverse level order 9-0 */
 void do_exitcalls(void)
 {
-    /* 逆序执行 exitcall */
+    /* Execute exitcalls in reverse order */
 }
 ```
 
-## 设备树 (JSON)
+## Device Tree (JSON)
 
-使用 JSON 格式配置设备，比传统 DTS 更易读易写。
+Devices are configured using JSON format, which is more readable and writable than traditional DTS.
 
-### 命名规则
+### Naming Rule
 
 ```
 "driver-name:id@address"
 ```
 
-- `driver-name`：驱动名称
-- `id`：设备 ID（可选）
-- `address`：设备地址（可选）
+- `driver-name`: Driver name
+- `id`: Device ID (optional)
+- `address`: Device address (optional)
 
-### 配置示例
+### Configuration Example
 
 ```json
 {
@@ -635,26 +635,26 @@ void do_exitcalls(void)
 }
 ```
 
-### 属性读取
+### Property Reading
 
-通过 `dt_read_*` 函数读取设备树属性：
+Device tree properties are read via `dt_read_*` functions:
 
-| 函数 | 返回类型 | 说明 |
-|------|---------|------|
-| `dt_read_string(n, name, def)` | `char *` | 读取字符串 |
-| `dt_read_int(n, name, def)` | `int` | 读取整数 |
-| `dt_read_long(n, name, def)` | `long long` | 读取长整数 |
-| `dt_read_bool(n, name, def)` | `int` | 读取布尔值 |
-| `dt_read_double(n, name, def)` | `double` | 读取双精度浮点 |
-| `dt_read_object(n, name)` | `struct dtnode_t` | 读取子对象 |
+| Function | Return Type | Description |
+|----------|-------------|-------------|
+| `dt_read_string(n, name, def)` | `char *` | Read a string |
+| `dt_read_int(n, name, def)` | `int` | Read an integer |
+| `dt_read_long(n, name, def)` | `long long` | Read a long integer |
+| `dt_read_bool(n, name, def)` | `int` | Read a boolean |
+| `dt_read_double(n, name, def)` | `double` | Read a double |
+| `dt_read_object(n, name)` | `struct dtnode_t` | Read a sub-object |
 
-### 状态控制
+### State Control
 
-设置 `"status": "disabled"` 可跳过设备探测。
+Setting `"status": "disabled"` skips device probing.
 
-### 设备引用
+### Device References
 
-通过 `"driver-name:id"` 格式引用其他设备：
+Reference other devices via the `"driver-name:id"` format:
 
 ```json
 {
@@ -665,175 +665,175 @@ void do_exitcalls(void)
 }
 ```
 
-## 工具库 (LibX)
+## Utility Library (LibX)
 
-LibX 提供通用的算法、数据结构、加密、编码等工具函数，是 XOS 之上的基础库。
+LibX provides common utility functions for algorithms, data structures, cryptography, and encoding. It is the foundation library above XOS.
 
-### 数据结构
+### Data Structures
 
-| 模块 | 说明 | 关键 API |
-|------|------|---------|
-| 双向链表 | `list.h`（纯头文件） | `init_list_head()`, `list_add/del/splice()`, `list_for_each_entry()` |
-| 哈希链表 | `list.h`（纯头文件） | `struct hlist_head_t`, `struct hlist_node_t` |
-| 单向链表 | `slist.c/h` | 单指针链表 |
-| FIFO 环形缓冲 | `fifo.c/h` | 无锁环形缓冲区 |
-| 队列 | `queue.c/h` | 通用队列 |
-| 哈希表 | `hmap.c/h` | 键值对哈希表 |
-| 红黑树 | `rbtree.c/h` | 自平衡二叉搜索树 |
-| LRU 缓存 | `lru.c/h` | 最近最少使用缓存 |
-| 动态字符串 | `ds.c/h` | `struct ds_t`，支持追加、插入、删除、查找、替换 |
-| KOBJ | `kobj.c/h` | 层次化虚拟文件系统节点 |
-| 设备树 | `dtree.c/h` | JSON 设备树解析器 |
-| 初始化调用 | `initcall.c/h` | 链接器段 init/exit 注册（10 级） |
+| Module | Description | Key APIs |
+|--------|-------------|----------|
+| Doubly linked list | `list.h` (header-only) | `init_list_head()`, `list_add/del/splice()`, `list_for_each_entry()` |
+| Hash linked list | `list.h` (header-only) | `struct hlist_head_t`, `struct hlist_node_t` |
+| Singly linked list | `slist.c/h` | Single-pointer linked list |
+| FIFO ring buffer | `fifo.c/h` | Lock-free ring buffer |
+| Queue | `queue.c/h` | General-purpose queue |
+| Hash table | `hmap.c/h` | Key-value hash table |
+| Red-black tree | `rbtree.c/h` | Self-balancing binary search tree |
+| LRU cache | `lru.c/h` | Least recently used cache |
+| Dynamic string | `ds.c/h` | `struct ds_t`, supports append/insert/delete/find/replace |
+| KOBJ | `kobj.c/h` | Hierarchical virtual file system node |
+| Device tree | `dtree.c/h` | JSON device tree parser |
+| Initcall | `initcall.c/h` | Linker-section init/exit registration (10 levels) |
 
-### 加密/安全
+### Crypto/Security
 
-| 模块 | 说明 |
-|------|------|
+| Module | File |
+|--------|------|
 | AES-128 | `aes128.c/h` |
 | AES-256 | `aes256.c/h` |
 | RC4 | `rc4.c/h` |
 | ECDSA-256 | `ecdsa256.c/h` |
 | SHA-1 | `sha1.c/h` |
 | SHA-256 | `sha256.c/h` |
-| VM 加密 | `vmcrypt.c/h` |
-| 里德所罗门 | `rs.c/h`（前向纠错编码） |
+| VM crypto | `vmcrypt.c/h` |
+| Reed-Solomon | `rs.c/h` (forward error correction coding) |
 
-### 信号处理/算法
+### Signal Processing/Algorithms
 
-| 模块 | 说明 |
-|------|------|
-| FFT | `fft.c/h`（快速傅里叶变换） |
-| 双二阶滤波器 | `biquad.c/h`（二阶 IIR 滤波器） |
-| 卡尔曼滤波 | `kalman.c/h` |
-| EWMA | `ewma.c/h`（指数加权移动平均） |
-| 中值滤波 | `median.c/h` |
-| 均值滤波 | `mean.c/h` |
-| 时序滤波 | `tsfilter.c/h` |
-| 按键滤波 | `keyfilter.c/h`（输入去抖） |
-| 余弦查找表 | `costab.c/h` |
-| 复数运算 | `complex.c/h` |
-| 弹簧动画 | `spring.c/h` |
-| 退避算法 | `backoff.c/h`（指数退避） |
-| 呼吸灯 | `breathing.c/h` |
-| 缓动函数 | `easing.c/h` |
-| 窗函数 | `winfunc.c/h`（Hamming、Hanning 等） |
+| Module | Description |
+|--------|-------------|
+| FFT | `fft.c/h` (Fast Fourier Transform) |
+| Biquad filter | `biquad.c/h` (second-order IIR filter) |
+| Kalman filter | `kalman.c/h` |
+| EWMA | `ewma.c/h` (exponentially weighted moving average) |
+| Median filter | `median.c/h` |
+| Mean filter | `mean.c/h` |
+| Time-series filter | `tsfilter.c/h` |
+| Key filter | `keyfilter.c/h` (input debouncing) |
+| Cosine lookup table | `costab.c/h` |
+| Complex arithmetic | `complex.c/h` |
+| Spring animation | `spring.c/h` |
+| Backoff algorithm | `backoff.c/h` (exponential backoff) |
+| Breathing LED | `breathing.c/h` |
+| Easing functions | `easing.c/h` |
+| Window functions | `winfunc.c/h` (Hamming, Hanning, etc.) |
 
-### 编码/压缩
+### Encoding/Compression
 
-| 模块 | 说明 |
-|------|------|
+| Module | Description |
+|--------|-------------|
 | Base64 | `base64.c/h` |
 | JSON | `json.c/h` |
 | URI | `uri.c/h` |
-| QR 码生成 | `qrcgen.c/h` |
-| 交织器 | `interleaver.c/h` |
-| 十六进制转储 | `hexdump.c/h` |
-| CRC-8/16/32 | `crc8.c/h`、`crc16.c/h`、`crc32.c/h` |
-| 字符串哈希 | `shash.h`（纯头文件） |
-| 字符集 | `charset.c/h` |
-| YUV 转换 | `yuv.c/h` |
+| QR code generation | `qrcgen.c/h` |
+| Interleaver | `interleaver.c/h` |
+| Hex dump | `hexdump.c/h` |
+| CRC-8/16/32 | `crc8.c/h`, `crc16.c/h`, `crc32.c/h` |
+| String hash | `shash.h` (header-only) |
+| Character set | `charset.c/h` |
+| YUV conversion | `yuv.c/h` |
 
-### 字符串/文件工具
+### String/File Utilities
 
-| 模块 | 说明 |
-|------|------|
-| 路径操作 | `path.c/h` |
-| UUID 生成 | `uuid.c/h` |
-| 数据库 | `db.c/h` |
-| 进程列表 | `ps.c/h` |
-| 内存池 | `mm.c/h` |
-| 整数平方根 | `sqrti.c/h` |
-| 非对齐访问 | `unaligned.h`（纯头文件） |
-| 字节序转换 | `byteorder.h`（纯头文件，be16/le16/be32/le32） |
-| BCD 编码 | `bcd.h`（纯头文件） |
-| 排序列表 | `lsort.c/h` |
-| 分贝转换 | `db.c/h` |
-| 内核时间 | `ktime.h`（纯头文件） |
-| 核心定义 | `xdef.h`（纯头文件，`NULL`/`TRUE`/`FALSE`/`container_of`/`XMIN`/`XMAX`） |
+| Module | Description |
+|--------|-------------|
+| Path operations | `path.c/h` |
+| UUID generation | `uuid.c/h` |
+| Database | `db.c/h` |
+| Process list | `ps.c/h` |
+| Memory pool | `mm.c/h` |
+| Integer square root | `sqrti.c/h` |
+| Unaligned access | `unaligned.h` (header-only) |
+| Byte-order conversion | `byteorder.h` (header-only, be16/le16/be32/le32) |
+| BCD encoding | `bcd.h` (header-only) |
+| Sorted list | `lsort.c/h` |
+| Decibel conversion | `db.c/h` |
+| Kernel time | `ktime.h` (header-only) |
+| Core definitions | `xdef.h` (header-only, `NULL`/`TRUE`/`FALSE`/`container_of`/`XMIN`/`XMAX`) |
 
-## 构建系统
+## Build System
 
-### Kconfig 配置
+### Kconfig Configuration
 
-使用 Kconfig 系统进行配置管理：
+Uses the Kconfig system for configuration management:
 
 ```bash
-make <project>/xstar.defconfig    # 应用项目默认配置
-make menuconfig                    # 交互式配置菜单
+make <project>/xstar.defconfig    # Apply the project default configuration
+make menuconfig                    # Interactive configuration menu
 ```
 
-配置保存在 `.config` 文件中，生成 `.config.h` 供源码使用。
+Configuration is saved in the `.config` file, which generates `.config.h` for use by source code.
 
-### Kbuild 编译
+### Kbuild Compilation
 
-使用 Kbuild 风格的构建系统：
+Uses a Kbuild-style build system:
 
 ```makefile
-obj-y += core.o                              # 始终编译
-obj-$(CONFIG_DRV_CLK_FIXED) += clk-fixed.o    # 条件编译
-subdirs-y += adc                              # 递归子目录
+obj-y += core.o                              # Always compiled
+obj-$(CONFIG_DRV_CLK_FIXED) += clk-fixed.o    # Conditionally compiled
+subdirs-y += adc                              # Recurse into subdirectory
 ```
 
-### 项目结构
+### Project Structure
 
-每个项目位于 `projects/` 目录下，包含：
+Each project lives under the `projects/` directory and contains:
 
-- `xstar.defconfig`：项目默认配置
-- `xstarcfg.h`：项目特定的类型定义和平台头文件
-- `main.c`：平台特定的入口点
-- `linux/` 或 `baremetal/`：平台实现代码
-- `romdisk/`：只读文件系统（含 `boot/boot.json` 设备树）
+- `xstar.defconfig`: Project default configuration
+- `xstarcfg.h`: Project-specific type definitions and platform header
+- `main.c`: Platform-specific entry point
+- `linux/` or `baremetal/`: Platform implementation code
+- `romdisk/`: Read-only file system (containing `boot/boot.json` device tree)
 
-### 构建输出
+### Build Output
 
-编译输出位于 `projects/<project>/output/`，最终生成 `xstar` 可执行文件。
+Build output is located in `projects/<project>/output/`, finally generating the `xstar` executable.
 
-## 数据流
+## Data Flow
 
-### 设备探测流程
-
-```
-系统启动 → 解析设备树 (JSON) → 匹配驱动 → 调用 probe() → 创建设备实例 → 注册到系统
-```
-
-### 协程调度流程
+### Device Probing Flow
 
 ```
-协程启动 → 执行用户函数 → 调用 yield() → 保存上下文 → 切换到调度器 → 选择下一个协程 → 恢复上下文
+System boot → Parse device tree (JSON) → Match driver → Call probe() → Create device instance → Register into system
 ```
 
-### 图形渲染流程
+### Coroutine Scheduling Flow
 
 ```
-应用调用 → 图形操作 → 记录脏矩形 → 渲染到 surface → G2D/软件渲染 → 更新到帧缓冲
+Coroutine start → Execute user function → Call yield() → Save context → Switch to scheduler → Select next coroutine → Restore context
 ```
 
-### 发布订阅流程
+### Graphics Rendering Flow
 
 ```
-发布事件 → 查找订阅者 → 遍历回调列表 → 执行回调函数 → （可选）取消 oneshot 订阅
+Application call → Graphics operation → Record dirty rectangle → Render to surface → G2D/software rendering → Update to framebuffer
 ```
 
-## 扩展性
+### Publish-Subscribe Flow
 
-### 添加新驱动
+```
+Publish event → Find subscribers → Iterate callback list → Execute callback function → (Optional) Cancel oneshot subscription
+```
 
-1. 实现 `driver_t` 结构
-2. 实现 `probe/remove/suspend/resume` 回调
-3. 使用 `driver_initcall` 注册驱动
-4. 在设备树中添加设备配置
+## Extensibility
 
-### 添加新命令
+### Adding a New Driver
 
-1. 实现 `command_t` 结构
-2. 实现 `exec` 回调函数
-3. 使用 `command_initcall` 注册命令
-4. 添加帮助文档
+1. Implement the `driver_t` structure
+2. Implement the `probe/remove/suspend/resume` callbacks
+3. Register the driver using `driver_initcall`
+4. Add the device configuration in the device tree
 
-### 添加新内核子系统
+### Adding a New Command
 
-1. 定义子系统接口
-2. 实现核心功能
-3. 提供对外 API
-4. 使用适当的 initcall 级别注册
+1. Implement the `command_t` structure
+2. Implement the `exec` callback function
+3. Register the command using `command_initcall`
+4. Add help documentation
+
+### Adding a New Kernel Subsystem
+
+1. Define the subsystem interface
+2. Implement the core functionality
+3. Provide the public API
+4. Register using an appropriate initcall level
