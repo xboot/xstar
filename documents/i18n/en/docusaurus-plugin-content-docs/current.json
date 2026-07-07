@@ -71,29 +71,29 @@
     "message": "Runtime",
     "description": "The label for category '系统运行时' in sidebar 'libx'"
   },
-  "sidebar.subsystems.category.音频子系统": {
+  "sidebar.subsystems.category.音频": {
     "message": "Audio",
-    "description": "The label for category '音频子系统' in sidebar 'subsystems'"
+    "description": "The label for category '音频' in sidebar 'subsystems'"
   },
-  "sidebar.subsystems.category.图形子系统": {
+  "sidebar.subsystems.category.图形": {
     "message": "Graphics",
-    "description": "The label for category '图形子系统' in sidebar 'subsystems'"
+    "description": "The label for category '图形' in sidebar 'subsystems'"
   },
-  "sidebar.subsystems.category.视觉子系统": {
+  "sidebar.subsystems.category.视觉": {
     "message": "Vision",
-    "description": "The label for category '视觉子系统' in sidebar 'subsystems'"
+    "description": "The label for category '视觉' in sidebar 'subsystems'"
   },
-  "sidebar.subsystems.category.字体系统": {
+  "sidebar.subsystems.category.字体": {
     "message": "Font",
-    "description": "The label for category '字体系统' in sidebar 'subsystems'"
+    "description": "The label for category '字体' in sidebar 'subsystems'"
   },
   "sidebar.subsystems.category.设备树": {
     "message": "Device Tree",
     "description": "The label for category '设备树' in sidebar 'subsystems'"
   },
-  "sidebar.subsystems.category.协程系统": {
+  "sidebar.subsystems.category.协程": {
     "message": "Coroutine",
-    "description": "The label for category '协程系统' in sidebar 'subsystems'"
+    "description": "The label for category '协程' in sidebar 'subsystems'"
   },
   "sidebar.subsystems.category.调试工具": {
     "message": "Debug Tools",

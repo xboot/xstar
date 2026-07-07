@@ -117,7 +117,7 @@ const sidebars = {
     },
     {
       type: 'category',
-      label: '协程系统',
+      label: '协程',
       items: [
         'subsys/coroutine/coroutine',
         'subsys/coroutine/cochannel',
@@ -125,14 +125,14 @@ const sidebars = {
     },
     {
       type: 'category',
-      label: '字体系统',
+      label: '字体',
       items: [
         'subsys/font/font-system',
       ],
     },
     {
       type: 'category',
-      label: '图形子系统',
+      label: '图形',
       items: [
         'subsys/graphic/color',
         'subsys/graphic/region',
@@ -147,7 +147,7 @@ const sidebars = {
     },
     {
       type: 'category',
-      label: '视觉子系统',
+      label: '视觉',
       items: [
         'subsys/vision/core-types',
         'subsys/vision/arithmetic-operations',
@@ -161,7 +161,7 @@ const sidebars = {
     },
     {
       type: 'category',
-      label: '音频子系统',
+      label: '音频',
       link: { type: 'doc', id: 'subsys/audio/overview' },
       items: [
         'subsys/audio/overview',
