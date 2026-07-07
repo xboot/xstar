@@ -81,7 +81,7 @@ wallclock_settimeofday(&tv);
 
 /* 通过日历时间设置（上海时区） */
 struct wallclock_time_t tm = {
-    .year = 2026, .month = 7, .day = 7,
+    .year = 2026, .month = 6, .day = 26,
     .hour = 12, .minute = 0, .second = 0,
 };
 wallclock_settime(&tm, "Asia/Shanghai");
@@ -99,7 +99,7 @@ LOG("UTC offset: %d seconds (%d hours)\n", offset, offset / 3600);
 
 - 墙上时钟基于时钟源（clocksource）维持，即使无 RTC 设备也能正常工作
 - 若系统存在 RTC 设备，启动时自动校准时间，运行时定期回写
-- `time_of_day_adjust` 的默认基准值为 `362361600000000000` 纳秒（对应 2021-05-01 00:00:00 UTC）
-- RTC 时间有效性检查要求 Unix 时间戳 >= `1782432000`（对应 2026-07-01 00:00:00 UTC）
+- `time_of_day_adjust` 的默认基准值为 `362361600000000000` 纳秒（对应 1981-06-26 00:00:00 UTC）
+- RTC 时间有效性检查要求 Unix 时间戳 >= `1782432000`（对应 2026-06-26 00:00:00 UTC）
 - 时区名称使用 IANA 时区标识符，如 `"Asia/Shanghai"`、`"America/New_York"`、`"Europe/London"`、`"Etc/UTC"` 等
 - `do_init_wallclock()` 在 `xstar_init()` 中自动调用，无需手动调用

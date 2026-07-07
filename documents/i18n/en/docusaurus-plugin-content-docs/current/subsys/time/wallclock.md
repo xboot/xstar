@@ -81,7 +81,7 @@ wallclock_settimeofday(&tv);
 
 /* Set via calendar time (Shanghai timezone) */
 struct wallclock_time_t tm = {
-    .year = 2026, .month = 7, .day = 7,
+    .year = 2026, .month = 6, .day = 26,
     .hour = 12, .minute = 0, .second = 0,
 };
 wallclock_settime(&tm, "Asia/Shanghai");
@@ -99,7 +99,7 @@ LOG("UTC offset: %d seconds (%d hours)\n", offset, offset / 3600);
 
 - The wall clock is maintained based on the clock source (clocksource); it works even without an RTC device
 - If RTC devices are present, the time is automatically calibrated at startup and periodically written back during runtime
-- The default baseline value of `time_of_day_adjust` is `362361600000000000` nanoseconds (corresponding to 2021-05-01 00:00:00 UTC)
-- RTC time validity check requires Unix timestamp >= `1782432000` (corresponding to 2026-07-01 00:00:00 UTC)
+- The default baseline value of `time_of_day_adjust` is `362361600000000000` nanoseconds (corresponding to 1981-06-26 00:00:00 UTC)
+- RTC time validity check requires Unix timestamp >= `1782432000` (corresponding to 2026-06-26 00:00:00 UTC)
 - Timezone names use IANA timezone identifiers, such as `"Asia/Shanghai"`, `"America/New_York"`, `"Europe/London"`, `"Etc/UTC"`, etc.
 - `do_init_wallclock()` is automatically called in `xstar_init()`; no manual invocation is needed
