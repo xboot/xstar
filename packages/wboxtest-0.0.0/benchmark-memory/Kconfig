@@ -1,0 +1,6 @@
+config WBOXTEST_BENCHMARK_MEMORY
+	bool "Enable memory benchmark tests"
+	depends on PKG_WBOXTEST
+	default y
+	help
+		Enable benchmark tests for memory functions like memcpy, memset, etc.

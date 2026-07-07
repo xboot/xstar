@@ -1,0 +1,2 @@
+obj-$(CONFIG_PKG_XAF) += xaf.o
+obj-$(CONFIG_CMD_XAF) += cmd-xaf.o

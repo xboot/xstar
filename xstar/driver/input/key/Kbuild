@@ -1,0 +1,4 @@
+obj-$(CONFIG_DRV_INPUT_KEY_ADC) += key-adc.o
+obj-$(CONFIG_DRV_INPUT_KEY_GPIO) += key-gpio.o
+obj-$(CONFIG_DRV_INPUT_KEY_GPIO_MATRIX) += key-gpio-matrix.o
+obj-$(CONFIG_DRV_INPUT_KEY_GPIO_POLLED) += key-gpio-polled.o

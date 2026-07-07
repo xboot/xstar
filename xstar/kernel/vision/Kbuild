@@ -1,0 +1,15 @@
+obj-y += bitwise.o
+obj-y += colormap.o
+obj-y += dilate.o
+obj-y += dither.o
+obj-y += erode.o
+obj-y += gamma.o
+obj-y += gray.o
+obj-y += inrange.o
+obj-y += invert.o
+obj-y += rectangle.o
+obj-y += resize.o
+obj-y += sepia.o
+obj-y += text.o
+obj-y += threshold.o
+obj-y += vision.o

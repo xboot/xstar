@@ -1,0 +1,8 @@
+menu "GNSS Support"
+
+config DRV_GNSS_UART
+	prompt "Enable UART GNSS driver"
+	bool
+	default n
+
+endmenu

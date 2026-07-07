@@ -1,0 +1,3 @@
+obj-y += regulator.o
+
+obj-$(CONFIG_DRV_REGULATOR_GPIO) += regulator-gpio.o

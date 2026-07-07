@@ -1,0 +1,4 @@
+obj-y += i2c.o
+obj-y += i2c-algo-bit.o
+
+obj-$(CONFIG_DRV_I2C_GPIO) += i2c-gpio.o

@@ -1,0 +1,6 @@
+config WBOXTEST_OTHER
+	bool "Enable other tests"
+	depends on PKG_WBOXTEST
+	default y
+	help
+		Enable tests for other operations.

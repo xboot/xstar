@@ -1,0 +1,2 @@
+obj-y += abort.o
+obj-y += exit.o

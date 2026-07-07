@@ -1,0 +1,5 @@
+config PKG_LIBC
+	bool "Enable libc (baremetal) package"
+	default n
+	help
+		Enable the libc package for C standard library.

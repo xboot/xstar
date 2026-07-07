@@ -1,0 +1,10 @@
+subdirs-y += audio
+subdirs-y += command
+subdirs-y += core
+subdirs-y += font
+subdirs-y += graphic
+subdirs-y += shell
+subdirs-y += time
+subdirs-y += vision
+subdirs-y += window
+subdirs-y += xfs

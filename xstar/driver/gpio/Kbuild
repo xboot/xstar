@@ -1,0 +1,4 @@
+obj-y += gpio.o
+
+obj-$(CONFIG_DRV_GPIO_MCP23017) += gpio-mcp23017.o
+obj-$(CONFIG_DRV_GPIO_PCF8574) += gpio-pcf8574.o

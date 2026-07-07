@@ -1,0 +1,8 @@
+menu "Regulator Support"
+
+config DRV_REGULATOR_GPIO
+	prompt "Enable GPIO regulator driver"
+	bool
+	default n
+
+endmenu

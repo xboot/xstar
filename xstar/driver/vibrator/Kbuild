@@ -1,0 +1,4 @@
+obj-y += vibrator.o
+
+obj-$(CONFIG_DRV_VIBRATOR_GPIO) += vibrator-gpio.o
+obj-$(CONFIG_DRV_VIBRATOR_PWM) += vibrator-pwm.o

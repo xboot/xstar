@@ -1,0 +1,14 @@
+subdirs-$(CONFIG_WBOXTEST_BENCHMARK_GRAPHIC) += benchmark-graphic
+subdirs-$(CONFIG_WBOXTEST_BENCHMARK_MEMORY) += benchmark-memory
+subdirs-$(CONFIG_WBOXTEST_BLOCK) += block
+subdirs-$(CONFIG_WBOXTEST_CAMERA) += camera
+subdirs-$(CONFIG_WBOXTEST_COROUTINE) += coroutine
+subdirs-$(CONFIG_WBOXTEST_CRYPTO) += crypto
+subdirs-$(CONFIG_WBOXTEST_DMA) += dma
+subdirs-$(CONFIG_WBOXTEST_OTHER) += other
+subdirs-$(CONFIG_WBOXTEST_PATH) += path
+subdirs-$(CONFIG_WBOXTEST_STDIO) += stdio
+subdirs-$(CONFIG_WBOXTEST_THREAD) += thread
+
+obj-$(CONFIG_PKG_WBOXTEST) += wboxtest.o
+obj-$(CONFIG_PKG_WBOXTEST) += cmd-wboxtest.o

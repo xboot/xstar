@@ -1,0 +1,4 @@
+obj-y += sdcard.o
+obj-y += sdhci.o
+
+obj-$(CONFIG_DRV_SD_SDHCI_SPI) += sdhci-spi.o

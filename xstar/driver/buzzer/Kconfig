@@ -1,0 +1,13 @@
+menu "Buzzer Support"
+
+config DRV_BUZZER_GPIO
+	prompt "Enable GPIO buzzer driver"
+	bool
+	default n
+
+config DRV_BUZZER_PWM
+	prompt "Enable PWM buzzer driver"
+	bool
+	default n
+
+endmenu

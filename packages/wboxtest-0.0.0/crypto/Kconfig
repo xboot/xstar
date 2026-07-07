@@ -1,0 +1,6 @@
+config WBOXTEST_CRYPTO
+	bool "Enable crypto tests"
+	depends on PKG_WBOXTEST
+	default y
+	help
+		Enable tests for crypto operations.

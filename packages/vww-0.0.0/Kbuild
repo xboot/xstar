@@ -1,0 +1,2 @@
+obj-$(CONFIG_PKG_VWW) += vww.o
+obj-$(CONFIG_CMD_VWW) += cmd-vww.o

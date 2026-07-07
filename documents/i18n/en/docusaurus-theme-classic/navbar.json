@@ -1,0 +1,34 @@
+{
+  "title": {
+    "message": "XSTAR",
+    "description": "The title in the navbar"
+  },
+  "logo.alt": {
+    "message": "XSTAR Logo",
+    "description": "The alt text of navbar logo"
+  },
+  "item.label.入门指南": {
+    "message": "Guide",
+    "description": "Navbar item with label 入门指南"
+  },
+  "item.label.子系统": {
+    "message": "Subsystems",
+    "description": "Navbar item with label 子系统"
+  },
+  "item.label.设备驱动": {
+    "message": "Drivers",
+    "description": "Navbar item with label 设备驱动"
+  },
+  "item.label.内置命令": {
+    "message": "Commands",
+    "description": "Navbar item with label 内置命令"
+  },
+  "item.label.基础库": {
+    "message": "LibX",
+    "description": "Navbar item with label 基础库"
+  },
+  "item.label.扩展包": {
+    "message": "Packages",
+    "description": "Navbar item with label 扩展包"
+  }
+}

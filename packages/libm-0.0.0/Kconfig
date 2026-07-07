@@ -1,0 +1,5 @@
+config PKG_LIBM
+	bool "Enable libm (baremetal) package"
+	default n
+	help
+		Enable the libm package for C math library.

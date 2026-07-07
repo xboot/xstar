@@ -1,0 +1,13 @@
+menuconfig PKG_XUI
+	bool "XUI immediate mode gui library"
+	default n
+	help
+		Enable support for the XUI user interface library.
+		This provides various UI components like buttons, panels, etc.
+
+config CMD_OVERVIEW
+	bool "Enable overview command"
+	depends on PKG_XUI
+	default y
+	help
+		Enable the overview command to demonstrate XUI components.

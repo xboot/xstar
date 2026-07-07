@@ -1,0 +1,3 @@
+obj-y += hygrometer.o
+
+obj-$(CONFIG_DRV_HYGROMETER_AHT20) += hygrometer-aht20.o

@@ -1,0 +1,8 @@
+menu "SPI Support"
+
+config DRV_SPI_GPIO
+	prompt "Enable GPIO SPI driver"
+	bool
+	default n
+
+endmenu

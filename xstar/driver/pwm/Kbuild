@@ -1,0 +1,4 @@
+obj-y += pwm.o
+
+obj-$(CONFIG_DRV_PWM_GPIO) += pwm-gpio.o
+obj-$(CONFIG_DRV_PWM_PCA9685) += pwm-pca9685.o

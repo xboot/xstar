@@ -1,0 +1,13 @@
+menu "Battery Support"
+
+config DRV_BATTERY_ADC
+	prompt "Enable ADC battery driver"
+	bool
+	default n
+
+config DRV_BATTERY_SBS
+	prompt "Enable SBS battery driver"
+	bool
+	default n
+
+endmenu

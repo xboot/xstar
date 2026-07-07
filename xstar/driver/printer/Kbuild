@@ -1,0 +1,3 @@
+obj-y += printer.o
+
+obj-$(CONFIG_DRV_PRINTER_THERMAL) += printer-thermal.o

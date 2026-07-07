@@ -1,0 +1,20 @@
+#
+# Normal rules
+#
+*.rej
+*.orig
+*.d
+*.o
+*~
+
+#
+# Generated files
+#
+/.config
+/.config.old
+/.config.h
+/.cproject
+/.project
+/.settings
+/.vscode
+/.venv

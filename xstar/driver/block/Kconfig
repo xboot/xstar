@@ -1,0 +1,23 @@
+menu "Block Device Support"
+
+config DRV_BLOCK_RAMDISK
+	prompt "Enable RAM disk driver"
+	bool
+	default n
+
+config DRV_BLOCK_ROMDISK
+	prompt "Enable ROM disk driver"
+	bool
+	default n
+
+config DRV_BLOCK_SPINAND
+	prompt "Enable SPI NAND driver"
+	bool
+	default n
+
+config DRV_BLOCK_SPINOR
+	prompt "Enable SPI NOR driver"
+	bool
+	default n
+
+endmenu

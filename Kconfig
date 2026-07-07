@@ -1,0 +1,53 @@
+mainmenu "Xstar Configuration"
+
+menu "Compile Options"
+
+config CROSS_COMPILE
+	string "Cross-compiler toolchain prefix"
+	default ""
+	help
+		Specify the prefix for the cross-compiler toolchain. This is the string
+		that is prepended to compiler tool names (gcc, ld, etc.) when building
+		for a different architecture.
+
+config ARCH
+	string
+	default "arm32" if ARCH_ARM32
+	default "arm64" if ARCH_ARM64
+	default "riscv32" if ARCH_RISCV32
+	default "riscv64" if ARCH_RISCV64
+	default "x32" if ARCH_X32
+	default "x64" if ARCH_X64
+
+choice
+	prompt "Architecture type"
+	default ARCH_X64
+	config ARCH_ARM32
+		bool "ARM 32-bit"
+	config ARCH_ARM64
+		bool "ARM 64-bit"
+	config ARCH_RISCV32
+		bool "RISC-V 32-bit"
+	config ARCH_RISCV64
+		bool "RISC-V 64-bit"
+	config ARCH_X32
+		bool "X86 32-bit"
+	config ARCH_X64
+		bool "X86 64-bit"
+endchoice
+
+config OPTIMIZE_LEVEL
+	string "Optimization level"
+	default "-O3"
+	help
+		Compiler optimization level. Common values:
+		-O0: No optimization
+		-O1: Basic optimization
+		-O2: Moderate optimization
+		-O3: Aggressive optimization
+		-Os: Optimize for size
+endmenu
+
+source "projects/Kconfig"
+source "packages/Kconfig"
+source "xstar/Kconfig"

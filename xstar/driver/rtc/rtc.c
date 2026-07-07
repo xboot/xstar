@@ -1,0 +1,250 @@
+/*
+ * Copyright(c) Jianjun Jiang <8192542@qq.com>
+ * Mobile phone: +86-18665388956
+ * QQ: 8192542
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+#include <driver/rtc/rtc.h>
+
+#define LEAPS_THRU_END(y)	((y) / 4 - (y) / 100 + (y) / 400)
+#define LEAP_YEAR(year)		((!(year % 4) && (year % 100)) || !(year % 400))
+
+static inline int rtc_month_days(unsigned int year, unsigned int month)
+{
+	const int rtc_days_in_month[13] = {
+		0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
+	};
+	if(month > 12)
+		month = 0;
+	return rtc_days_in_month[month] + ((((!(year % 4) && (year % 100)) || !(year % 400)) && (month == 2)) ? 1 : 0);
+}
+
+void secs_to_rtc_time(uint64_t time, struct rtc_time_t * rt)
+{
+	int year;
+	int month;
+	int days;
+	int newdays;
+
+	days = time / 86400;
+	time -= (uint64_t)days * 86400;
+
+	rt->week = (days + 4) % 7;
+	year = 1970 + days / 365;
+	days -= (year - 1970) * 365	+ LEAPS_THRU_END(year - 1) - LEAPS_THRU_END(1970 - 1);
+
+	if(days < 0)
+	{
+		year -= 1;
+		days += 365 + LEAP_YEAR(year);
+	}
+	rt->year = year;
+	rt->day = days + 1;
+
+	for(month = 1; month < 12; month++)
+	{
+		newdays = days - rtc_month_days(year, month);
+		if(newdays < 0)
+			break;
+		days = newdays;
+	}
+	rt->month = month;
+	rt->day = days + 1;
+	rt->hour = time / 3600;
+	time -= rt->hour * 3600;
+	rt->minute = time / 60;
+	rt->second = time - rt->minute * 60;
+}
+
+uint64_t rtc_time_to_secs(struct rtc_time_t * rt)
+{
+	int month = rt->month;
+	int year = rt->year;
+
+	if(0 >= (int)(month -= 2))
+	{
+		month += 12;
+		year -= 1;
+	}
+	return ((((uint64_t)(year / 4 - year / 100 + year / 400 + 367 * month / 12 + rt->day) + year * 365 - 719499) * 24 + rt->hour) * 60 + rt->minute) * 60 + rt->second;
+}
+
+int rtc_time_is_valid(struct rtc_time_t * time)
+{
+	if((!time) || (time->year < 1970)
+		|| (time->month < 1)
+		|| (time->month > 12)
+		|| (time->day < 1)
+		|| (time->day > rtc_month_days(time->year, time->month))
+		|| (time->hour >= 24)
+		|| (time->minute >= 60)
+		|| (time->second >= 60))
+		return 0;
+	return 1;
+}
+
+static ssize_t rtc_time_read(struct kobj_t * kobj, void * buf, size_t size)
+{
+	struct rtc_t * rtc = (struct rtc_t *)kobj->priv;
+	struct rtc_time_t time;
+
+	rtc_gettime(rtc, &time);
+	return xos_sprintf(buf, "%04u-%02u-%02u %02u:%02u:%02u %01u", (uint32_t)time.year, (uint32_t)time.month, (uint32_t)time.day, (uint32_t)time.hour, (uint32_t)time.minute, (uint32_t)time.second, (uint32_t)time.week);
+}
+
+static ssize_t rtc_time_write(struct kobj_t * kobj, void * buf, size_t size)
+{
+	struct rtc_t * rtc = (struct rtc_t *)kobj->priv;
+	struct rtc_time_t time;
+	char * p = buf, * r, * v;
+	int index = 0;
+
+	while((r = xos_strsep(&p, "-: ")) != NULL)
+	{
+		v = xos_strim(r);
+		if(v && (*v != '\0'))
+		{
+			switch(index++)
+			{
+			case 0:
+				time.year = xos_strtoul(v, NULL, 10);
+				break;
+			case 1:
+				time.month = xos_strtoul(v, NULL, 10);
+				break;
+			case 2:
+				time.day = xos_strtoul(v, NULL, 10);
+				break;
+			case 3:
+				time.hour = xos_strtoul(v, NULL, 10);
+				break;
+			case 4:
+				time.minute = xos_strtoul(v, NULL, 10);
+				break;
+			case 5:
+				time.second = xos_strtoul(v, NULL, 10);
+				break;
+			case 6:
+				time.week = xos_strtoul(v, NULL, 10);
+				break;
+			default:
+				break;
+			}
+		}
+	}
+	if(index >= 7)
+		rtc_settime(rtc, &time);
+	return size;
+}
+
+struct rtc_t * search_rtc(const char * name)
+{
+	struct device_t * dev;
+
+	dev = search_device(name, DEVICE_TYPE_RTC);
+	if(!dev)
+		return NULL;
+	return (struct rtc_t *)dev->priv;
+}
+
+struct rtc_t * search_first_rtc(void)
+{
+	struct device_t * dev;
+
+	dev = search_first_device(DEVICE_TYPE_RTC);
+	if(!dev)
+		return NULL;
+	return (struct rtc_t *)dev->priv;
+}
+
+struct device_t * register_rtc(struct rtc_t * rtc, struct driver_t * drv)
+{
+	struct device_t * dev;
+	struct rtc_time_t time;
+
+	if(!rtc || !rtc->name)
+		return NULL;
+
+	dev = xos_mem_malloc(sizeof(struct device_t));
+	if(!dev)
+		return NULL;
+
+	dev->name = xos_strdup(rtc->name);
+	dev->type = DEVICE_TYPE_RTC;
+	dev->driver = drv;
+	dev->priv = rtc;
+	dev->kobj = kobj_alloc_directory(dev->name);
+	kobj_add_regular(dev->kobj, "time", rtc_time_read, rtc_time_write, rtc);
+
+	if(rtc_gettime(rtc, &time))
+	{
+		if(!rtc_time_is_valid(&time) || (rtc_time_to_secs(&time) < 362361600ULL))
+		{
+			time.second = 0;
+			time.minute = 0;
+			time.hour = 0;
+			time.week = 5;
+			time.day = 26;
+			time.month = 6;
+			time.year = 1981;
+			rtc_settime(rtc, &time);
+		}
+	}
+
+	if(!register_device(dev))
+	{
+		kobj_remove_self(dev->kobj);
+		xos_mem_free(dev->name);
+		xos_mem_free(dev);
+		return NULL;
+	}
+	return dev;
+}
+
+void unregister_rtc(struct rtc_t * rtc)
+{
+	struct device_t * dev;
+
+	if(rtc && rtc->name)
+	{
+		dev = search_device(rtc->name, DEVICE_TYPE_RTC);
+		if(dev && unregister_device(dev))
+		{
+			kobj_remove_self(dev->kobj);
+			xos_mem_free(dev->name);
+			xos_mem_free(dev);
+		}
+	}
+}
+
+int rtc_settime(struct rtc_t * rtc, struct rtc_time_t * time)
+{
+	if(rtc && rtc->settime && rtc_time_is_valid(time))
+		return rtc->settime(rtc, time);
+	return FALSE;
+}
+
+int rtc_gettime(struct rtc_t * rtc, struct rtc_time_t * time)
+{
+	if(rtc && rtc->gettime)
+		return rtc->gettime(rtc, time);
+	return FALSE;
+}

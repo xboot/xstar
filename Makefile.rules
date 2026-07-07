@@ -1,0 +1,39 @@
+subdirs-y :=
+dep = $(obj-y:.o=.d)
+sinclude $(dir)/Kbuild
+
+prepend-dir-to = $(addprefix $(dir)/,$1)
+prepend-dir = $(foreach d,$($1),$(call prepend-dir-to,$(d)))
+
+prepend-objs-to = $(addprefix $(OBJDIR)$(subst $(TOPDIR),,$(dir))/, $1)
+prepend-objs = $(foreach d,$($1),$(call prepend-objs-to,$(d)))
+
+CUR_OBJ_DIR := $(addsuffix $(subst $(TOPDIR),,$(dir))/, $(OBJDIR))
+
+.PHONY: all clean $(call prepend-dir,subdirs-y)
+
+all: $(call prepend-dir,subdirs-y) $(call prepend-objs,obj-y) $(call prepend-objs,extra-y)
+	$(Q)echo $(call prepend-objs,obj-y) >> $(OUTDIR)/.objects.lst
+
+clean: $(call prepend-dir,subdirs-y)
+	$(Q)$(RM) $(call prepend-objs,obj-y) $(call prepend-objs,dep) $(call prepend-objs,extra-y)
+
+$(call prepend-dir,subdirs-y):
+	$(Q)$(MAKE) --no-print-directory -f Makefile.rules dir=$@ file=Kbuild $(MAKECMDGOALS)
+
+$(CUR_OBJ_DIR)%.o: $(dir)/%.S
+	$(Q)echo [AS] $(subst $(TOPDIR)/,,$<)
+	$(Q)$(MKDIR) $(dir $@)
+	$(Q)$(CC) $(ASFLAGS) $(MCFLAGS) -MMD -MP -MF $(patsubst %.o,%.d,$@) -c -o $@ $<
+
+$(CUR_OBJ_DIR)%.o: $(dir)/%.c
+	$(Q)echo [CC] $(subst $(TOPDIR)/,,$<)
+	$(Q)$(MKDIR) $(dir $@)
+	$(Q)$(CC) $(CFLAGS) $(MCFLAGS) -MMD -MP -MF $(patsubst %.o,%.d,$@) -c -o $@ $<
+
+$(CUR_OBJ_DIR)%.o: $(dir)/%.cpp
+	$(Q)echo [CXX] $(subst $(TOPDIR)/,,$<)
+	$(Q)$(MKDIR) $(dir $@)
+	$(Q)$(CXX) $(CXXFLAGS) $(MCFLAGS) -MMD -MP -MF $(patsubst %.o,%.d,$@) -c -o $@ $<
+
+sinclude $(addprefix $(CUR_OBJ_DIR),$(dep))

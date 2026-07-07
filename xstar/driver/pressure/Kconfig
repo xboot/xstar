@@ -1,0 +1,8 @@
+menu "Pressure Support"
+
+config DRV_PRESSURE_BMP280
+	prompt "Enable BMP280 pressure driver"
+	bool
+	default n
+
+endmenu

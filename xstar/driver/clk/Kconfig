@@ -1,0 +1,43 @@
+menu "Clock Support"
+
+config DRV_CLK_COMP
+	prompt "Enable clock composite driver"
+	bool
+	default n
+
+config DRV_CLK_DIVIDER
+	prompt "Enable clock divider driver"
+	bool
+	default n
+
+config DRV_CLK_FIXED_FACTOR
+	prompt "Enable clock fixed factor driver"
+	bool
+	default n
+
+config DRV_CLK_FIXED
+	prompt "Enable clock fixed driver"
+	bool
+	default n
+
+config DRV_CLK_GATE
+	prompt "Enable clock gate driver"
+	bool
+	default n
+
+config DRV_CLK_LINK
+	prompt "Enable clock link driver"
+	bool
+	default n
+
+config DRV_CLK_MUX
+	prompt "Enable clock mux driver"
+	bool
+	default n
+
+config DRV_CLK_RATIO
+	prompt "Enable clock ratio driver"
+	bool
+	default n
+
+endmenu

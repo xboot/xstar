@@ -1,0 +1,9 @@
+obj-y += arc.o
+obj-y += circle.o
+obj-y += curve.o
+obj-y += ellipse.o
+obj-y += line.o
+obj-y += polygon.o
+obj-y += polyline.o
+obj-y += rectangle.o
+obj-y += triangle.o

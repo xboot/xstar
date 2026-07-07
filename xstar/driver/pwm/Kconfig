@@ -1,0 +1,13 @@
+menu "PWM Support"
+
+config DRV_PWM_GPIO
+	prompt "Enable GPIO PWM driver"
+	bool
+	default n
+
+config DRV_PWM_PCA9685
+	prompt "Enable PCA9685 PWM driver"
+	bool
+	default n
+
+endmenu

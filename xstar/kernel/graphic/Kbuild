@@ -1,0 +1,8 @@
+obj-y += blur.o
+obj-y += color.o
+obj-y += dirtylist.o
+obj-y += effect.o
+obj-y += filter.o
+obj-y += matrix2d.o
+obj-y += render.o
+obj-y += surface.o

@@ -1,0 +1,7 @@
+obj-y += ce-win.o
+obj-y += console-win.o
+obj-y += cs-win.o
+obj-y += fb-win-sdl.o
+obj-y += input-win-sdl.o
+obj-y += rtc-win-soft.o
+

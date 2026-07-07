@@ -1,0 +1,4 @@
+obj-y += buzzer.o
+
+obj-$(CONFIG_DRV_BUZZER_GPIO) += buzzer-gpio.o
+obj-$(CONFIG_DRV_BUZZER_PWM) += buzzer-pwm.o

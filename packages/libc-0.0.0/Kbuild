@@ -1,0 +1,12 @@
+subdirs-$(CONFIG_PKG_LIBC) += src/$(CONFIG_ARCH:"%"=%)
+subdirs-$(CONFIG_PKG_LIBC) += src/assert
+subdirs-$(CONFIG_PKG_LIBC) += src/ctype
+subdirs-$(CONFIG_PKG_LIBC) += src/environ
+subdirs-$(CONFIG_PKG_LIBC) += src/errno
+subdirs-$(CONFIG_PKG_LIBC) += src/exit
+subdirs-$(CONFIG_PKG_LIBC) += src/locale
+subdirs-$(CONFIG_PKG_LIBC) += src/malloc
+subdirs-$(CONFIG_PKG_LIBC) += src/stdio
+subdirs-$(CONFIG_PKG_LIBC) += src/stdlib
+subdirs-$(CONFIG_PKG_LIBC) += src/string
+subdirs-$(CONFIG_PKG_LIBC) += src/time

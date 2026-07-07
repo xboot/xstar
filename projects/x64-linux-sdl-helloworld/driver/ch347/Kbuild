@@ -1,0 +1,4 @@
+obj-y += ch347.o
+obj-y += gpio-ch347.o
+obj-y += i2c-ch347.o
+obj-y += spi-ch347.o

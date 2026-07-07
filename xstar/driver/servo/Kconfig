@@ -1,0 +1,8 @@
+menu "Servo Support"
+
+config DRV_SERVO_PWM
+	prompt "Enable PWM servo driver"
+	bool
+	default n
+
+endmenu

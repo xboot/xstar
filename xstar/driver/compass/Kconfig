@@ -1,0 +1,8 @@
+menu "Compass Support"
+
+config DRV_COMPASS_HMC5883L
+	prompt "Enable HMC5883L compass driver"
+	bool
+	default n
+
+endmenu

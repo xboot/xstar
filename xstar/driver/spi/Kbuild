@@ -1,0 +1,3 @@
+obj-y += spi.o
+
+obj-$(CONFIG_DRV_SPI_GPIO) += spi-gpio.o

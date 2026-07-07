@@ -1,0 +1,8 @@
+menu "Hygrometer Support"
+
+config DRV_HYGROMETER_AHT20
+	prompt "Enable AHT20 hygrometer driver"
+	bool
+	default n
+
+endmenu

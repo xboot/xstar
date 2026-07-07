@@ -1,0 +1,5 @@
+obj-y += ledtrigger.o
+
+obj-$(CONFIG_DRV_LEDTRIGGER_BREATHING) += ledtrigger-breathing.o
+obj-$(CONFIG_DRV_LEDTRIGGER_GENERAL) += ledtrigger-general.o
+obj-$(CONFIG_DRV_LEDTRIGGER_HEARTBEAT) += ledtrigger-heartbeat.o

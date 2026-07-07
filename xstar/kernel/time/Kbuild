@@ -1,0 +1,4 @@
+obj-y += delay.o
+obj-y += delaycall.o
+obj-y += timer.o
+obj-y += wallclock.o

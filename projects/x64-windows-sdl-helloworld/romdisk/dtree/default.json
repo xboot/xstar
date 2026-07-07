@@ -1,0 +1,21 @@
+{
+	"ce-win:0": {
+	},
+
+	"cs-win:0": {
+	},
+
+	"rtc-win-soft:0": {
+	},
+
+	"fb-win-sdl:0": {
+		"width": 800,
+		"height": 480
+	},
+
+	"input-win-sdl:0": {
+	},
+
+	"console-win:0": {
+	}
+}

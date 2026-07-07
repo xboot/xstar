@@ -1,0 +1,470 @@
+#
+# Automatically generated file; DO NOT EDIT.
+# Xstar Configuration
+#
+
+#
+# Compile Options
+#
+CONFIG_CROSS_COMPILE=""
+CONFIG_ARCH="x64"
+# CONFIG_ARCH_ARM32 is not set
+# CONFIG_ARCH_ARM64 is not set
+# CONFIG_ARCH_RISCV32 is not set
+# CONFIG_ARCH_RISCV64 is not set
+# CONFIG_ARCH_X32 is not set
+CONFIG_ARCH_X64=y
+CONFIG_OPTIMIZE_LEVEL="-O3"
+# end of Compile Options
+
+#
+# Project Selection
+#
+CONFIG_PROJECT_NAME="x64-linux-sdl-helloworld"
+# end of Project Selection
+
+#
+# Project Options
+#
+# end of Project Options
+
+#
+# Package Libraries
+#
+# CONFIG_PKG_LIBC is not set
+# CONFIG_PKG_LIBM is not set
+CONFIG_PKG_LIBCJSON=y
+CONFIG_PKG_LIBXNES=y
+CONFIG_CMD_XNES=y
+CONFIG_PKG_LVGL=y
+CONFIG_CMD_LVGL=y
+CONFIG_PKG_PLMPEG=y
+CONFIG_CMD_PLMPEG=y
+CONFIG_PKG_VWW=y
+CONFIG_CMD_VWW=y
+CONFIG_PKG_WBOXTEST=y
+CONFIG_WBOXTEST_BENCHMARK_GRAPHIC=y
+CONFIG_WBOXTEST_BENCHMARK_MEMORY=y
+CONFIG_WBOXTEST_BLOCK=y
+CONFIG_WBOXTEST_CAMERA=y
+CONFIG_WBOXTEST_COROUTINE=y
+CONFIG_WBOXTEST_CRYPTO=y
+CONFIG_WBOXTEST_DMA=y
+CONFIG_WBOXTEST_OTHER=y
+CONFIG_WBOXTEST_PATH=y
+CONFIG_WBOXTEST_STDIO=y
+CONFIG_WBOXTEST_THREAD=y
+CONFIG_PKG_XAF=y
+CONFIG_CMD_XAF=y
+CONFIG_PKG_XUI=y
+CONFIG_CMD_OVERVIEW=y
+# end of Package Libraries
+
+#
+# Xstar Options
+#
+CONFIG_XSTAR=y
+CONFIG_XSTAR_LOG=y
+CONFIG_XSTAR_LOGGER_SIZE=8192
+CONFIG_XSTAR_MAX_PATH=1024
+CONFIG_XSTAR_WINDOW_ORIENTATION_ROTATE_0=y
+# CONFIG_XSTAR_WINDOW_ORIENTATION_ROTATE_90 is not set
+# CONFIG_XSTAR_WINDOW_ORIENTATION_ROTATE_180 is not set
+# CONFIG_XSTAR_WINDOW_ORIENTATION_ROTATE_270 is not set
+# CONFIG_XSTAR_WINDOW_ORIENTATION_FLIP_HORIZONTAL is not set
+# CONFIG_XSTAR_WINDOW_ORIENTATION_FLIP_DIAGONAL is not set
+# CONFIG_XSTAR_WINDOW_ORIENTATION_FLIP_VERTICAL is not set
+# CONFIG_XSTAR_WINDOW_ORIENTATION_FLIP_ANTI_DIAGONAL is not set
+CONFIG_XSTAR_WINDOW_ORIENTATION=0
+CONFIG_XSTAR_SHELL_PASSWORD=""
+# end of Xstar Options
+
+#
+# Device Drivers
+#
+
+#
+# ADC Support
+#
+CONFIG_DRV_ADC_ADS1015=y
+# end of ADC Support
+
+#
+# ATNET Support
+#
+CONFIG_DRV_ATNET_ML307=y
+# end of ATNET Support
+
+#
+# Atomic Support
+#
+# end of Atomic Support
+
+#
+# Audio Support
+#
+CONFIG_DRV_AUDIO_PLAYBACK_PWM=y
+# end of Audio Support
+
+#
+# Battery Support
+#
+CONFIG_DRV_BATTERY_ADC=y
+CONFIG_DRV_BATTERY_SBS=y
+# end of Battery Support
+
+#
+# Block Device Support
+#
+CONFIG_DRV_BLOCK_RAMDISK=y
+CONFIG_DRV_BLOCK_ROMDISK=y
+CONFIG_DRV_BLOCK_SPINAND=y
+CONFIG_DRV_BLOCK_SPINOR=y
+# end of Block Device Support
+
+#
+# Buzzer Support
+#
+CONFIG_DRV_BUZZER_GPIO=y
+CONFIG_DRV_BUZZER_PWM=y
+# end of Buzzer Support
+
+#
+# Camera Support
+#
+# end of Camera Support
+
+#
+# Clock Support
+#
+CONFIG_DRV_CLK_COMP=y
+CONFIG_DRV_CLK_DIVIDER=y
+CONFIG_DRV_CLK_FIXED_FACTOR=y
+CONFIG_DRV_CLK_FIXED=y
+CONFIG_DRV_CLK_GATE=y
+CONFIG_DRV_CLK_LINK=y
+CONFIG_DRV_CLK_MUX=y
+CONFIG_DRV_CLK_RATIO=y
+# end of Clock Support
+
+#
+# Clock Event Support
+#
+# end of Clock Event Support
+
+#
+# Clock Source Support
+#
+# end of Clock Source Support
+
+#
+# Compass Support
+#
+CONFIG_DRV_COMPASS_HMC5883L=y
+# end of Compass Support
+
+#
+# Console Support
+#
+CONFIG_DRV_CONSOLE_UART=y
+# end of Console Support
+
+#
+# DAC Support
+#
+# end of DAC Support
+
+#
+# DMA Support
+#
+# end of DMA Support
+
+#
+# Framebuffer Support
+#
+CONFIG_DRV_FRAMEBUFFER_GC9107=y
+CONFIG_DRV_FRAMEBUFFER_GC9B72=y
+CONFIG_DRV_FRAMEBUFFER_GC9D01=y
+CONFIG_DRV_FRAMEBUFFER_NV3031B=y
+CONFIG_DRV_FRAMEBUFFER_NV3041A=y
+CONFIG_DRV_FRAMEBUFFER_SSD1308=y
+CONFIG_DRV_FRAMEBUFFER_ST7735P3=y
+CONFIG_DRV_FRAMEBUFFER_ST7789P3=y
+CONFIG_DRV_FRAMEBUFFER_ST77912=y
+# end of Framebuffer Support
+
+#
+# G2D Graphics Support
+#
+# end of G2D Graphics Support
+
+#
+# Gravity Meter Support
+#
+CONFIG_DRV_GMETER_AXDL345=y
+# end of Gravity Meter Support
+
+#
+# GNSS Support
+#
+CONFIG_DRV_GNSS_UART=y
+# end of GNSS Support
+
+#
+# GPIO Support
+#
+CONFIG_DRV_GPIO_MCP23017=y
+CONFIG_DRV_GPIO_PCF8574=y
+# end of GPIO Support
+
+#
+# Gyroscope Support
+#
+# end of Gyroscope Support
+
+#
+# Hygrometer Support
+#
+CONFIG_DRV_HYGROMETER_AHT20=y
+# end of Hygrometer Support
+
+#
+# I2C Support
+#
+CONFIG_DRV_I2C_GPIO=y
+# end of I2C Support
+
+#
+# Input Support
+#
+
+#
+# Key Support
+#
+CONFIG_DRV_INPUT_KEY_ADC=y
+CONFIG_DRV_INPUT_KEY_GPIO=y
+CONFIG_DRV_INPUT_KEY_GPIO_MATRIX=y
+CONFIG_DRV_INPUT_KEY_GPIO_POLLED=y
+# end of Key Support
+
+#
+# Remote Control Support
+#
+CONFIG_DRV_INPUT_RC_GPIO=y
+# end of Remote Control Support
+
+#
+# Rotary Encoder Support
+#
+CONFIG_DRV_INPUT_ROTARY_GPIO=y
+# end of Rotary Encoder Support
+
+#
+# Touchscreen Support
+#
+CONFIG_DRV_INPUT_TOUCHSCREEN_CST816D=y
+CONFIG_DRV_INPUT_TOUCHSCREEN_GT911=y
+# end of Touchscreen Support
+# end of Input Support
+
+#
+# Interrupt Support
+#
+# end of Interrupt Support
+
+#
+# LED Support
+#
+CONFIG_DRV_LED_GPIO=y
+CONFIG_DRV_LED_PWM=y
+CONFIG_DRV_LED_LSTRIP=y
+# end of LED Support
+
+#
+# LED Strip Support
+#
+CONFIG_DRV_LEDSTRIP_SK9822=y
+CONFIG_DRV_LEDSTRIP_WS2812=y
+# end of LED Strip Support
+
+#
+# LED Trigger Support
+#
+CONFIG_DRV_LEDTRIGGER_HEARTBEAT=y
+CONFIG_DRV_LEDTRIGGER_BREATHING=y
+CONFIG_DRV_LEDTRIGGER_GENERAL=y
+# end of LED Trigger Support
+
+#
+# Light Sensor Support
+#
+# end of Light Sensor Support
+
+#
+# Limiter Support
+#
+CONFIG_DRV_LIMITER_GPIO_POLLED=y
+# end of Limiter Support
+
+#
+# Motor Support
+#
+CONFIG_DRV_MOTOR_GPIO=y
+# end of Motor Support
+
+#
+# Network Support
+#
+# end of Network Support
+
+#
+# NVMEM Support
+#
+CONFIG_DRV_NVMEM_AT24C02=y
+CONFIG_DRV_NVMEM_OTP=y
+# end of NVMEM Support
+
+#
+# Oximeter Support
+#
+# end of Oximeter Support
+
+#
+# Pressure Support
+#
+CONFIG_DRV_PRESSURE_BMP280=y
+# end of Pressure Support
+
+#
+# Printer Support
+#
+CONFIG_DRV_PRINTER_THERMAL=y
+# end of Printer Support
+
+#
+# Proximity Support
+#
+CONFIG_DRV_PROXIMITY_GPIO=y
+# end of Proximity Support
+
+#
+# PWM Support
+#
+CONFIG_DRV_PWM_GPIO=y
+CONFIG_DRV_PWM_PCA9685=y
+# end of PWM Support
+
+#
+# Regulator Support
+#
+CONFIG_DRV_REGULATOR_GPIO=y
+# end of Regulator Support
+
+#
+# Reset Support
+#
+# end of Reset Support
+
+#
+# RNG Support
+#
+# end of RNG Support
+
+#
+# RTC Support
+#
+# end of RTC Support
+
+#
+# SD Support
+#
+CONFIG_DRV_SD_SDHCI_SPI=y
+# end of SD Support
+
+#
+# Servo Support
+#
+CONFIG_DRV_SERVO_PWM=y
+# end of Servo Support
+
+#
+# SPI Support
+#
+CONFIG_DRV_SPI_GPIO=y
+# end of SPI Support
+
+#
+# Spinlock Support
+#
+# end of Spinlock Support
+
+#
+# Stepper Support
+#
+CONFIG_DRV_STEPPER_BIPOLAR_GPIO=y
+CONFIG_DRV_STEPPER_PULSE_DIR=y
+CONFIG_DRV_STEPPER_UNIPOLAR_GPIO=y
+# end of Stepper Support
+
+#
+# Thermometer Support
+#
+CONFIG_DRV_THERMOMETER_AS6221=y
+CONFIG_DRV_THERMOMETER_MAX30205=y
+# end of Thermometer Support
+
+#
+# UART Support
+#
+# end of UART Support
+
+#
+# Vibrator Support
+#
+CONFIG_DRV_VIBRATOR_GPIO=y
+CONFIG_DRV_VIBRATOR_PWM=y
+# end of Vibrator Support
+
+#
+# Watchdog Support
+#
+# end of Watchdog Support
+# end of Device Drivers
+
+#
+# Command Configuration
+#
+CONFIG_CMD_APLAY=y
+CONFIG_CMD_AUTOSHELL=y
+CONFIG_CMD_CAT=y
+CONFIG_CMD_CD=y
+CONFIG_CMD_CLEAR=y
+CONFIG_CMD_CLK=y
+CONFIG_CMD_DATE=y
+CONFIG_CMD_DCP=y
+CONFIG_CMD_DELAY=y
+CONFIG_CMD_ECHO=y
+CONFIG_CMD_EVENT=y
+CONFIG_CMD_EARTH=y
+CONFIG_CMD_GO=y
+CONFIG_CMD_HELP=y
+CONFIG_CMD_IPLAY=y
+CONFIG_CMD_LS=y
+CONFIG_CMD_MD=y
+CONFIG_CMD_MKDIR=y
+CONFIG_CMD_MW=y
+CONFIG_CMD_NET=y
+CONFIG_CMD_NTPDATE=y
+CONFIG_CMD_PWD=y
+CONFIG_CMD_REBOOT=y
+CONFIG_CMD_RM=y
+CONFIG_CMD_SETTING=y
+CONFIG_CMD_SHUTDOWN=y
+CONFIG_CMD_STANDBY=y
+CONFIG_CMD_SYNC=y
+CONFIG_CMD_TEST=y
+CONFIG_CMD_TSCAL=y
+CONFIG_CMD_UNIQUEID=y
+CONFIG_CMD_VERSION=y
+CONFIG_CMD_WRITE=y
+# end of Command Configuration

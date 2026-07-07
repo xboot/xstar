@@ -1,0 +1,13 @@
+menuconfig PKG_VWW
+	bool "VWW visual wake words neural network library"
+	default n
+	help
+		Enable support for the VWW visual wake words library.
+		This provides a quantized CNN model for person detection.
+
+config CMD_VWW
+	bool "Enable vww command"
+	depends on PKG_VWW
+	default y
+	help
+		Enable the vww command to run person detection on an image.

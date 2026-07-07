@@ -1,0 +1,8 @@
+menu "I2C Support"
+
+config DRV_I2C_GPIO
+	prompt "Enable GPIO I2C driver"
+	bool
+	default n
+
+endmenu

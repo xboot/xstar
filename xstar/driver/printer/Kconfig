@@ -1,0 +1,8 @@
+menu "Printer Support"
+
+config DRV_PRINTER_THERMAL
+	prompt "Enable thermal printer driver"
+	bool
+	default n
+
+endmenu

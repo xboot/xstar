@@ -1,0 +1,1 @@
+obj-$(CONFIG_PKG_LIBCJSON) += cjson.o

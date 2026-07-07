@@ -1,0 +1,8 @@
+menu "Gravity Meter Support"
+
+config DRV_GMETER_AXDL345
+	prompt "Enable AXDL345 gravity meter driver"
+	bool
+	default n
+
+endmenu

@@ -1,0 +1,4 @@
+obj-y += battery.o
+
+obj-$(CONFIG_DRV_BATTERY_ADC) += battery-adc.o
+obj-$(CONFIG_DRV_BATTERY_SBS) += battery-sbs.o

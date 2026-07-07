@@ -1,0 +1,12 @@
+menuconfig PKG_LIBXNES
+	bool "Enable libxnes package"
+	default n
+	help
+		Enable the libxnes package for NES emulation.
+
+config CMD_XNES
+	bool "Enable xnes command"
+	depends on PKG_LIBXNES
+	default y
+	help
+		Enable the command line tool for xnes.

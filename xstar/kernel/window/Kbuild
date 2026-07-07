@@ -1,0 +1,2 @@
+obj-y += event.o
+obj-y += window.o

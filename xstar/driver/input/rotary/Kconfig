@@ -1,0 +1,8 @@
+menu "Rotary Encoder Support"
+
+config DRV_INPUT_ROTARY_GPIO
+	prompt "Enable GPIO rotary encoder driver"
+	bool
+	default n
+
+endmenu

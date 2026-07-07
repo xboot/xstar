@@ -1,0 +1,8 @@
+menu "Proximity Support"
+
+config DRV_PROXIMITY_GPIO
+	prompt "Enable GPIO proximity sensor driver"
+	bool
+	default n
+
+endmenu

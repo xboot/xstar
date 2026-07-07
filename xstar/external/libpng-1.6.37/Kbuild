@@ -1,0 +1,15 @@
+obj-y += png.o
+obj-y += pngerror.o
+obj-y += pngget.o
+obj-y += pngmem.o
+obj-y += pngpread.o
+obj-y += pngread.o
+obj-y += pngrio.o
+obj-y += pngrtran.o
+obj-y += pngrutil.o
+obj-y += pngset.o
+obj-y += pngtrans.o
+obj-y += pngwio.o
+obj-y += pngwrite.o
+obj-y += pngwtran.o
+obj-y += pngwutil.o

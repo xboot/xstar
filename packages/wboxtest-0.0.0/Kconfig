@@ -1,0 +1,17 @@
+menuconfig PKG_WBOXTEST
+	bool "Enable wboxtest package"
+	default n
+	help
+		Enable the wboxtest package for whitebox testing of various modules.
+
+source "packages/wboxtest-0.0.0/benchmark-graphic/Kconfig"
+source "packages/wboxtest-0.0.0/benchmark-memory/Kconfig"
+source "packages/wboxtest-0.0.0/block/Kconfig"
+source "packages/wboxtest-0.0.0/camera/Kconfig"
+source "packages/wboxtest-0.0.0/coroutine/Kconfig"
+source "packages/wboxtest-0.0.0/crypto/Kconfig"
+source "packages/wboxtest-0.0.0/dma/Kconfig"
+source "packages/wboxtest-0.0.0/other/Kconfig"
+source "packages/wboxtest-0.0.0/path/Kconfig"
+source "packages/wboxtest-0.0.0/stdio/Kconfig"
+source "packages/wboxtest-0.0.0/thread/Kconfig"

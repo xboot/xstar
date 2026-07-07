@@ -1,0 +1,8 @@
+menu "Input Support"
+
+source "xstar/driver/input/key/Kconfig"
+source "xstar/driver/input/rc/Kconfig"
+source "xstar/driver/input/rotary/Kconfig"
+source "xstar/driver/input/touchscreen/Kconfig"
+
+endmenu

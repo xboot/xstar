@@ -1,0 +1,24 @@
+menu "LED Support"
+
+config DRV_LED_GPIO
+	prompt "Enable gpio led driver"
+	bool
+	default n
+	help
+		This option enables support for gpio driven led
+
+config DRV_LED_PWM
+	prompt "Enable pwm led driver"
+	bool
+	default n
+	help
+		This option enables support for pwm driven led
+
+config DRV_LED_LSTRIP
+	prompt "Enable lstrip led driver"
+	bool
+	default n
+	help
+		This option enables support for lstrip led
+
+endmenu

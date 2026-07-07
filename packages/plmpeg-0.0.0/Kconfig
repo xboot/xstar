@@ -1,0 +1,12 @@
+menuconfig PKG_PLMPEG
+	bool "plmpeg video player"
+	default n
+	help
+		plmpeg is a video player for MPEG1 (VCD) files.
+
+config CMD_PLMPEG
+	bool "Enable plmpeg command"
+	depends on PKG_PLMPEG
+	default y
+	help
+		Enable the plmpeg command to play MPEG1 videos.

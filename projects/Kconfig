@@ -1,0 +1,12 @@
+menu "Project Selection"
+
+config PROJECT_NAME
+	prompt "Project Name"
+	string
+	default "x64-linux-sdl-helloworld"
+	help
+		This is the project directory name to be selected. Please ensure
+		the project directory exists.
+endmenu
+
+source "projects/.kconfig.projects"

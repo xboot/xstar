@@ -1,0 +1,1 @@
+obj-$(CONFIG_CMD_PLMPEG) += cmd-plmpeg.o

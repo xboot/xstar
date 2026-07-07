@@ -1,0 +1,4 @@
+obj-y += rc-core.o
+obj-y += rc-decoder-nec.o
+
+obj-$(CONFIG_DRV_INPUT_RC_GPIO) += rc-gpio.o

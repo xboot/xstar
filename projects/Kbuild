@@ -1,0 +1,1 @@
+subdirs-y += $(CONFIG_PROJECT_NAME:"%"=%)

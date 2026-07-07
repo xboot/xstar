@@ -1,0 +1,18 @@
+menu "Stepper Support"
+
+config DRV_STEPPER_BIPOLAR_GPIO
+	prompt "Enable bipolar GPIO stepper driver"
+	bool
+	default n
+
+config DRV_STEPPER_PULSE_DIR
+	prompt "Enable pulse-dir stepper driver"
+	bool
+	default n
+
+config DRV_STEPPER_UNIPOLAR_GPIO
+	prompt "Enable unipolar GPIO stepper driver"
+	bool
+	default n
+
+endmenu

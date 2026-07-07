@@ -1,0 +1,3 @@
+obj-y += pressure.o
+
+obj-$(CONFIG_DRV_PRESSURE_BMP280) += pressure-bmp280.o

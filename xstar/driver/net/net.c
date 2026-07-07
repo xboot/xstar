@@ -1,0 +1,223 @@
+/*
+ * Copyright(c) Jianjun Jiang <8192542@qq.com>
+ * Mobile phone: +86-18665388956
+ * QQ: 8192542
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+#include <driver/clocksource/clocksource.h>
+#include <driver/net/net.h>
+
+static ssize_t net_read_type(struct kobj_t * kobj, void * buf, size_t size)
+{
+	struct net_t * net = (struct net_t *)kobj->priv;
+	char type[256];
+
+	if(net_ioctl(net, "net-get-type", type) >= 0)
+		return xos_sprintf(buf, "%s", type);
+	return xos_sprintf(buf, "");
+}
+
+static ssize_t net_read_ip(struct kobj_t * kobj, void * buf, size_t size)
+{
+	struct net_t * net = (struct net_t *)kobj->priv;
+	char ip[256];
+
+	if(net_ioctl(net, "net-get-ip", ip) >= 0)
+		return xos_sprintf(buf, "%s", ip);
+	return xos_sprintf(buf, "");
+}
+
+static ssize_t net_read_mac(struct kobj_t * kobj, void * buf, size_t size)
+{
+	struct net_t * net = (struct net_t *)kobj->priv;
+	char mac[256];
+
+	if(net_ioctl(net, "net-get-mac", mac) >= 0)
+		return xos_sprintf(buf, "%s", mac);
+	return xos_sprintf(buf, "");
+}
+
+struct net_t * search_net(const char * name)
+{
+	struct device_t * dev;
+
+	dev = search_device(name, DEVICE_TYPE_NET);
+	if(!dev)
+		return NULL;
+	return (struct net_t *)dev->priv;
+}
+
+struct net_t * search_first_net(void)
+{
+	struct device_t * dev;
+
+	dev = search_first_device(DEVICE_TYPE_NET);
+	if(!dev)
+		return NULL;
+	return (struct net_t *)dev->priv;
+}
+
+struct device_t * register_net(struct net_t * net, struct driver_t * drv)
+{
+	struct device_t * dev;
+
+	if(!net || !net->name)
+		return NULL;
+
+	dev = xos_mem_malloc(sizeof(struct device_t));
+	if(!dev)
+		return NULL;
+
+	dev->name = xos_strdup(net->name);
+	dev->type = DEVICE_TYPE_NET;
+	dev->driver = drv;
+	dev->priv = net;
+	dev->kobj = kobj_alloc_directory(dev->name);
+	kobj_add_regular(dev->kobj, "type", net_read_type, NULL, net);
+	kobj_add_regular(dev->kobj, "ip", net_read_ip, NULL, net);
+	kobj_add_regular(dev->kobj, "mac", net_read_mac, NULL, net);
+
+	if(!register_device(dev))
+	{
+		kobj_remove_self(dev->kobj);
+		xos_mem_free(dev->name);
+		xos_mem_free(dev);
+		return NULL;
+	}
+	return dev;
+}
+
+void unregister_net(struct net_t * net)
+{
+	struct device_t * dev;
+
+	if(net && net->name)
+	{
+		dev = search_device(net->name, DEVICE_TYPE_NET);
+		if(dev && unregister_device(dev))
+		{
+			kobj_remove_self(dev->kobj);
+			xos_mem_free(dev->name);
+			xos_mem_free(dev);
+		}
+	}
+}
+
+struct socket_listen_t * net_listen(struct net_t * net, const char * type, int port)
+{
+	if(net && type)
+		return net->listen(net, type, port);
+	return NULL;
+}
+
+struct socket_connect_t * net_accept(struct socket_listen_t * l)
+{
+	if(l && l->net)
+		return l->net->accept(l);
+	return NULL;
+}
+
+struct socket_connect_t * net_connect(struct net_t * net, const char * type, const char * host, int port)
+{
+	if(net && type && host)
+		return net->connect(net, type, host, port);
+	return NULL;
+}
+
+int net_read(struct socket_connect_t * c, void * buf, int count)
+{
+	if(c && c->net && buf && (count > 0))
+		return c->net->read(c, buf, count);
+	return 0;
+}
+
+int net_read_timeout(struct socket_connect_t * c, void * buf, int count, int timeout)
+{
+	int len = 0;
+	int n;
+
+	if(c && c->net && buf && (count > 0))
+	{
+		ktime_t time = ktime_add_ms(ktime_get(), timeout);
+		do {
+			n = c->net->read(c, buf + len, count);
+			if(n > 0)
+			{
+				len += n;
+				count -= n;
+			}
+		} while((count > 0) && ktime_before(ktime_get(), time));
+	}
+	return len;
+}
+
+int net_write(struct socket_connect_t * c, void * buf, int count)
+{
+	if(c && c->net && buf && (count > 0))
+		return c->net->write(c, buf, count);
+	return 0;
+}
+
+int net_write_timeout(struct socket_connect_t * c, void * buf, int count, int timeout)
+{
+	int len = 0;
+	int n;
+
+	if(c && c->net && buf && (count > 0))
+	{
+		ktime_t time = ktime_add_ms(ktime_get(), timeout);
+		do {
+			n = c->net->write(c, buf + len, count);
+			if(n > 0)
+			{
+				len += n;
+				count -= n;
+			}
+		} while((count > 0) && ktime_before(ktime_get(), time));
+	}
+	return len;
+}
+
+int net_status(struct socket_connect_t * c)
+{
+	if(c && c->net)
+		return c->net->status(c);
+	return 0;
+}
+
+void net_close(struct socket_connect_t * c)
+{
+	if(c && c->net)
+		c->net->close(c);
+}
+
+void net_delete(struct socket_listen_t * l)
+{
+	if(l && l->net)
+		l->net->delete(l);
+}
+
+int net_ioctl(struct net_t * net, const char * cmd, void * arg)
+{
+	if(net && net->ioctl)
+		return net->ioctl(net, cmd, arg);
+	return -1;
+}

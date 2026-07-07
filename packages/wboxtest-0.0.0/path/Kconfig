@@ -1,0 +1,6 @@
+config WBOXTEST_PATH
+	bool "Enable path tests"
+	depends on PKG_WBOXTEST
+	default y
+	help
+		Enable tests for path operations.

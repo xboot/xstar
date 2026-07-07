@@ -1,0 +1,4 @@
+obj-y += ledstrip.o
+
+obj-$(CONFIG_DRV_LEDSTRIP_SK9822) += ledstrip-sk9822.o
+obj-$(CONFIG_DRV_LEDSTRIP_WS2812) += ledstrip-ws2812.o

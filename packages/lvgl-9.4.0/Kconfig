@@ -1,0 +1,12 @@
+menuconfig PKG_LVGL
+	bool "Enable lvgl package"
+	default n
+	help
+		Enable the lvgl package.
+
+config CMD_LVGL
+	bool "Enable lvgl command"
+	depends on PKG_LVGL
+	default y
+	help
+		Enable the lvgl command for demo.

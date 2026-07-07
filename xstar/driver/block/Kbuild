@@ -1,0 +1,9 @@
+obj-y += block.o
+obj-y += partition.o
+obj-y += partition-gpt.o
+obj-y += partition-mbr.o
+
+obj-$(CONFIG_DRV_BLOCK_RAMDISK) += blk-ramdisk.o
+obj-$(CONFIG_DRV_BLOCK_ROMDISK) += blk-romdisk.o
+obj-$(CONFIG_DRV_BLOCK_SPINAND) += blk-spinand.o
+obj-$(CONFIG_DRV_BLOCK_SPINOR) += blk-spinor.o

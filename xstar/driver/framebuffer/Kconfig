@@ -1,0 +1,48 @@
+menu "Framebuffer Support"
+
+config DRV_FRAMEBUFFER_GC9107
+	prompt "Enable GC9107 framebuffer driver"
+	bool
+	default n
+
+config DRV_FRAMEBUFFER_GC9B72
+	prompt "Enable GC9B72 framebuffer driver"
+	bool
+	default n
+
+config DRV_FRAMEBUFFER_GC9D01
+	prompt "Enable GC9D01 framebuffer driver"
+	bool
+	default n
+
+config DRV_FRAMEBUFFER_NV3031B
+	prompt "Enable NV3031B framebuffer driver"
+	bool
+	default n
+
+config DRV_FRAMEBUFFER_NV3041A
+	prompt "Enable NV3041A framebuffer driver"
+	bool
+	default n
+
+config DRV_FRAMEBUFFER_SSD1308
+	prompt "Enable SSD1308 framebuffer driver"
+	bool
+	default n
+
+config DRV_FRAMEBUFFER_ST7735P3
+	prompt "Enable ST7735P3 framebuffer driver"
+	bool
+	default n
+
+config DRV_FRAMEBUFFER_ST7789P3
+	prompt "Enable ST7789P3 framebuffer driver"
+	bool
+	default n
+
+config DRV_FRAMEBUFFER_ST77912
+	prompt "Enable ST77912 framebuffer driver"
+	bool
+	default n
+
+endmenu

@@ -1,0 +1,310 @@
+/*
+ * Copyright(c) Jianjun Jiang <8192542@qq.com>
+ * Mobile phone: +86-18665388956
+ * QQ: 8192542
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+#include <driver/clk/clk.h>
+
+static ssize_t clk_read_summary(struct kobj_t * kobj, void * buf, size_t size)
+{
+	struct clk_t * clk = (struct clk_t *)kobj->priv;
+	const char * name = clk->name;
+	char * p = buf;
+	int len = 0;
+	uint64_t rate;
+
+	len += xos_sprintf((char *)(p + len), "%-16s %16s %8s\r\n", "name", "rate", "enable");
+	while(name)
+	{
+		rate = clk_get_rate(name);
+		len += xos_sprintf((char *)(p + len), "%-16s %6Ld.%06LdMHZ %8d\r\n", name, rate / (uint64_t)(1000 * 1000), rate % (uint64_t)(1000 * 1000), clk_status(name) ? 1 : 0);
+		name = clk_get_parent(name);
+	}
+	return len;
+}
+
+static ssize_t clk_read_parent(struct kobj_t * kobj, void * buf, size_t size)
+{
+	struct clk_t * clk = (struct clk_t *)kobj->priv;
+	const char * parent = clk_get_parent(clk->name);
+	return xos_sprintf(buf, "%s", parent ? parent : "NONE");
+}
+
+static ssize_t clk_write_parent(struct kobj_t * kobj, void * buf, size_t size)
+{
+	struct clk_t * clk = (struct clk_t *)kobj->priv;
+	clk_set_parent(clk->name, buf);
+	return size;
+}
+
+static ssize_t clk_read_enable(struct kobj_t * kobj, void * buf, size_t size)
+{
+	struct clk_t * clk = (struct clk_t *)kobj->priv;
+	return xos_sprintf(buf, "%d", clk_status(clk->name) ? 1 : 0);
+}
+
+static ssize_t clk_write_enable(struct kobj_t * kobj, void * buf, size_t size)
+{
+	struct clk_t * clk = (struct clk_t *)kobj->priv;
+	int enable = xos_strtol(buf, NULL, 0);
+	if(enable != 0)
+		clk_enable(clk->name);
+	else
+		clk_disable(clk->name);
+	return size;
+}
+
+static ssize_t clk_read_rate(struct kobj_t * kobj, void * buf, size_t size)
+{
+	struct clk_t * clk = (struct clk_t *)kobj->priv;
+	uint64_t rate = clk_get_rate(clk->name);
+	return xos_sprintf(buf, "%ld.%06ldMHZ", rate / (uint64_t)(1000 * 1000), rate % (uint64_t)(1000 * 1000));
+}
+
+static ssize_t clk_write_rate(struct kobj_t * kobj, void * buf, size_t size)
+{
+	struct clk_t * clk = (struct clk_t *)kobj->priv;
+	uint64_t rate = xos_strtoull(buf, NULL, 0);
+	clk_set_rate(clk->name, rate);
+	return size;
+}
+
+struct clk_t * search_clk(const char * name)
+{
+	struct device_t * dev;
+
+	dev = search_device(name, DEVICE_TYPE_CLK);
+	if(!dev)
+		return NULL;
+	return (struct clk_t *)dev->priv;
+}
+
+struct device_t * register_clk(struct clk_t * clk, struct driver_t * drv)
+{
+	struct device_t * dev;
+
+	if(!clk || !clk->name)
+		return NULL;
+
+	if(search_clk(clk->name))
+		return NULL;
+
+	dev = xos_mem_malloc(sizeof(struct device_t));
+	if(!dev)
+		return NULL;
+
+	dev->name = xos_strdup(clk->name);
+	dev->type = DEVICE_TYPE_CLK;
+	dev->driver = drv;
+	dev->priv = clk;
+	dev->kobj = kobj_alloc_directory(dev->name);
+	kobj_add_regular(dev->kobj, "summary", clk_read_summary, NULL, clk);
+	kobj_add_regular(dev->kobj, "parent", clk_read_parent, clk_write_parent, clk);
+	kobj_add_regular(dev->kobj, "enable", clk_read_enable, clk_write_enable, clk);
+	kobj_add_regular(dev->kobj, "rate", clk_read_rate, clk_write_rate, clk);
+
+	if(!register_device(dev))
+	{
+		kobj_remove_self(dev->kobj);
+		xos_mem_free(dev->name);
+		xos_mem_free(dev);
+		return NULL;
+	}
+	return dev;
+}
+
+void unregister_clk(struct clk_t * clk)
+{
+	struct device_t * dev;
+
+	if(clk && clk->name)
+	{
+		dev = search_device(clk->name, DEVICE_TYPE_CLK);
+		if(dev && unregister_device(dev))
+		{
+			kobj_remove_self(dev->kobj);
+			xos_mem_free(dev->name);
+			xos_mem_free(dev);
+		}
+	}
+}
+
+void clk_set_parent(const char * name, const char * pname)
+{
+	struct clk_t * clk = search_clk(name);
+	struct clk_t * pclk = search_clk(pname);
+
+	if(pclk && clk && clk->set_parent)
+		clk->set_parent(clk, pname);
+}
+
+const char * clk_get_parent(const char * name)
+{
+	struct clk_t * clk = search_clk(name);
+
+	if(clk && clk->get_parent)
+		return clk->get_parent(clk);
+	return NULL;
+}
+
+void clk_enable(const char * name)
+{
+	struct clk_t * clk = search_clk(name);
+
+	if(!clk)
+		return;
+
+	if(clk->get_parent)
+		clk_enable(clk->get_parent(clk));
+
+	if(clk->set_enable)
+		clk->set_enable(clk, TRUE);
+
+	clk->count++;
+}
+
+void clk_disable(const char * name)
+{
+	struct clk_t * clk = search_clk(name);
+
+	if(!clk)
+		return;
+
+	if(clk->count > 0)
+		clk->count--;
+
+	if(clk->count == 0)
+	{
+		if(clk->get_parent)
+			clk_disable(clk->get_parent(clk));
+
+		if(clk->set_enable)
+			clk->set_enable(clk, FALSE);
+	}
+}
+
+int clk_status(const char * name)
+{
+	struct clk_t * clk = search_clk(name);
+
+	if(!clk)
+		return FALSE;
+
+	if(!clk->get_parent(clk))
+		return clk->get_enable(clk);
+
+	if(clk->get_enable(clk))
+		return clk_status(clk->get_parent(clk));
+
+	return FALSE;
+}
+
+void clk_set_rate(const char * name, uint64_t rate)
+{
+	struct clk_t * clk = search_clk(name);
+	uint64_t prate;
+
+	if(!clk)
+		return;
+
+	if(clk->get_parent)
+		prate = clk_get_rate(clk->get_parent(clk));
+	else
+		prate = 0;
+
+	if(clk->set_rate)
+		clk->set_rate(clk, prate, rate);
+}
+
+uint64_t clk_get_rate(const char * name)
+{
+	struct clk_t * clk = search_clk(name);
+	uint64_t prate;
+
+	if(!clk)
+		return 0;
+
+	if(clk->get_parent)
+		prate = clk_get_rate(clk->get_parent(clk));
+	else
+		prate = 0;
+
+	if(clk->get_rate)
+		return clk->get_rate(clk, prate);
+
+	return 0;
+}
+
+struct clocks_t * clocks_alloc(struct dtnode_t * n, const char * name)
+{
+	int l;
+
+	if(n)
+	{
+		if(!name)
+			name = "clocks";
+		if((l = dt_read_array_length(n, name)) > 0)
+		{
+			struct clocks_t * clks = xos_mem_malloc(sizeof(struct clocks_t) + l * sizeof(struct clk_t *));
+			clks->n = l;
+			for(int i = 0; i < l; i++)
+				clks->clk[i] = search_clk(dt_read_array_string(n, name, i, NULL));
+			return clks;
+		}
+	}
+	return NULL;
+}
+
+void clocks_free(struct clocks_t * clks)
+{
+	if(clks)
+		xos_mem_free(clks);
+}
+
+void clocks_enable(struct clocks_t * clks)
+{
+	if(clks)
+	{
+		for(int i = clks->n - 1; i >= 0; i--)
+			clk_enable(clks->clk[i]->name);
+	}
+}
+
+void clocks_disable(struct clocks_t * clks)
+{
+	if(clks)
+	{
+		for(int i = 0; i < clks->n; i++)
+			clk_disable(clks->clk[i]->name);
+	}
+}
+
+const char * clocks_get(struct clocks_t * clks, int idx)
+{
+	if(clks && ((idx >= 0) && (idx < clks->n)))
+	{
+		struct clk_t * clk = clks->clk[idx];
+		if(clk)
+			return clk->name;
+	}
+	return NULL;
+}

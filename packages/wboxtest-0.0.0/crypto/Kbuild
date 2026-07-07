@@ -1,0 +1,10 @@
+obj-y += rc4.o
+obj-y += aes256.o
+obj-y += base64.o
+obj-y += ecdsa256.o
+obj-y += crc8.o
+obj-y += aes128.o
+obj-y += sha256.o
+obj-y += crc16.o
+obj-y += crc32.o
+obj-y += sha1.o

@@ -1,0 +1,4 @@
+subdirs-y += jpeg-9d
+subdirs-y += libcg-1.1.3
+subdirs-y += libpng-1.6.37
+subdirs-y += zlib-1.2.11

@@ -1,0 +1,4 @@
+obj-y += playback.o
+obj-y += capture.o
+
+obj-$(CONFIG_DRV_AUDIO_PLAYBACK_PWM) += playback-pwm.o

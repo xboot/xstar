@@ -1,0 +1,13 @@
+menu "Thermometer Support"
+
+config DRV_THERMOMETER_AS6221
+	prompt "Enable AS6221 thermometer driver"
+	bool
+	default n
+
+config DRV_THERMOMETER_MAX30205
+	prompt "Enable MAX30205 thermometer driver"
+	bool
+	default n
+
+endmenu

@@ -1,0 +1,6 @@
+subdirs-y += key
+subdirs-y += rc
+subdirs-y += rotary
+subdirs-y += touchscreen
+
+obj-y += input.o

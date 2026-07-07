@@ -1,0 +1,8 @@
+menu "ATNET Support"
+
+config DRV_ATNET_ML307
+	prompt "Enable ML307 ATNET driver"
+	bool
+	default n
+
+endmenu

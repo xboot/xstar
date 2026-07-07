@@ -1,0 +1,2 @@
+obj-y += sleep.o
+obj-y += channel.o

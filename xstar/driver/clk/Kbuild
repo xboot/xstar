@@ -1,0 +1,10 @@
+obj-y += clk.o
+
+obj-$(CONFIG_DRV_CLK_COMP) += clk-comp.o
+obj-$(CONFIG_DRV_CLK_DIVIDER) += clk-divider.o
+obj-$(CONFIG_DRV_CLK_FIXED) += clk-fixed.o
+obj-$(CONFIG_DRV_CLK_FIXED_FACTOR) += clk-fixed-factor.o
+obj-$(CONFIG_DRV_CLK_GATE) += clk-gate.o
+obj-$(CONFIG_DRV_CLK_LINK) += clk-link.o
+obj-$(CONFIG_DRV_CLK_MUX) += clk-mux.o
+obj-$(CONFIG_DRV_CLK_RATIO) += clk-ratio.o

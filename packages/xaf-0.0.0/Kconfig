@@ -1,0 +1,14 @@
+menuconfig PKG_XAF
+	bool "xaf video player"
+	default n
+	help
+		Enable support for the XAF (X Animation Format) video player.
+		A lightweight Cinepak-based video container decoder, pure C99
+		with zero external dependencies.
+
+config CMD_XAF
+	bool "Enable xaf command"
+	depends on PKG_XAF
+	default y
+	help
+		Enable the xaf command to play XAF (X Animation Format) video files.

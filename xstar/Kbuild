@@ -1,0 +1,7 @@
+subdirs-y += driver
+subdirs-y += external
+subdirs-y += kernel
+subdirs-y += libx
+subdirs-y += xos
+
+obj-y += xstar.o

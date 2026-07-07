@@ -1,0 +1,5 @@
+obj-y += archiver.o
+obj-y += archiver-cpio.o
+obj-y += archiver-dir.o
+obj-y += archiver-sys.o
+obj-y += xfs.o

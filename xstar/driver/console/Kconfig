@@ -1,0 +1,8 @@
+menu "Console Support"
+
+config DRV_CONSOLE_UART
+	prompt "Enable UART console driver"
+	bool
+	default n
+
+endmenu

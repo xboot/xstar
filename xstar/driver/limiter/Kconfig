@@ -1,0 +1,8 @@
+menu "Limiter Support"
+
+config DRV_LIMITER_GPIO_POLLED
+	prompt "Enable GPIO polled limiter driver"
+	bool
+	default n
+
+endmenu

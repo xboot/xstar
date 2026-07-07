@@ -1,0 +1,165 @@
+/*
+ * Copyright(c) Jianjun Jiang <8192542@qq.com>
+ * Mobile phone: +86-18665388956
+ * QQ: 8192542
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+#include <xui-tree.h>
+
+static void xui_draw_arrow(struct xui_context_t * ctx, int expanded, struct region_t * r, struct color_t * c)
+{
+	if(expanded)
+	{
+		struct point_t expanded_pts[] = {
+			{ (r->x + (r->h * 149 >> 9)), (r->y + (r->h * 202 >> 9)) },
+			{ (r->x + (r->h * 256 >> 9)), (r->y + (r->h * 310 >> 9)) },
+			{ (r->x + (r->h * 363 >> 9)), (r->y + (r->h * 202 >> 9)) },
+		};
+		xui_draw_polyline(ctx, expanded_pts, ARRAY_SIZE(expanded_pts), 0, c);
+	}
+	else
+	{
+		struct point_t collapsed_pts[] = {
+			{ (r->x + (r->h * 202 >> 9)), (r->y + (r->h * 149 >> 9)) },
+			{ (r->x + (r->h * 202 >> 9)), (r->y + (r->h * 363 >> 9)) },
+			{ (r->x + (r->h * 310 >> 9)), (r->y + (r->h * 256 >> 9)) },
+		};
+		xui_draw_polyline(ctx, collapsed_pts, ARRAY_SIZE(collapsed_pts), 0, c);
+	}
+}
+
+int xui_begin_tree_ex(struct xui_context_t * ctx, const char * label, int opt)
+{
+	unsigned int id = xui_get_id(ctx, label, xos_strlen(label));
+	int idx = xui_pool_get(ctx, ctx->tree_pool, XUI_TREE_POOL_SIZE, id);
+	struct region_t r;
+	struct xui_widget_color_t * wc;
+	struct color_t * bg, * fg, * bc;
+	int radius, width;
+	int active, expanded;
+
+	xui_layout_row(ctx, 1, (int[]){ -1 }, 0);
+	region_clone(&r, xui_layout_next(ctx));
+	xui_control_update(ctx, id, &r, 0);
+	active = (idx >= 0);
+	expanded = (opt & XUI_TREE_EXPANDED) ? !active : active;
+	active ^= ((ctx->active == id) && (ctx->mouse.down & XUI_MOUSE_LEFT));
+	if(idx >= 0)
+	{
+		if(active)
+			xui_pool_update(ctx, ctx->tree_pool, idx);
+		else
+			xos_memset(&ctx->tree_pool[idx], 0, sizeof(struct xui_pool_item_t));
+	}
+	else if(active)
+	{
+		xui_pool_init(ctx, ctx->tree_pool, XUI_TREE_POOL_SIZE, id);
+	}
+	radius = ctx->style.tree.border_radius;
+	width = ctx->style.tree.border_width;
+	switch(opt & (0x7 << 8))
+	{
+	case XUI_TREE_PRIMARY:
+		wc = &ctx->style.primary;
+		break;
+	case XUI_TREE_SECONDARY:
+		wc = &ctx->style.secondary;
+		break;
+	case XUI_TREE_SUCCESS:
+		wc = &ctx->style.success;
+		break;
+	case XUI_TREE_INFO:
+		wc = &ctx->style.info;
+		break;
+	case XUI_TREE_WARNING:
+		wc = &ctx->style.warning;
+		break;
+	case XUI_TREE_DANGER:
+		wc = &ctx->style.danger;
+		break;
+	default:
+		wc = &ctx->style.primary;
+		break;
+	}
+	if(ctx->active == id)
+	{
+		bg = &wc->active.background;
+		fg = &wc->active.foreground;
+		bc = &wc->active.border;
+		if(bc->a && (width > 0))
+			xui_draw_rectangle(ctx, r.x, r.y, r.w, r.h, radius, width, bc);
+		if(bg->a)
+			xui_draw_rectangle(ctx, r.x, r.y, r.w, r.h, radius, 0, bg);
+		if(fg->a)
+		{
+			xui_draw_arrow(ctx, expanded, &r, fg);
+			r.x += r.h - ctx->style.layout.padding;
+			r.w -= r.h - ctx->style.layout.padding;
+			if(label)
+				xui_draw_text_align(ctx, ctx->style.font.font_family, ctx->style.font.style, ctx->style.font.size, label, &r, 0, fg, opt);
+		}
+	}
+	else if(ctx->hover == id)
+	{
+		bg = &wc->hover.background;
+		fg = &wc->hover.foreground;
+		bc = &wc->hover.border;
+		if(bc->a && (width > 0))
+			xui_draw_rectangle(ctx, r.x, r.y, r.w, r.h, radius, width, bc);
+		if(bg->a)
+			xui_draw_rectangle(ctx, r.x, r.y, r.w, r.h, radius, 0, bg);
+		if(fg->a)
+		{
+			xui_draw_arrow(ctx, expanded, &r, fg);
+			r.x += r.h - ctx->style.layout.padding;
+			r.w -= r.h - ctx->style.layout.padding;
+			if(label)
+				xui_draw_text_align(ctx, ctx->style.font.font_family, ctx->style.font.style, ctx->style.font.size, label, &r, 0, fg, opt);
+		}
+	}
+	else
+	{
+		bg = &wc->normal.background;
+		fg = &wc->normal.foreground;
+		bc = &wc->normal.border;
+		if(bg->a)
+		{
+			xui_draw_arrow(ctx, expanded, &r, bg);
+			r.x += r.h - ctx->style.layout.padding;
+			r.w -= r.h - ctx->style.layout.padding;
+			if(label)
+				xui_draw_text_align(ctx, ctx->style.font.font_family, ctx->style.font.style, ctx->style.font.size, label, &r, 0, bg, opt);
+		}
+	}
+	if(expanded)
+	{
+		xui_get_layout(ctx)->indent += ctx->style.layout.indent;
+		xui_stack_push(ctx->id_stack, ctx->last_id);
+		return 1;
+	}
+	return 0;
+}
+
+void xui_end_tree(struct xui_context_t * ctx)
+{
+	xui_get_layout(ctx)->indent -= ctx->style.layout.indent;
+	xui_pop_id(ctx);
+}

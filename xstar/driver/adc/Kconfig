@@ -1,0 +1,8 @@
+menu "ADC Support"
+
+config DRV_ADC_ADS1015
+	prompt "Enable ADS1015 ADC driver"
+	bool
+	default n
+
+endmenu

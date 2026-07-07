@@ -1,0 +1,18 @@
+menu "LED Trigger Support"
+
+config DRV_LEDTRIGGER_HEARTBEAT
+	prompt "Enable heartbeat LED trigger"
+	bool
+	default n
+
+config DRV_LEDTRIGGER_BREATHING
+	prompt "Enable breathing LED trigger"
+	bool
+	default n
+
+config DRV_LEDTRIGGER_GENERAL
+	prompt "Enable general LED trigger"
+	bool
+	default n
+
+endmenu

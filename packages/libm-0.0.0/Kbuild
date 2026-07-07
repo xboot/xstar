@@ -1,0 +1,2 @@
+subdirs-$(CONFIG_PKG_LIBM) += src/$(CONFIG_ARCH:"%"=%)
+subdirs-$(CONFIG_PKG_LIBM) += src

@@ -1,0 +1,13 @@
+menu "NVMEM Support"
+
+config DRV_NVMEM_AT24C02
+	prompt "Enable AT24C02 eeprom nvmem driver"
+	bool
+	default n
+
+config DRV_NVMEM_OTP
+	prompt "Enable OTP nvmem driver"
+	bool
+	default n
+
+endmenu

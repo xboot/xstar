@@ -1,0 +1,5 @@
+obj-y += calloc.o
+obj-y += free.o
+obj-y += malloc.o
+obj-y += memalign.o
+obj-y += realloc.o

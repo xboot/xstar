@@ -1,0 +1,5 @@
+obj-y += benchmark.o
+obj-y += dmacpy-8bit.o
+obj-y += dmacpy-16bit.o
+obj-y += dmacpy-32bit.o
+obj-y += dmacpy-64bit.o

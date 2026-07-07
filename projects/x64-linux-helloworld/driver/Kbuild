@@ -1,0 +1,17 @@
+obj-y += adc-linux.o
+obj-y += cam-linux.o
+obj-y += capture-linux.o
+obj-y += ce-linux.o
+obj-y += console-linux.o
+obj-y += cs-linux.o
+obj-y += fb-linux.o
+obj-y += fb-linux-drm.o
+obj-y += i2c-linux.o
+obj-y += input-linux.o
+obj-y += led-linux.o
+obj-y += net-linux.o
+obj-y += playback-linux.o
+obj-y += rtc-linux.o
+obj-y += rtc-linux-soft.o
+obj-y += spi-linux.o
+obj-y += uart-linux.o

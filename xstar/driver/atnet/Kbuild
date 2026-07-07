@@ -1,0 +1,3 @@
+obj-y += atnet.o
+
+obj-$(CONFIG_DRV_ATNET_ML307) += atnet-ml307.o

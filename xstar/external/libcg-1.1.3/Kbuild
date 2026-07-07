@@ -1,0 +1,2 @@
+obj-y += cg.o
+obj-y += xft.o

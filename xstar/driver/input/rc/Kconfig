@@ -1,0 +1,8 @@
+menu "Remote Control Support"
+
+config DRV_INPUT_RC_GPIO
+	prompt "Enable GPIO RC driver"
+	bool
+	default n
+
+endmenu

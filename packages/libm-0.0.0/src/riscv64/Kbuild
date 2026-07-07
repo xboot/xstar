@@ -1,0 +1,8 @@
+obj-y += fabs.o
+obj-y += fabsf.o
+obj-y += fmax.o
+obj-y += fmaxf.o
+obj-y += fmin.o
+obj-y += fminf.o
+obj-y += sqrt.o
+obj-y += sqrtf.o

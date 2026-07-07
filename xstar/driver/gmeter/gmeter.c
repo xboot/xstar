@@ -1,0 +1,104 @@
+/*
+ * Copyright(c) Jianjun Jiang <8192542@qq.com>
+ * Mobile phone: +86-18665388956
+ * QQ: 8192542
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+#include <driver/gmeter/gmeter.h>
+
+static ssize_t gmeter_read_acceleration(struct kobj_t * kobj, void * buf, size_t size)
+{
+	struct gmeter_t * g = (struct gmeter_t *)kobj->priv;
+	int x = 0, y = 0, z = 0;
+	gmeter_get_acceleration(g, &x, &y, &z);
+	return xos_sprintf(buf, "[%d.%06d %d.%06d %d.%06d] m/s^2", x / 1000000, xos_abs(x % 1000000), y / 1000000, xos_abs(y % 1000000), z / 1000000, xos_abs(z % 1000000));
+}
+
+struct gmeter_t * search_gmeter(const char * name)
+{
+	struct device_t * dev;
+
+	dev = search_device(name, DEVICE_TYPE_GMETER);
+	if(!dev)
+		return NULL;
+	return (struct gmeter_t *)dev->priv;
+}
+
+struct gmeter_t * search_first_gmeter(void)
+{
+	struct device_t * dev;
+
+	dev = search_first_device(DEVICE_TYPE_GMETER);
+	if(!dev)
+		return NULL;
+	return (struct gmeter_t *)dev->priv;
+}
+
+struct device_t * register_gmeter(struct gmeter_t * g, struct driver_t * drv)
+{
+	struct device_t * dev;
+
+	if(!g || !g->name)
+		return NULL;
+
+	dev = xos_mem_malloc(sizeof(struct device_t));
+	if(!dev)
+		return NULL;
+
+	dev->name = xos_strdup(g->name);
+	dev->type = DEVICE_TYPE_GMETER;
+	dev->driver = drv;
+	dev->priv = g;
+	dev->kobj = kobj_alloc_directory(dev->name);
+	kobj_add_regular(dev->kobj, "acceleration", gmeter_read_acceleration, NULL, g);
+
+	if(!register_device(dev))
+	{
+		kobj_remove_self(dev->kobj);
+		xos_mem_free(dev->name);
+		xos_mem_free(dev);
+		return NULL;
+	}
+	return dev;
+}
+
+void unregister_gmeter(struct gmeter_t * g)
+{
+	struct device_t * dev;
+
+	if(g && g->name)
+	{
+		dev = search_device(g->name, DEVICE_TYPE_GMETER);
+		if(dev && unregister_device(dev))
+		{
+			kobj_remove_self(dev->kobj);
+			xos_mem_free(dev->name);
+			xos_mem_free(dev);
+		}
+	}
+}
+
+int gmeter_get_acceleration(struct gmeter_t * g, int * x, int * y, int * z)
+{
+	if(g && g->get)
+		return g->get(g, x, y, z);
+	return FALSE;
+}

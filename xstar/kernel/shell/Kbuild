@@ -1,0 +1,4 @@
+obj-y += context.o
+obj-y += ctrlc.o
+obj-y += readline.o
+obj-y += shell.o

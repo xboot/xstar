@@ -1,0 +1,13 @@
+menu "LED Strip Support"
+
+config DRV_LEDSTRIP_SK9822
+	prompt "Enable SK9822 LED strip driver"
+	bool
+	default n
+
+config DRV_LEDSTRIP_WS2812
+	prompt "Enable WS2812 LED strip driver"
+	bool
+	default n
+
+endmenu

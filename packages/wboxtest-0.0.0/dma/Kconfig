@@ -1,0 +1,6 @@
+config WBOXTEST_DMA
+	bool "Enable dma tests"
+	depends on PKG_WBOXTEST
+	default y
+	help
+		Enable tests for dma operations.

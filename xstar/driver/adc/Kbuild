@@ -1,0 +1,3 @@
+obj-y += adc.o
+
+obj-$(CONFIG_DRV_ADC_ADS1015) += adc-ads1015.o

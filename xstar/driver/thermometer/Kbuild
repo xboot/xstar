@@ -1,0 +1,4 @@
+obj-y += thermometer.o
+
+obj-$(CONFIG_DRV_THERMOMETER_AS6221) += thermometer-as6221.o
+obj-$(CONFIG_DRV_THERMOMETER_MAX30205) += thermometer-max30205.o

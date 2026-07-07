@@ -1,0 +1,5 @@
+obj-y += led.o
+
+obj-$(CONFIG_DRV_LED_GPIO) += led-gpio.o
+obj-$(CONFIG_DRV_LED_PWM) += led-pwm.o
+obj-$(CONFIG_DRV_LED_LSTRIP) += led-lstrip.o

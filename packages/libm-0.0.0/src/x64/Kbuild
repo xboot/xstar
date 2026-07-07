@@ -1,0 +1,4 @@
+obj-y += fabs.o
+obj-y += fabsf.o
+obj-y += sqrt.o
+obj-y += sqrtf.o

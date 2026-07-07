@@ -1,0 +1,5 @@
+obj-y += stepper.o
+
+obj-$(CONFIG_DRV_STEPPER_BIPOLAR_GPIO) += stepper-bipolar-gpio.o
+obj-$(CONFIG_DRV_STEPPER_PULSE_DIR) += stepper-pluse-dir.o
+obj-$(CONFIG_DRV_STEPPER_UNIPOLAR_GPIO) += stepper-unipolar-gpio.o

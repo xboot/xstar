@@ -1,0 +1,203 @@
+/*
+ * Copyright(c) Jianjun Jiang <8192542@qq.com>
+ * Mobile phone: +86-18665388956
+ * QQ: 8192542
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+#include <driver/ledstrip/ledstrip.h>
+
+static ssize_t ledstrip_read_count(struct kobj_t * kobj, void * buf, size_t size)
+{
+	struct ledstrip_t * strip = (struct ledstrip_t *)kobj->priv;
+	int n = ledstrip_get_count(strip);
+	return xos_sprintf(buf, "%d", n);
+}
+
+static ssize_t ledstrip_write_count(struct kobj_t * kobj, void * buf, size_t size)
+{
+	struct ledstrip_t * strip = (struct ledstrip_t *)kobj->priv;
+	int n = xos_strtol(buf, NULL, 0);
+	ledstrip_set_count(strip, n);
+	return size;
+}
+
+static ssize_t ledstrip_read_color(struct kobj_t * kobj, void * buf, size_t size)
+{
+	struct ledstrip_t * strip = (struct ledstrip_t *)kobj->priv;
+	struct color_t c;
+	int n = ledstrip_get_count(strip);
+	int i, len;
+	for(i = 0, len = 0; i < n; i++)
+	{
+		ledstrip_get_color(strip, i, &c);
+		len += xos_sprintf((char *)(buf + len), "[%3d][#%02X%02X%02X]\r\n", i, c.r, c.g, c.b);
+	}
+	return len;
+}
+
+static ssize_t ledstrip_write_color(struct kobj_t * kobj, void * buf, size_t size)
+{
+	struct ledstrip_t * strip = (struct ledstrip_t *)kobj->priv;
+	struct color_t c = { 0x00, 0x00, 0x00, 0xff };
+	int i = 0;
+	char * p = buf, * r, * v;
+	int index = 0;
+
+	while((r = xos_strsep(&p, ":= ")) != NULL)
+	{
+		v = xos_strim(r);
+		if(v && (*v != '\0'))
+		{
+			switch(index++)
+			{
+			case 0:
+				i = xos_strtoul(v, NULL, 10);
+				break;
+			case 1:
+				color_init_string(&c, v);
+				break;
+			default:
+				break;
+			}
+		}
+	}
+	if(index >= 2)
+		ledstrip_set_color(strip, i, &c);
+	return size;
+}
+
+static ssize_t ledstrip_write_refresh(struct kobj_t * kobj, void * buf, size_t size)
+{
+	struct ledstrip_t * strip = (struct ledstrip_t *)kobj->priv;
+	ledstrip_refresh(strip);
+	return size;
+}
+
+struct ledstrip_t * search_ledstrip(const char * name)
+{
+	struct device_t * dev;
+
+	dev = search_device(name, DEVICE_TYPE_LEDSTRIP);
+	if(!dev)
+		return NULL;
+	return (struct ledstrip_t *)dev->priv;
+}
+
+struct ledstrip_t * search_first_ledstrip(void)
+{
+	struct device_t * dev;
+
+	dev = search_first_device(DEVICE_TYPE_LEDSTRIP);
+	if(!dev)
+		return NULL;
+	return (struct ledstrip_t *)dev->priv;
+}
+
+struct device_t * register_ledstrip(struct ledstrip_t * strip, struct driver_t * drv)
+{
+	struct device_t * dev;
+
+	if(!strip || !strip->name)
+		return NULL;
+
+	dev = xos_mem_malloc(sizeof(struct device_t));
+	if(!dev)
+		return NULL;
+
+	dev->name = xos_strdup(strip->name);
+	dev->type = DEVICE_TYPE_LEDSTRIP;
+	dev->driver = drv;
+	dev->priv = strip;
+	dev->kobj = kobj_alloc_directory(dev->name);
+	kobj_add_regular(dev->kobj, "count", ledstrip_read_count, ledstrip_write_count, strip);
+	kobj_add_regular(dev->kobj, "color", ledstrip_read_color, ledstrip_write_color, strip);
+	kobj_add_regular(dev->kobj, "refresh", NULL, ledstrip_write_refresh, strip);
+
+	if(!register_device(dev))
+	{
+		kobj_remove_self(dev->kobj);
+		xos_mem_free(dev->name);
+		xos_mem_free(dev);
+		return NULL;
+	}
+	return dev;
+}
+
+void unregister_ledstrip(struct ledstrip_t * strip)
+{
+	struct device_t * dev;
+
+	if(strip && strip->name)
+	{
+		dev = search_device(strip->name, DEVICE_TYPE_LEDSTRIP);
+		if(dev && unregister_device(dev))
+		{
+			kobj_remove_self(dev->kobj);
+			xos_mem_free(dev->name);
+			xos_mem_free(dev);
+		}
+	}
+}
+
+void ledstrip_set_count(struct ledstrip_t * strip, int n)
+{
+	if(strip && strip->set_count)
+	{
+		if(n < 1)
+			n = 1;
+		strip->set_count(strip, n);
+	}
+}
+
+int ledstrip_get_count(struct ledstrip_t * strip)
+{
+	if(strip && strip->get_count)
+		return strip->get_count(strip);
+	return 0;
+}
+
+void ledstrip_set_color(struct ledstrip_t * strip, int i, struct color_t * c)
+{
+	int n = ledstrip_get_count(strip);
+
+	if(strip && strip->set_color)
+	{
+		if((i >= 0) && (i < n))
+			strip->set_color(strip, i, c);
+	}
+}
+
+void ledstrip_get_color(struct ledstrip_t * strip, int i, struct color_t * c)
+{
+	int n = ledstrip_get_count(strip);
+
+	if(strip && strip->get_color)
+	{
+		if((i >= 0) && (i < n))
+			strip->get_color(strip, i, c);
+	}
+}
+
+void ledstrip_refresh(struct ledstrip_t * strip)
+{
+	if(strip && strip->refresh)
+		strip->refresh(strip);
+}

@@ -1,0 +1,8 @@
+menu "Audio Support"
+
+config DRV_AUDIO_PLAYBACK_PWM
+	prompt "Enable PWM audio playback driver"
+	bool
+	default n
+
+endmenu

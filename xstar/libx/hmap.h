@@ -1,0 +1,49 @@
+#ifndef __XSTAR_LIBX_HMAP_H__
+#define __XSTAR_LIBX_HMAP_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include <libx/list.h>
+#include <libx/log2.h>
+#include <libx/lsort.h>
+#include <libx/shash.h>
+
+struct hmap_entry_t {
+	struct hlist_node_t node;
+	struct list_head_t head;
+	char * key;
+	void * value;
+};
+
+struct hmap_t {
+	struct hlist_head_t * hash;
+	struct list_head_t list;
+	unsigned int size;
+	unsigned int n;
+	struct mutex_t lock;
+	void (*callback)(struct hmap_t * m, struct hmap_entry_t * e);
+};
+
+#define hmap_for_each_entry(entry, m) \
+	list_for_each_entry(entry, &(m)->list, head)
+
+#define hmap_for_each_entry_reverse(entry, m) \
+	list_for_each_entry_reverse(entry, &(m)->list, head)
+
+struct hmap_t * hmap_alloc(int size, void (*cb)(struct hmap_t *, struct hmap_entry_t *));
+void hmap_free(struct hmap_t * m);
+void hmap_clear(struct hmap_t * m);
+void hmap_add(struct hmap_t * m, const char * key, void * value);
+void hmap_remove(struct hmap_t * m, const char * key);
+void hmap_sort(struct hmap_t * m);
+void hmap_natsort(struct hmap_t * m);
+void hmap_sort_with(struct hmap_t * m, int (*cmp)(void *, struct list_head_t *, struct list_head_t *));
+void * hmap_search(struct hmap_t * m, const char * key);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* __XSTAR_LIBX_HMAP_H__ */

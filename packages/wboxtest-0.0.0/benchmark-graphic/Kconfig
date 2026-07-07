@@ -1,0 +1,6 @@
+config WBOXTEST_BENCHMARK_GRAPHIC
+	bool "Enable graphic benchmark tests"
+	depends on PKG_WBOXTEST
+	default y
+	help
+		Enable benchmark tests for graphic operations like arc, circle, etc.

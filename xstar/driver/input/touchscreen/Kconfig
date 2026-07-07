@@ -1,0 +1,13 @@
+menu "Touchscreen Support"
+
+config DRV_INPUT_TOUCHSCREEN_CST816D
+	prompt "Enable CST816D touchscreen driver"
+	bool
+	default n
+
+config DRV_INPUT_TOUCHSCREEN_GT911
+	prompt "Enable GT911 touchscreen driver"
+	bool
+	default n
+
+endmenu

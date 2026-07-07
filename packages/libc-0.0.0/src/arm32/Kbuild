@@ -1,0 +1,2 @@
+obj-y += eabi.o
+obj-y += setjmp.o

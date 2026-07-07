@@ -1,0 +1,2 @@
+obj-y += fabs.o
+obj-y += fabsf.o

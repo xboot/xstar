@@ -1,0 +1,13 @@
+menu "GPIO Support"
+
+config DRV_GPIO_MCP23017
+	prompt "Enable MCP23017 GPIO expander driver"
+	bool
+	default n
+
+config DRV_GPIO_PCF8574
+	prompt "Enable PCF8574 GPIO expander driver"
+	bool
+	default n
+
+endmenu

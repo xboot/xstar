@@ -1,0 +1,101 @@
+menu "Xstar Options"
+
+config XSTAR
+	bool
+	default y
+	select DRV_BLOCK_ROMDISK
+	select DRV_CONSOLE_UART
+	select CMD_HELP
+
+config XSTAR_LOG
+	bool "Enable LOG macro output"
+	default y
+	help
+		If disabled, all LOG() macros are compiled as no-ops. This completely
+		removes logging code from the binary, improving performance and reducing
+		binary size at the cost of losing all debug output.
+
+config XSTAR_LOGGER_SIZE
+	int "Logger circular buffer size"
+	default 8192
+	help
+		Size of the circular buffer used by the logger. Larger values allow more
+		logs to be buffered but consume more memory.
+
+config XSTAR_MAX_PATH
+	int "Maximum path length"
+	default 1024
+	help
+		Maximum path length for shell commands.
+
+choice
+	prompt "Window default orientation"
+	default XSTAR_WINDOW_ORIENTATION_ROTATE_0
+	help
+		Default orientation of the window display.
+
+config XSTAR_WINDOW_ORIENTATION_ROTATE_0
+	bool "Rotate 0"
+	help
+		No rotation (identity), display content as-is.
+
+config XSTAR_WINDOW_ORIENTATION_ROTATE_90
+	bool "Rotate 90"
+	help
+		Rotate display content 90 degrees counter-clockwise.
+
+config XSTAR_WINDOW_ORIENTATION_ROTATE_180
+	bool "Rotate 180"
+	help
+		Rotate display content 180 degrees counter-clockwise (upside down).
+
+config XSTAR_WINDOW_ORIENTATION_ROTATE_270
+	bool "Rotate 270"
+	help
+		Rotate display content 270 degrees counter-clockwise.
+
+config XSTAR_WINDOW_ORIENTATION_FLIP_HORIZONTAL
+	bool "Flip horizontal"
+	help
+		Flip display content horizontally, reflect across y-axis (mirror left-right).
+
+config XSTAR_WINDOW_ORIENTATION_FLIP_DIAGONAL
+	bool "Flip main diagonal"
+	help
+		Flip display content across the main diagonal, reflect across y = x.
+
+config XSTAR_WINDOW_ORIENTATION_FLIP_VERTICAL
+	bool "Flip vertical"
+	help
+		Flip display content vertically, reflect across x-axis (mirror top-bottom).
+
+config XSTAR_WINDOW_ORIENTATION_FLIP_ANTI_DIAGONAL
+	bool "Flip anti-diagonal"
+	help
+		Flip display content across the anti-diagonal, reflect across y = -x.
+endchoice
+
+config XSTAR_WINDOW_ORIENTATION
+	int
+	default 0 if XSTAR_WINDOW_ORIENTATION_ROTATE_0
+	default 1 if XSTAR_WINDOW_ORIENTATION_ROTATE_90
+	default 2 if XSTAR_WINDOW_ORIENTATION_ROTATE_180
+	default 3 if XSTAR_WINDOW_ORIENTATION_ROTATE_270
+	default 4 if XSTAR_WINDOW_ORIENTATION_FLIP_HORIZONTAL
+	default 5 if XSTAR_WINDOW_ORIENTATION_FLIP_DIAGONAL
+	default 6 if XSTAR_WINDOW_ORIENTATION_FLIP_VERTICAL
+	default 7 if XSTAR_WINDOW_ORIENTATION_FLIP_ANTI_DIAGONAL
+
+config XSTAR_SHELL_PASSWORD
+	string "SHA256 hash for shell password"
+	default ""
+	help
+		SHA256 hash (not raw password) for shell authentication. Leave empty to disable.
+		Generate using: echo -n password | sha256sum
+endmenu
+
+source "xstar/driver/Kconfig"
+source "xstar/external/Kconfig"
+source "xstar/kernel/Kconfig"
+source "xstar/libx/Kconfig"
+source "xstar/xos/Kconfig"

@@ -1,0 +1,13 @@
+menu "Vibrator Support"
+
+config DRV_VIBRATOR_GPIO
+	prompt "Enable gpio vibrator driver"
+	bool
+	default n
+
+config DRV_VIBRATOR_PWM
+	prompt "Enable pwm vibrator driver"
+	bool
+	default n
+
+endmenu

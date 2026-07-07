@@ -1,0 +1,168 @@
+menu "Command Configuration"
+
+config CMD_APLAY
+	prompt "Enable aplay command"
+	bool
+	default y
+
+config CMD_AUTOSHELL
+	prompt "Enable autoshell command"
+	bool
+	default y
+
+config CMD_CAT
+	prompt "Enable cat command"
+	bool
+	default y
+
+config CMD_CD
+	prompt "Enable cd command"
+	bool
+	default y
+
+config CMD_CLEAR
+	prompt "Enable clear command"
+	bool
+	default y
+
+config CMD_CLK
+	prompt "Enable clk command"
+	bool
+	default y
+
+config CMD_DATE
+	prompt "Enable date command"
+	bool
+	default y
+
+config CMD_DCP
+	prompt "Enable dcp command"
+	bool
+	default y
+
+config CMD_DELAY
+	prompt "Enable delay command"
+	bool
+	default y
+
+config CMD_ECHO
+	prompt "Enable echo command"
+	bool
+	default y
+
+config CMD_EVENT
+	prompt "Enable event command"
+	bool
+	default y
+
+config CMD_EARTH
+	prompt "Enable earth command"
+	bool
+	default n
+
+config CMD_GO
+	prompt "Enable go command"
+	bool
+	default y
+
+config CMD_HELP
+	prompt "Enable help command"
+	bool
+	default y
+
+config CMD_IPLAY
+	prompt "Enable iplay command"
+	bool
+	default y
+
+config CMD_LS
+	prompt "Enable ls command"
+	bool
+	default y
+
+config CMD_MD
+	prompt "Enable md command"
+	bool
+	default y
+
+config CMD_MKDIR
+	prompt "Enable mkdir command"
+	bool
+	default y
+
+config CMD_MW
+	prompt "Enable mw command"
+	bool
+	default y
+
+config CMD_NET
+	prompt "Enable net command"
+	bool
+	default y
+
+config CMD_NTPDATE
+	prompt "Enable ntpdate command"
+	bool
+	default y
+
+config CMD_PWD
+	prompt "Enable pwd command"
+	bool
+	default y
+
+config CMD_REBOOT
+	prompt "Enable reboot command"
+	bool
+	default y
+
+config CMD_RM
+	prompt "Enable rm command"
+	bool
+	default y
+
+config CMD_SETTING
+	prompt "Enable setting command"
+	bool
+	default y
+
+config CMD_SHUTDOWN
+	prompt "Enable shutdown command"
+	bool
+	default y
+
+config CMD_STANDBY
+	prompt "Enable standby command"
+	bool
+	default y
+
+config CMD_SYNC
+	prompt "Enable sync command"
+	bool
+	default y
+
+config CMD_TEST
+	prompt "Enable test command"
+	bool
+	default y
+
+config CMD_TSCAL
+	prompt "Enable tscal command"
+	bool
+	default y
+
+config CMD_UNIQUEID
+	prompt "Enable uniqueid command"
+	bool
+	default y
+
+config CMD_VERSION
+	prompt "Enable version command"
+	bool
+	default y
+
+config CMD_WRITE
+	prompt "Enable write command"
+	bool
+	default y
+
+endmenu

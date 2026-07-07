@@ -1,0 +1,6 @@
+config WBOXTEST_THREAD
+	bool "Enable thread tests"
+	depends on PKG_WBOXTEST
+	default y
+	help
+		Enable tests for thread operations.

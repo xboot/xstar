@@ -1,0 +1,5 @@
+config PKG_LIBCJSON
+	bool "Enable libcjson package"
+	default n
+	help
+		Enable the libcjson package for json parser.

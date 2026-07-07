@@ -1,0 +1,4 @@
+obj-y += nvmem.o
+
+obj-$(CONFIG_DRV_NVMEM_AT24C02) += nvmem-at24c02.o
+obj-$(CONFIG_DRV_NVMEM_OTP) += nvmem-otp.o

@@ -1,0 +1,8 @@
+menu "SD Support"
+
+config DRV_SD_SDHCI_SPI
+	prompt "Enable SDHCI SPI driver"
+	bool
+	default y
+
+endmenu

@@ -1,0 +1,8 @@
+menu "Motor Support"
+
+config DRV_MOTOR_GPIO
+	prompt "Enable GPIO motor driver"
+	bool
+	default n
+
+endmenu

@@ -1,0 +1,258 @@
+{
+  "version.label": {
+    "message": "Next",
+    "description": "The label for version current"
+  },
+  "sidebar.guide.category.入门指南": {
+    "message": "Guide",
+    "description": "The label for category '入门指南' in sidebar 'guide'"
+  },
+  "sidebar.command.category.文件系统": {
+    "message": "File System",
+    "description": "The label for category '文件系统' in sidebar 'command'"
+  },
+  "sidebar.command.category.系统管理": {
+    "message": "System Management",
+    "description": "The label for category '系统管理' in sidebar 'command'"
+  },
+  "sidebar.command.category.设备与内存": {
+    "message": "Device & Memory",
+    "description": "The label for category '设备与内存' in sidebar 'command'"
+  },
+  "sidebar.command.category.信息查询": {
+    "message": "Info Query",
+    "description": "The label for category '信息查询' in sidebar 'command'"
+  },
+  "sidebar.command.category.输入与输出": {
+    "message": "I/O",
+    "description": "The label for category '输入与输出' in sidebar 'command'"
+  },
+  "sidebar.command.category.媒体与网络": {
+    "message": "Media & Network",
+    "description": "The label for category '媒体与网络' in sidebar 'command'"
+  },
+  "sidebar.command.category.开发工具": {
+    "message": "Dev Tools",
+    "description": "The label for category '开发工具' in sidebar 'command'"
+  },
+  "sidebar.libx.category.滤波与信号处理": {
+    "message": "Signal Processing",
+    "description": "The label for category '滤波与信号处理' in sidebar 'libx'"
+  },
+  "sidebar.libx.category.数据结构": {
+    "message": "Data Structures",
+    "description": "The label for category '数据结构' in sidebar 'libx'"
+  },
+  "sidebar.libx.category.加密与纠错": {
+    "message": "Crypto & ECC",
+    "description": "The label for category '加密与纠错' in sidebar 'libx'"
+  },
+  "sidebar.libx.category.编码与转换": {
+    "message": "Encoding",
+    "description": "The label for category '编码与转换' in sidebar 'libx'"
+  },
+  "sidebar.libx.category.动画与效果": {
+    "message": "Animation",
+    "description": "The label for category '动画与效果' in sidebar 'libx'"
+  },
+  "sidebar.libx.category.数学工具": {
+    "message": "Math",
+    "description": "The label for category '数学工具' in sidebar 'libx'"
+  },
+  "sidebar.libx.category.文本与解析": {
+    "message": "Text & Parsing",
+    "description": "The label for category '文本与解析' in sidebar 'libx'"
+  },
+  "sidebar.libx.category.算法": {
+    "message": "Algorithms",
+    "description": "The label for category '算法' in sidebar 'libx'"
+  },
+  "sidebar.libx.category.系统运行时": {
+    "message": "Runtime",
+    "description": "The label for category '系统运行时' in sidebar 'libx'"
+  },
+  "sidebar.subsystems.category.音频子系统": {
+    "message": "Audio",
+    "description": "The label for category '音频子系统' in sidebar 'subsystems'"
+  },
+  "sidebar.subsystems.category.图形子系统": {
+    "message": "Graphics",
+    "description": "The label for category '图形子系统' in sidebar 'subsystems'"
+  },
+  "sidebar.subsystems.category.视觉子系统": {
+    "message": "Vision",
+    "description": "The label for category '视觉子系统' in sidebar 'subsystems'"
+  },
+  "sidebar.subsystems.category.字体系统": {
+    "message": "Font",
+    "description": "The label for category '字体系统' in sidebar 'subsystems'"
+  },
+  "sidebar.subsystems.category.内核工具": {
+    "message": "Kernel Tools",
+    "description": "The label for category '内核工具' in sidebar 'subsystems'"
+  },
+  "sidebar.package.category.扩展包": {
+    "message": "Packages",
+    "description": "The label for category '扩展包' in sidebar 'package'"
+  },
+  "sidebar.subsystems.doc.音频帧": {
+    "message": "Audio Frame",
+    "description": "The label for the doc item '音频帧' in sidebar 'subsystems', linking to the doc audio/audio-frame"
+  },
+  "sidebar.subsystems.doc.音频源": {
+    "message": "Audio Source",
+    "description": "The label for the doc item '音频源' in sidebar 'subsystems', linking to the doc audio/audio-source"
+  },
+  "sidebar.subsystems.doc.音频混音器": {
+    "message": "Audio Mixer",
+    "description": "The label for the doc item '音频混音器' in sidebar 'subsystems', linking to the doc audio/audio-mixer"
+  },
+  "sidebar.subsystems.doc.音效系统": {
+    "message": "Audio Effect",
+    "description": "The label for the doc item '音效系统' in sidebar 'subsystems', linking to the doc audio/audio-effect"
+  },
+  "sidebar.subsystems.doc.音频输出": {
+    "message": "Audio Sink",
+    "description": "The label for the doc item '音频输出' in sidebar 'subsystems', linking to the doc audio/audio-sink"
+  },
+  "sidebar.subsystems.doc.颜色": {
+    "message": "Color",
+    "description": "The label for the doc item '颜色' in sidebar 'subsystems', linking to the doc graphic/color"
+  },
+  "sidebar.subsystems.doc.区域": {
+    "message": "Region",
+    "description": "The label for the doc item '区域' in sidebar 'subsystems', linking to the doc graphic/region"
+  },
+  "sidebar.subsystems.doc.变换矩阵": {
+    "message": "Transform Matrix",
+    "description": "The label for the doc item '变换矩阵' in sidebar 'subsystems', linking to the doc graphic/transform-matrix"
+  },
+  "sidebar.subsystems.doc.脏矩形": {
+    "message": "Dirty Rectangle",
+    "description": "The label for the doc item '脏矩形' in sidebar 'subsystems', linking to the doc graphic/dirty-rectangle"
+  },
+  "sidebar.subsystems.doc.模糊": {
+    "message": "Blur",
+    "description": "The label for the doc item '模糊' in sidebar 'subsystems', linking to the doc graphic/blur"
+  },
+  "sidebar.subsystems.doc.Surface": {
+    "message": "Surface",
+    "description": "The label for the doc item 'Surface' in sidebar 'subsystems', linking to the doc graphic/Surface"
+  },
+  "sidebar.subsystems.doc.Shape绘图": {
+    "message": "Shape Drawing",
+    "description": "The label for the doc item 'Shape绘图' in sidebar 'subsystems', linking to the doc graphic/shape-drawing"
+  },
+  "sidebar.subsystems.doc.特效": {
+    "message": "Visual Effect",
+    "description": "The label for the doc item '特效' in sidebar 'subsystems', linking to the doc graphic/visual-effect"
+  },
+  "sidebar.subsystems.doc.滤镜": {
+    "message": "Filter",
+    "description": "The label for the doc item '滤镜' in sidebar 'subsystems', linking to the doc graphic/filter"
+  },
+  "sidebar.subsystems.doc.核心类型": {
+    "message": "Core Types",
+    "description": "The label for the doc item '核心类型' in sidebar 'subsystems', linking to the doc vision/core-types"
+  },
+  "sidebar.subsystems.doc.算术运算": {
+    "message": "Arithmetic Operations",
+    "description": "The label for the doc item '算术运算' in sidebar 'subsystems', linking to the doc vision/arithmetic-operations"
+  },
+  "sidebar.subsystems.doc.颜色转换": {
+    "message": "Color Conversion",
+    "description": "The label for the doc item '颜色转换' in sidebar 'subsystems', linking to the doc vision/color-conversion"
+  },
+  "sidebar.subsystems.doc.形态学运算": {
+    "message": "Morphological Operations",
+    "description": "The label for the doc item '形态学运算' in sidebar 'subsystems', linking to the doc vision/morphological-operations"
+  },
+  "sidebar.subsystems.doc.抖动": {
+    "message": "Dither",
+    "description": "The label for the doc item '抖动' in sidebar 'subsystems', linking to the doc vision/dither"
+  },
+  "sidebar.subsystems.doc.阈值处理": {
+    "message": "Thresholding",
+    "description": "The label for the doc item '阈值处理' in sidebar 'subsystems', linking to the doc vision/thresholding"
+  },
+  "sidebar.subsystems.doc.几何变换": {
+    "message": "Geometric Transform",
+    "description": "The label for the doc item '几何变换' in sidebar 'subsystems', linking to the doc vision/geometric-transform"
+  },
+  "sidebar.subsystems.doc.绘图": {
+    "message": "Drawing",
+    "description": "The label for the doc item '绘图' in sidebar 'subsystems', linking to the doc vision/drawing"
+  },
+  "sidebar.subsystems.doc.性能分析器": {
+    "message": "Profiler",
+    "description": "The label for the doc item '性能分析器' in sidebar 'subsystems', linking to the doc kernel/profiler"
+  },
+  "sidebar.package.doc.libcjson": {
+    "message": "libcjson",
+    "description": "The label for the doc item 'libcjson' in sidebar 'package', linking to the doc package/libcjson"
+  },
+  "sidebar.package.doc.xaf": {
+    "message": "xaf",
+    "description": "The label for the doc item 'xaf' in sidebar 'package', linking to the doc package/xaf"
+  },
+  "sidebar.package.doc.plmpeg": {
+    "message": "plmpeg",
+    "description": "The label for the doc item 'plmpeg' in sidebar 'package', linking to the doc package/plmpeg"
+  },
+  "sidebar.package.doc.vww": {
+    "message": "vww",
+    "description": "The label for the doc item 'vww' in sidebar 'package', linking to the doc package/vww"
+  },
+  "sidebar.package.doc.xui": {
+    "message": "xui",
+    "description": "The label for the doc item 'xui' in sidebar 'package', linking to the doc package/xui"
+  },
+  "sidebar.driver.category.设备驱动": {
+    "message": "Device Drivers",
+    "description": "The label for category '设备驱动' in sidebar 'driver'"
+  },
+  "sidebar.driver.category.时钟与定时器": {
+    "message": "Clock & Timer",
+    "description": "The label for category '时钟与定时器' in sidebar 'driver'"
+  },
+  "sidebar.driver.category.存储": {
+    "message": "Storage",
+    "description": "The label for category '存储' in sidebar 'driver'"
+  },
+  "sidebar.driver.category.显示与图形": {
+    "message": "Display & Graphics",
+    "description": "The label for category '显示与图形' in sidebar 'driver'"
+  },
+  "sidebar.driver.category.音频": {
+    "message": "Audio",
+    "description": "The label for category '音频' in sidebar 'driver'"
+  },
+  "sidebar.driver.category.输入": {
+    "message": "Input",
+    "description": "The label for category '输入' in sidebar 'driver'"
+  },
+  "sidebar.driver.category.通信": {
+    "message": "Communication",
+    "description": "The label for category '通信' in sidebar 'driver'"
+  },
+  "sidebar.driver.category.GPIO 与中断": {
+    "message": "GPIO & Interrupt",
+    "description": "The label for category 'GPIO 与中断' in sidebar 'driver'"
+  },
+  "sidebar.driver.category.传感器": {
+    "message": "Sensors",
+    "description": "The label for category '传感器' in sidebar 'driver'"
+  },
+  "sidebar.driver.category.输出": {
+    "message": "Output",
+    "description": "The label for category '输出' in sidebar 'driver'"
+  },
+  "sidebar.driver.category.电源": {
+    "message": "Power",
+    "description": "The label for category '电源' in sidebar 'driver'"
+  },
+  "sidebar.driver.category.其他": {
+    "message": "Other",
+    "description": "The label for category '其他' in sidebar 'driver'"
+  }
+}

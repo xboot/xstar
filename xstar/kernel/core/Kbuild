@@ -1,0 +1,8 @@
+obj-y += cochannel.o
+obj-y += coroutine.o
+obj-y += logger.o
+obj-y += profiler.o
+obj-y += psub.o
+obj-y += setting.o
+obj-y += thchannel.o
+obj-y += thworker.o

@@ -1,0 +1,255 @@
+#include <win/win.h>
+
+static void cb_key_down(void * device, unsigned int key)
+{
+	struct event_t e;
+
+	e.device = device;
+	e.type = EVENT_TYPE_KEY_DOWN;
+	e.e.key_down.key = key;
+	push_event(&e);
+}
+
+static void cb_key_up(void * device, unsigned int key)
+{
+	struct event_t e;
+
+	e.device = device;
+	e.type = EVENT_TYPE_KEY_UP;
+	e.e.key_up.key = key;
+	push_event(&e);
+}
+
+static void cb_mouse_down(void * device, int x, int y, unsigned int button)
+{
+	struct event_t e;
+
+	e.device = device;
+	e.type = EVENT_TYPE_MOUSE_DOWN;
+	e.e.mouse_down.x = x;
+	e.e.mouse_down.y = y;
+	e.e.mouse_down.button = button;
+	push_event(&e);
+}
+
+static void cb_mouse_move(void * device, int x, int y)
+{
+	struct event_t e;
+
+	e.device = device;
+	e.type = EVENT_TYPE_MOUSE_MOVE;
+	e.e.mouse_move.x = x;
+	e.e.mouse_move.y = y;
+	push_event(&e);
+}
+
+static void cb_mouse_up(void * device, int x, int y, unsigned int button)
+{
+	struct event_t e;
+
+	e.device = device;
+	e.type = EVENT_TYPE_MOUSE_UP;
+	e.e.mouse_down.x = x;
+	e.e.mouse_down.y = y;
+	e.e.mouse_down.button = button;
+	push_event(&e);
+}
+
+static void cb_mouse_wheel(void * device, int dx, int dy)
+{
+	struct event_t e;
+
+	e.device = device;
+	e.type = EVENT_TYPE_MOUSE_WHEEL;
+	e.e.mouse_wheel.dx = dx;
+	e.e.mouse_wheel.dy = dy;
+	push_event(&e);
+}
+
+static void cb_touch_begin(void * device, int x, int y, unsigned int id)
+{
+	struct event_t e;
+
+	e.device = device;
+	e.type = EVENT_TYPE_TOUCH_BEGIN;
+	e.e.touch_begin.x = x;
+	e.e.touch_begin.y = y;
+	e.e.touch_begin.id = id;
+	push_event(&e);
+}
+
+static void cb_touch_move(void * device, int x, int y, unsigned int id)
+{
+	struct event_t e;
+
+	e.device = device;
+	e.type = EVENT_TYPE_TOUCH_MOVE;
+	e.e.touch_move.x = x;
+	e.e.touch_move.y = y;
+	e.e.touch_move.id = id;
+	push_event(&e);
+}
+
+static void cb_touch_end(void * device, int x, int y, unsigned int id)
+{
+	struct event_t e;
+
+	e.device = device;
+	e.type = EVENT_TYPE_TOUCH_END;
+	e.e.touch_end.x = x;
+	e.e.touch_end.y = y;
+	e.e.touch_end.id = id;
+	push_event(&e);
+}
+
+static void cb_joystick_left_stick(void * device, int x, int y)
+{
+	struct event_t e;
+
+	e.device = device;
+	e.type = EVENT_TYPE_JOYSTICK_LEFTSTICK;
+	e.e.joystick_left_stick.x = x;
+	e.e.joystick_left_stick.y = y;
+	push_event(&e);
+}
+
+static void cb_joystick_right_stick(void * device, int x, int y)
+{
+	struct event_t e;
+
+	e.device = device;
+	e.type = EVENT_TYPE_JOYSTICK_RIGHTSTICK;
+	e.e.joystick_right_stick.x = x;
+	e.e.joystick_right_stick.y = y;
+	push_event(&e);
+}
+
+static void cb_joystick_left_trigger(void * device, int v)
+{
+	struct event_t e;
+
+	e.device = device;
+	e.type = EVENT_TYPE_JOYSTICK_LEFTTRIGGER;
+	e.e.joystick_left_trigger.v = v;
+	push_event(&e);
+}
+
+static void cb_joystick_right_trigger(void * device, int v)
+{
+	struct event_t e;
+
+	e.device = device;
+	e.type = EVENT_TYPE_JOYSTICK_RIGHTTRIGGER;
+	e.e.joystick_left_trigger.v = v;
+	push_event(&e);
+}
+
+static void cb_joystick_button_down(void * device, unsigned int button)
+{
+	struct event_t e;
+
+	e.device = device;
+	e.type = EVENT_TYPE_JOYSTICK_BUTTONDOWN;
+	e.e.joystick_button_down.button = button;
+	push_event(&e);
+}
+
+static void cb_joystick_button_up(void * device, unsigned int button)
+{
+	struct event_t e;
+
+	e.device = device;
+	e.type = EVENT_TYPE_JOYSTICK_BUTTONUP;
+	e.e.joystick_button_down.button = button;
+	push_event(&e);
+}
+
+static int input_win_sdl_ioctl(struct input_t * input, const char * cmd, void * arg)
+{
+	return -1;
+}
+
+static struct device_t * input_win_sdl_probe(struct driver_t * drv, struct dtnode_t * n)
+{
+	struct input_t * input;
+	struct device_t * dev;
+
+	input = xos_mem_malloc(sizeof(struct input_t));
+	if(!input)
+		return NULL;
+
+	input->name = alloc_device_name(dt_read_name(n), dt_read_id(n));
+	input->ioctl = input_win_sdl_ioctl;
+	input->priv = NULL;
+
+	win_event_sdl_set_key_callback(input,
+			cb_key_down,
+			cb_key_up);
+	win_event_sdl_set_mouse_callback(input,
+			cb_mouse_down,
+			cb_mouse_move,
+			cb_mouse_up,
+			cb_mouse_wheel);
+	win_event_sdl_set_touch_callback(input,
+			cb_touch_begin,
+			cb_touch_move,
+			cb_touch_end);
+	win_event_sdl_set_joystick_callback(input,
+			cb_joystick_left_stick,
+			cb_joystick_right_stick,
+			cb_joystick_left_trigger,
+			cb_joystick_right_trigger,
+			cb_joystick_button_down,
+			cb_joystick_button_up);
+
+	if(!(dev = register_input(input, drv)))
+	{
+		free_device_name(input->name);
+		xos_mem_free(input->priv);
+		xos_mem_free(input);
+		return NULL;
+	}
+	return dev;
+}
+
+static void input_win_sdl_remove(struct device_t * dev)
+{
+	struct input_t * input = (struct input_t *)dev->priv;
+
+	if(input)
+	{
+		unregister_input(input);
+		free_device_name(input->name);
+		xos_mem_free(input->priv);
+		xos_mem_free(input);
+	}
+}
+
+static void input_win_sdl_suspend(struct device_t * dev)
+{
+}
+
+static void input_win_sdl_resume(struct device_t * dev)
+{
+}
+
+static struct driver_t input_win_sdl = {
+	.name		= "input-win-sdl",
+	.probe		= input_win_sdl_probe,
+	.remove		= input_win_sdl_remove,
+	.suspend	= input_win_sdl_suspend,
+	.resume		= input_win_sdl_resume,
+};
+
+static void input_win_sdl_driver_init(void)
+{
+	register_driver(&input_win_sdl);
+}
+
+static void input_win_sdl_driver_exit(void)
+{
+	unregister_driver(&input_win_sdl);
+}
+
+driver_initcall(input_win_sdl_driver_init);
+driver_exitcall(input_win_sdl_driver_exit);

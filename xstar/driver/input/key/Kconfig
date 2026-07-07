@@ -1,0 +1,23 @@
+menu "Key Support"
+
+config DRV_INPUT_KEY_ADC
+	prompt "Enable ADC key driver"
+	bool
+	default n
+
+config DRV_INPUT_KEY_GPIO
+	prompt "Enable GPIO key driver"
+	bool
+	default n
+
+config DRV_INPUT_KEY_GPIO_MATRIX
+	prompt "Enable GPIO matrix key driver"
+	bool
+	default n
+
+config DRV_INPUT_KEY_GPIO_POLLED
+	prompt "Enable GPIO polled key driver"
+	bool
+	default n
+
+endmenu

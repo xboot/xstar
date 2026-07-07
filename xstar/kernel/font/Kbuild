@@ -1,0 +1,2 @@
+obj-y += font.o
+obj-y += truetype.o

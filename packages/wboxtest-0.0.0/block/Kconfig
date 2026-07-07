@@ -1,0 +1,6 @@
+config WBOXTEST_BLOCK
+	bool "Enable block tests"
+	depends on PKG_WBOXTEST
+	default y
+	help
+		Enable tests for block operations.

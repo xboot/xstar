@@ -1,0 +1,15 @@
+menu "Package Libraries"
+
+source "packages/libc-0.0.0/Kconfig"
+source "packages/libm-0.0.0/Kconfig"
+
+source "packages/libcjson-0.0.0/Kconfig"
+source "packages/libxnes-1.0.0/Kconfig"
+source "packages/lvgl-9.4.0/Kconfig"
+source "packages/plmpeg-0.0.0/Kconfig"
+source "packages/vww-0.0.0/Kconfig"
+source "packages/wboxtest-0.0.0/Kconfig"
+source "packages/xaf-0.0.0/Kconfig"
+source "packages/xui-0.0.0/Kconfig"
+
+endmenu

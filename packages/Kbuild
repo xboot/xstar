@@ -1,0 +1,11 @@
+subdirs-$(CONFIG_PKG_LIBC) += libc-0.0.0
+subdirs-$(CONFIG_PKG_LIBM) += libm-0.0.0
+
+subdirs-$(CONFIG_PKG_LIBCJSON) += libcjson-0.0.0
+subdirs-$(CONFIG_PKG_LIBXNES) += libxnes-1.0.0
+subdirs-$(CONFIG_PKG_LVGL) += lvgl-9.4.0
+subdirs-$(CONFIG_PKG_PLMPEG) += plmpeg-0.0.0
+subdirs-$(CONFIG_PKG_VWW) += vww-0.0.0
+subdirs-$(CONFIG_PKG_WBOXTEST) += wboxtest-0.0.0
+subdirs-$(CONFIG_PKG_XAF) += xaf-0.0.0
+subdirs-$(CONFIG_PKG_XUI) += xui-0.0.0
