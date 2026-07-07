@@ -140,6 +140,15 @@ const sidebars = {
     },
     {
       type: 'category',
+      label: '时间',
+      items: [
+        'subsys/time/delay',
+        'subsys/time/delaycall',
+        'subsys/time/wallclock',
+      ],
+    },
+    {
+      type: 'category',
       label: '字体',
       items: [
         'subsys/font/font-system',
