@@ -178,6 +178,13 @@ const sidebars = {
     },
     {
       type: 'category',
+      label: '发布订阅',
+      items: [
+        'subsys/psub/psub',
+      ],
+    },
+    {
+      type: 'category',
       label: '字体',
       items: [
         'subsys/font/font-system',

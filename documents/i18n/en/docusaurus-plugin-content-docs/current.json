@@ -123,6 +123,10 @@
     "message": "Window",
     "description": "The label for category '窗口' in sidebar 'subsystems'"
   },
+  "sidebar.subsystems.category.发布订阅": {
+    "message": "Pub/Sub",
+    "description": "The label for category '发布订阅' in sidebar 'subsystems'"
+  },
   "sidebar.subsystems.category.调试工具": {
     "message": "Debug Tools",
     "description": "The label for category '调试工具' in sidebar 'subsystems'"
