@@ -99,6 +99,10 @@
     "message": "Thread",
     "description": "The label for category '线程' in sidebar 'subsystems'"
   },
+  "sidebar.subsystems.category.定时器": {
+    "message": "Timer",
+    "description": "The label for category '定时器' in sidebar 'subsystems'"
+  },
   "sidebar.subsystems.category.调试工具": {
     "message": "Debug Tools",
     "description": "The label for category '调试工具' in sidebar 'subsystems'"

@@ -133,6 +133,13 @@ const sidebars = {
     },
     {
       type: 'category',
+      label: '定时器',
+      items: [
+        'subsys/timer/timer',
+      ],
+    },
+    {
+      type: 'category',
       label: '字体',
       items: [
         'subsys/font/font-system',
