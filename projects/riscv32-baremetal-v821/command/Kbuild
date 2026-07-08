@@ -1,0 +1,2 @@
+obj-y += cmd-cpuinfo.o
+obj-y += cmd-fel.o
