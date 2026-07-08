@@ -1,0 +1,108 @@
+{
+	"ce-linux:0": {
+	},
+
+	"cs-linux:0": {
+	},
+
+	"gpio-v1-linux:0": {
+		"device": "/dev/gpiochip0",
+		"gpio-base": 0
+	},
+
+	"gpio-v1-linux:1": {
+		"device": "/dev/gpiochip1",
+		"gpio-base": 128
+	},
+
+	"adc-linux:0": {
+		"path": "/sys/bus/iio/devices/iio:device0/in_voltage0_raw",
+		"reference-voltage": 4096000,
+		"resolution": 12
+	},
+
+	"adc-linux:1": {
+		"path": "/sys/bus/iio/devices/iio:device0/in_voltage1_raw",
+		"reference-voltage": 4096000,
+		"resolution": 12,
+		"status": "disabled"
+	},
+
+	"adc-linux:2": {
+		"path": "/sys/bus/iio/devices/iio:device0/in_voltage2_raw",
+		"reference-voltage": 4096000,
+		"resolution": 12,
+		"status": "disabled"
+	},
+
+	"adc-linux:3": {
+		"path": "/sys/bus/iio/devices/iio:device0/in_voltage3_raw",
+		"reference-voltage": 4096000,
+		"resolution": 12,
+		"status": "disabled"
+	},
+
+	"playback-linux:0": {
+	},
+
+	"capture-linux:0": {
+	},
+
+	"rtc-linux:0": {
+		"device": "/dev/rtc0",
+		"status": "disabled"
+	},
+
+	"rtc-linux-soft:0": {
+		"status": "disabled"
+	},
+
+	"net-linux:0": {
+		"interface": "eth0"
+	},
+
+	"cam-linux:0": {
+		"device": "/dev/video0",
+		"status": "disabled"
+	},
+
+	"uart-linux:0": {
+		"device": "/dev/ttyUSB0",
+		"baud-rates": 115200,
+		"data-bits": 8,
+		"parity-bits": 0,
+		"stop-bits": 1,
+		"status": "disabled"
+	},
+
+	"i2c-linux:0": {
+		"device": "/dev/i2c-0",
+		"status": "disabled"
+	},
+
+	"spi-linux:0": {
+		"device": "/dev/spidev0.0",
+		"status": "disabled"
+	},
+
+	"input-linux:0": {
+		"pointer-range-x": 480,
+		"pointer-range-y": 272,
+		"pointer-sensitivity": 6
+	},
+
+	"fb-linux:0": {
+		"device": "/dev/fb0",
+		"physical-width": 95,
+		"physical-height": 54
+	},
+
+	"fb-linux-drm:0": {
+		"device": "/dev/dri/card0",
+		"connector": "unknown",
+		"status": "disabled"
+	},
+
+	"console-linux:0": {
+	}
+}
