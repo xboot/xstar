@@ -1,0 +1,11 @@
+obj-y += start.o
+obj-y += sys-memcmp.o
+obj-y += sys-memcpy.o
+obj-y += sys-memmove.o
+obj-y += sys-memset.o
+obj-y += sys-strcmp.o
+obj-y += sys-strncmp.o
+obj-y += sys-uart.o
+obj-y += exception.o
+obj-y += cache-v7.o
+obj-y += mmu.o

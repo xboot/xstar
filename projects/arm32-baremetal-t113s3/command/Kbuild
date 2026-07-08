@@ -1,0 +1,3 @@
+obj-y += cmd-cpuinfo.o
+obj-y += cmd-fel.o
+obj-y += cmd-mmuinfo.o
