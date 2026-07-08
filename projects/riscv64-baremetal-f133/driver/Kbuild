@@ -1,0 +1,23 @@
+obj-y += adc-f133.o
+obj-y += cam-f133-tvd.o
+obj-y += ce-f133-timer.o
+obj-y += clk-f133-pll.o
+obj-y += cs-f133-timer.o
+obj-y += dma-f133.o
+obj-y += fb-f133-rgb.o
+obj-y += g2d-f133.o
+obj-y += gpio-f133.o
+obj-y += i2c-f133.o
+obj-y += irq-f133-gpio.o
+obj-y += irq-f133.o
+obj-y += ledstrip-f133.o
+obj-y += regulator-f133-ldo.o
+obj-y += reset-f133.o
+obj-y += rtc-f133.o
+obj-y += sdhci-f133.o
+obj-y += spi-f133.o
+obj-y += ts-f133.o
+obj-y += ts-gt911.o
+obj-y += uart-16550.o
+obj-y += wdg-f133.o
+
