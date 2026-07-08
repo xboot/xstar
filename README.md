@@ -81,7 +81,7 @@ Online documentation: <https://xstar.xboot.org>
 ---
 
 ## Discussion Group, Many Big Brother, Please Join Us
-XSTAR Official Tencent QQ Group: [658250248](https://qm.qq.com/q/b4yjKSjjmo) (2000 people)
+XSTAR Official Tencent QQ Group: [579158551](https://qm.qq.com/q/eYZGJ5msJa) (2000 people)
 
 ---
 
