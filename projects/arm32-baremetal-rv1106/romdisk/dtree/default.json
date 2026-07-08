@@ -1,0 +1,820 @@
+{
+	"clk-fixed": { "name": "xin24m", "rate": 24000000 },
+	"clk-fixed": { "name": "xin32k", "rate": 32768 },
+	"clk-link": { "parent": "xin32k", "name": "clk_rtc_32k" },
+
+	"clk-rv1106-pll:0": { "parent": "xin24m", "name": "apll", "channel": 0 },
+	"clk-rv1106-pll:1": { "parent": "xin24m", "name": "cpll", "channel": 1 },
+	"clk-rv1106-pll:2": { "parent": "xin24m", "name": "dpll", "channel": 2 },
+	"clk-rv1106-pll:3": { "parent": "xin24m", "name": "gpll", "channel": 3 },
+
+	"clk-rv1106-gate@0xff3b8800": {"parent": "xin24m", "name": "clk_pvtm_core", "shift": 14, "invert": true },
+	"clk-rv1106-gate@0xff3b8804": {"parent": "xin24m", "name": "clk_core_mcu_rtc", "shift": 6, "invert": true },
+	"clk-rv1106-gate@0xff3b2800": {"parent": "xin24m", "name": "clk_timer_root", "shift": 3, "invert": true },
+
+	"clk-rv1106-comp": {
+		"parent": [
+			{ "name": "gpll", "value": 0 },
+			{ "name": "xin24m", "value": 1 }
+		],
+		"mux-offset": "0xff3b8308",
+		"mux-shift": 5,
+		"mux-width": 1,
+		"divider-offset": "0xff3b8308",
+		"divider-shift": 0,
+		"divider-width": 5,
+		"divider-one-based": true,
+		"gate-offset": "0xff3b8800",
+		"gate-shift": 11,
+		"gate-invert": true,
+		"name": "hclk_cpu"
+	},
+
+	"clk-rv1106-comp": {
+		"parent": [
+			{ "name": "gpll", "value": 0 },
+			{ "name": "xin24m", "value": 1 }
+		],
+		"mux-offset": "0xff3b830c",
+		"mux-shift": 11,
+		"mux-width": 1,
+		"divider-offset": "0xff3b830c",
+		"divider-shift": 6,
+		"divider-width": 5,
+		"divider-one-based": true,
+		"gate-offset": "0xff3b8804",
+		"gate-shift": 1,
+		"gate-invert": true,
+		"name": "clk_core_mcu"
+	},
+
+	"clk-rv1106-comp": {
+		"parent": [
+			{ "name": "gpll", "value": 0 },
+			{ "name": "cpll", "value": 1 }
+		],
+		"mux-offset": "0xff3b0300",
+		"mux-shift": 5,
+		"mux-width": 1,
+		"divider-offset": "0xff3b0300",
+		"divider-shift": 0,
+		"divider-width": 5,
+		"divider-one-based": true,
+		"gate-offset": "0xff3b0800",
+		"gate-shift": 1,
+		"gate-invert": true,
+		"name": "clk_50m_src"
+	},
+
+	"clk-rv1106-comp": {
+		"parent": [
+			{ "name": "gpll", "value": 0 },
+			{ "name": "cpll", "value": 1 }
+		],
+		"mux-offset": "0xff3b0300",
+		"mux-shift": 11,
+		"mux-width": 1,
+		"divider-offset": "0xff3b0300",
+		"divider-shift": 6,
+		"divider-width": 5,
+		"divider-one-based": true,
+		"gate-offset": "0xff3b0800",
+		"gate-shift": 2,
+		"gate-invert": true,
+		"name": "clk_100m_src"
+	},
+
+	"clk-rv1106-comp": {
+		"parent": [
+			{ "name": "gpll", "value": 0 },
+			{ "name": "cpll", "value": 1 }
+		],
+		"mux-offset": "0xff3b0304",
+		"mux-shift": 5,
+		"mux-width": 1,
+		"divider-offset": "0xff3b0304",
+		"divider-shift": 0,
+		"divider-width": 5,
+		"divider-one-based": true,
+		"gate-offset": "0xff3b0800",
+		"gate-shift": 3,
+		"gate-invert": true,
+		"name": "clk_150m_src"
+	},
+
+	"clk-rv1106-comp": {
+		"parent": [
+			{ "name": "gpll", "value": 0 },
+			{ "name": "cpll", "value": 1 }
+		],
+		"mux-offset": "0xff3b0304",
+		"mux-shift": 11,
+		"mux-width": 1,
+		"divider-offset": "0xff3b0304",
+		"divider-shift": 6,
+		"divider-width": 5,
+		"divider-one-based": true,
+		"gate-offset": "0xff3b0800",
+		"gate-shift": 4,
+		"gate-invert": true,
+		"name": "clk_200m_src"
+	},
+
+	"clk-rv1106-comp": {
+		"parent": [
+			{ "name": "gpll", "value": 0 },
+			{ "name": "cpll", "value": 1 }
+		],
+		"mux-offset": "0xff3b0308",
+		"mux-shift": 5,
+		"mux-width": 1,
+		"divider-offset": "0xff3b0308",
+		"divider-shift": 0,
+		"divider-width": 5,
+		"divider-one-based": true,
+		"gate-offset": "0xff3b0800",
+		"gate-shift": 5,
+		"gate-invert": true,
+		"name": "clk_250m_src"
+	},
+
+	"clk-rv1106-comp": {
+		"parent": [
+			{ "name": "gpll", "value": 0 },
+			{ "name": "cpll", "value": 1 }
+		],
+		"mux-offset": "0xff3b0308",
+		"mux-shift": 11,
+		"mux-width": 1,
+		"divider-offset": "0xff3b0308",
+		"divider-shift": 6,
+		"divider-width": 5,
+		"divider-one-based": true,
+		"gate-offset": "0xff3b0800",
+		"gate-shift": 6,
+		"gate-invert": true,
+		"name": "clk_300m_src"
+	},
+
+	"clk-rv1106-comp": {
+		"parent": [
+			{ "name": "gpll", "value": 0 },
+			{ "name": "cpll", "value": 1 }
+		],
+		"mux-offset": "0xff3b030c",
+		"mux-shift": 5,
+		"mux-width": 1,
+		"divider-offset": "0xff3b030c",
+		"divider-shift": 0,
+		"divider-width": 5,
+		"divider-one-based": true,
+		"gate-offset": "0xff3b0800",
+		"gate-shift": 7,
+		"gate-invert": true,
+		"name": "clk_339m_src"
+	},
+
+	"clk-rv1106-comp": {
+		"parent": [
+			{ "name": "gpll", "value": 0 },
+			{ "name": "cpll", "value": 1 }
+		],
+		"mux-offset": "0xff3b030c",
+		"mux-shift": 11,
+		"mux-width": 1,
+		"divider-offset": "0xff3b030c",
+		"divider-shift": 6,
+		"divider-width": 5,
+		"divider-one-based": true,
+		"gate-offset": "0xff3b0800",
+		"gate-shift": 8,
+		"gate-invert": true,
+		"name": "clk_400m_src"
+	},
+
+	"clk-rv1106-comp": {
+		"parent": [
+			{ "name": "gpll", "value": 0 },
+			{ "name": "cpll", "value": 1 }
+		],
+		"mux-offset": "0xff3b0310",
+		"mux-shift": 5,
+		"mux-width": 1,
+		"divider-offset": "0xff3b0310",
+		"divider-shift": 0,
+		"divider-width": 5,
+		"divider-one-based": true,
+		"gate-offset": "0xff3b0800",
+		"gate-shift": 9,
+		"gate-invert": true,
+		"name": "clk_450m_src"
+	},
+
+	"clk-rv1106-comp": {
+		"parent": [
+			{ "name": "gpll", "value": 0 },
+			{ "name": "cpll", "value": 1 }
+		],
+		"mux-offset": "0xff3b0310",
+		"mux-shift": 11,
+		"mux-width": 1,
+		"divider-offset": "0xff3b0310",
+		"divider-shift": 6,
+		"divider-width": 5,
+		"divider-one-based": true,
+		"gate-offset": "0xff3b0800",
+		"gate-shift": 10,
+		"gate-invert": true,
+		"name": "clk_500m_src"
+	},
+
+	"clk-rv1106-comp": {
+		"parent": [
+			{ "name": "clk_100m_src", "value": 0 },
+			{ "name": "clk_50m_src", "value": 1 },
+			{ "name": "xin24m", "value": 2 }
+		],
+		"mux-offset": "0xff3b0360",
+		"mux-shift": 5,
+		"mux-width": 2,
+		"gate-offset": "0xff3b0808",
+		"gate-shift": 9,
+		"gate-invert": true,
+		"name": "pclk_top_root"
+	},
+
+	"clk-rv1106-comp": {
+		"parent": [
+			{ "name": "clk_100m_src", "value": 0 },
+			{ "name": "clk_50m_src", "value": 1 },
+			{ "name": "xin24m", "value": 2 }
+		],
+		"mux-offset": "0xff3b2304",
+		"mux-shift": 0,
+		"mux-width": 2,
+		"gate-offset": "0xff3b2800",
+		"gate-shift": 0,
+		"gate-invert": true,
+		"name": "pclk_peri_root"
+	},
+
+	"clk-rv1106-divider@0xff3a0300": { "parent": "clk_200m_src", "name": "clk_100m_pmu", "shift": 0, "width": 3, "divider-one-based": true },
+	"clk-rv1106-comp": {
+		"parent": [
+			{ "name": "clk_100m_pmu", "value": 0 },
+			{ "name": "xin24m", "value": 1 }
+		],
+		"mux-offset": "0xff3a0300",
+		"mux-shift": 3,
+		"mux-width": 1,
+		"gate-offset": "0xff3a0800",
+		"gate-shift": 1,
+		"gate-invert": true,
+		"name": "pclk_pmu_root"
+	},
+
+	"clk-rv1106-comp": {
+		"parent": [
+			{ "name": "clk_50m_src", "value": 0 },
+			{ "name": "xin24m", "value": 1 }
+		],
+		"mux-offset": "0xff3b4300",
+		"mux-shift": 6,
+		"mux-width": 1,
+		"gate-offset": "0xff3b4800",
+		"gate-shift": 3,
+		"gate-invert": true,
+		"name": "pclk_vi_rtc_root",
+		"default": { "parent" : "xin24m" }
+	},
+	"clk-rv1106-gate@0xff3b4808": {"parent": "pclk_vi_rtc_root", "name": "pclk_vi_rtc_phy", "shift": 6, "invert": true },
+	"clk-rv1106-gate@0xff3b4808": {"parent": "pclk_vi_rtc_root", "name": "pclk_vi_rtc_test", "shift": 5, "invert": true, "default": { "enable" : true } },
+
+	"clk-rv1106-gate@0xff3b281c": {"parent": "pclk_peri_root", "name": "pclk_pwm0_peri", "shift": 6, "invert": true },
+	"clk-rv1106-comp": {
+		"parent": [
+			{ "name": "clk_100m_pmu", "value": 0 },
+			{ "name": "clk_50m_pmu", "value": 1 },
+			{ "name": "xin24m", "value": 2 }
+		],
+		"mux-offset": "0xff3b232c",
+		"mux-shift": 0,
+		"mux-width": 2,
+		"gate-offset": "0xff3b281c",
+		"gate-shift": 4,
+		"gate-invert": true,
+		"name": "clk_pwm0_peri"
+	},
+
+	"clk-rv1106-gate@0xff3b280c": {"parent": "pclk_peri_root", "name": "pclk_pwm1_peri", "shift": 15, "invert": true },
+	"clk-rv1106-comp": {
+		"parent": [
+			{ "name": "clk_100m_pmu", "value": 0 },
+			{ "name": "clk_50m_pmu", "value": 1 },
+			{ "name": "xin24m", "value": 2 }
+		],
+		"mux-offset": "0xff3b2318",
+		"mux-shift": 9,
+		"mux-width": 2,
+		"gate-offset": "0xff3b2810",
+		"gate-shift": 0,
+		"gate-invert": true,
+		"name": "clk_pwm1_peri"
+	},
+
+	"clk-rv1106-gate@0xff3b2810": {"parent": "pclk_peri_root", "name": "pclk_pwm2_peri", "shift": 2, "invert": true },
+	"clk-rv1106-comp": {
+		"parent": [
+			{ "name": "clk_100m_pmu", "value": 0 },
+			{ "name": "clk_50m_pmu", "value": 1 },
+			{ "name": "xin24m", "value": 2 }
+		],
+		"mux-offset": "0xff3b2318",
+		"mux-shift": 11,
+		"mux-width": 2,
+		"gate-offset": "0xff3b2810",
+		"gate-shift": 3,
+		"gate-invert": true,
+		"name": "clk_pwm2_peri"
+	},
+
+	"clk-rv1106-gate@0xff3b2804": {"parent": "pclk_peri_root", "name": "pclk_i2c0", "shift": 6, "invert": true },
+	"clk-rv1106-comp": {
+		"parent": [
+			{ "name": "clk_200m_src", "value": 0 },
+			{ "name": "clk_100m_src", "value": 1 },
+			{ "name": "clk_50m_src", "value": 2 },
+			{ "name": "xin24m", "value": 3 }
+		],
+		"mux-offset": "0xff3b2304",
+		"mux-shift": 8,
+		"mux-width": 2,
+		"gate-offset": "0xff3b2804",
+		"gate-shift": 7,
+		"gate-invert": true,
+		"name": "clk_i2c0"
+	},
+
+	"clk-rv1106-gate@0xff3a0800": {"parent": "pclk_peri_root", "name": "pclk_i2c1", "shift": 3, "invert": true },
+	"clk-rv1106-comp": {
+		"parent": [
+			{ "name": "clk_200m_src", "value": 0 },
+			{ "name": "clk_100m_src", "value": 1 },
+			{ "name": "xin24m", "value": 2 },
+			{ "name": "clk_rtc_32k", "value": 3 }
+		],
+		"mux-offset": "0xff3a0300",
+		"mux-shift": 6,
+		"mux-width": 2,
+		"gate-offset": "0xff3a0800",
+		"gate-shift": 4,
+		"gate-invert": true,
+		"name": "clk_i2c1"
+	},
+
+	"clk-rv1106-gate@0xff3b2804": {"parent": "pclk_peri_root", "name": "pclk_i2c2", "shift": 10, "invert": true },
+	"clk-rv1106-comp": {
+		"parent": [
+			{ "name": "clk_200m_src", "value": 0 },
+			{ "name": "clk_100m_src", "value": 1 },
+			{ "name": "clk_50m_src", "value": 2 },
+			{ "name": "xin24m", "value": 3 }
+		],
+		"mux-offset": "0xff3b2304",
+		"mux-shift": 12,
+		"mux-width": 2,
+		"gate-offset": "0xff3b2804",
+		"gate-shift": 11,
+		"gate-invert": true,
+		"name": "clk_i2c2"
+	},
+	
+	"clk-rv1106-gate@0xff3b2804": {"parent": "pclk_peri_root", "name": "pclk_i2c3", "shift": 12, "invert": true },
+	"clk-rv1106-comp": {
+		"parent": [
+			{ "name": "clk_200m_src", "value": 0 },
+			{ "name": "clk_100m_src", "value": 1 },
+			{ "name": "clk_50m_src", "value": 2 },
+			{ "name": "xin24m", "value": 3 }
+		],
+		"mux-offset": "0xff3b2304",
+		"mux-shift": 14,
+		"mux-width": 2,
+		"gate-offset": "0xff3b2804",
+		"gate-shift": 13,
+		"gate-invert": true,
+		"name": "clk_i2c3"
+	},
+
+	"clk-rv1106-gate@0xff3b2804": {"parent": "pclk_peri_root", "name": "pclk_i2c4", "shift": 14, "invert": true },
+	"clk-rv1106-comp": {
+		"parent": [
+			{ "name": "clk_200m_src", "value": 0 },
+			{ "name": "clk_100m_src", "value": 1 },
+			{ "name": "clk_50m_src", "value": 2 },
+			{ "name": "xin24m", "value": 3 }
+		],
+		"mux-offset": "0xff3b2308",
+		"mux-shift": 0,
+		"mux-width": 2,
+		"gate-offset": "0xff3b2804",
+		"gate-shift": 15,
+		"gate-invert": true,
+		"name": "clk_i2c4"
+	},
+
+	"clk-rv1106-gate@0xff3b2800": {"parent": "pclk_peri_root", "name": "pclk_timer", "shift": 8, "invert": true },
+	"clk-rv1106-gate@0xff3b2800": {"parent": "clk_timer_root", "name": "clk_timer0", "shift": 9, "invert": true },
+	"clk-rv1106-gate@0xff3b2800": {"parent": "clk_timer_root", "name": "clk_timer1", "shift": 10, "invert": true },
+	"clk-rv1106-gate@0xff3b2800": {"parent": "clk_timer_root", "name": "clk_timer2", "shift": 11, "invert": true },
+	"clk-rv1106-gate@0xff3b2800": {"parent": "clk_timer_root", "name": "clk_timer3", "shift": 12, "invert": true },
+	"clk-rv1106-gate@0xff3b2800": {"parent": "clk_timer_root", "name": "clk_timer4", "shift": 13, "invert": true },
+	"clk-rv1106-gate@0xff3b2800": {"parent": "clk_timer_root", "name": "clk_timer5", "shift": 14, "invert": true },
+
+	"clk-rv1106-gate@0xff3b2800": {"parent": "pclk_peri_root", "name": "pclk_stimer", "shift": 15, "invert": true },
+	"clk-rv1106-gate@0xff3b2804": {"parent": "clk_timer_root", "name": "clk_stimer0", "shift": 0, "invert": true },
+	"clk-rv1106-gate@0xff3b2804": {"parent": "clk_timer_root", "name": "clk_stimer1", "shift": 1, "invert": true },
+
+	"clk-rv1106-gate@0xff3b280c": {"parent": "pclk_peri_root", "name": "pclk_saradc", "shift": 3, "invert": true },
+	"clk-rv1106-comp": {
+		"parent": "xin24m",
+		"divider-offset": "0xff3b2318",
+		"divider-shift": 0,
+		"divider-width": 3,
+		"divider-one-based": true,
+		"gate-offset": "0xff3b280c",
+		"gate-shift": 4,
+		"gate-invert": true,
+		"name": "clk_saradc",
+		"default": { "rate": 3000000 }
+	},
+
+	"clk-rv1106-comp": {
+		"parent": [
+			{ "name": "gpll", "value": 0 },
+			{ "name": "cpll", "value": 1 }
+		],
+		"mux-offset": "0xff3b0314",
+		"mux-shift": 5,
+		"mux-width": 1,
+		"divider-offset": "0xff3b0314",
+		"divider-shift": 0,
+		"divider-width": 5,
+		"divider-one-based": true,
+		"gate-offset": "0xff3b0800",
+		"gate-shift": 11,
+		"gate-invert": true,
+		"name": "clk_uart0_src"
+	},
+	"clk-rv1106-gate@0xff3b0800": { "parent": "clk_uart0_src", "name": "gate-clk_uart0_src", "shift": 12, "invert": true },
+	"clk-rv1106-factor@0xff3b0318": { "parent": "gate-clk_uart0_src", "name": "clk_uart0_frac" },
+	"clk-rv1106-mux@0xff3b031c": {
+		"parent": [
+			{ "name": "clk_uart0_src", "value": 0 },
+			{ "name": "clk_uart0_frac", "value": 1 },
+			{ "name": "xin24m", "value": 2 }
+		],
+		"name": "clk_uart0", "shift": 0, "width": 2
+	},
+	"clk-link": { "parent": "clk_uart0", "name": "link-uart0" },
+
+	"clk-link": { "parent": "xin24m", "name": "link-uart1" },
+	"clk-link": { "parent": "xin24m", "name": "link-uart2" },
+	"clk-link": { "parent": "xin24m", "name": "link-uart3" },
+	"clk-link": { "parent": "xin24m", "name": "link-uart4" },
+	"clk-link": { "parent": "xin24m", "name": "link-uart5" },
+
+	"clk-link": { "parent": "xin24m", "name": "link-wdt" },
+
+	"reset-rv1106@0xff3a0a00": { "reset-base":   0, "reset-count": 16 },
+	"reset-rv1106@0xff3a0a04": { "reset-base":  16, "reset-count": 16 },
+	"reset-rv1106@0xff3a0a08": { "reset-base":  32, "reset-count": 16 },
+	"reset-rv1106@0xff3b0a08": { "reset-base":  48, "reset-count": 16 },
+	"reset-rv1106@0xff3b2a00": { "reset-base":  64, "reset-count": 16 },
+	"reset-rv1106@0xff3b2a04": { "reset-base":  80, "reset-count": 16 },
+	"reset-rv1106@0xff3b2a08": { "reset-base":  96, "reset-count": 16 },
+	"reset-rv1106@0xff3b2a0c": { "reset-base": 112, "reset-count": 16 },
+	"reset-rv1106@0xff3b2a10": { "reset-base": 128, "reset-count": 16 },
+	"reset-rv1106@0xff3b2a14": { "reset-base": 144, "reset-count": 16 },
+	"reset-rv1106@0xff3b2a18": { "reset-base": 160, "reset-count": 16 },
+	"reset-rv1106@0xff3b2a1c": { "reset-base": 176, "reset-count": 16 },
+	"reset-rv1106@0xff3b4a00": { "reset-base": 192, "reset-count": 16 },
+	"reset-rv1106@0xff3b4a04": { "reset-base": 208, "reset-count": 16 },
+	"reset-rv1106@0xff3b4a08": { "reset-base": 224, "reset-count": 16 },
+	"reset-rv1106@0xff3b6a00": { "reset-base": 240, "reset-count": 16 },
+	"reset-rv1106@0xff3b8a00": { "reset-base": 256, "reset-count": 16 },
+	"reset-rv1106@0xff3b8a04": { "reset-base": 272, "reset-count": 16 },
+	"reset-rv1106@0xff3baa00": { "reset-base": 288, "reset-count": 16 },
+	"reset-rv1106@0xff3baa04": { "reset-base": 304, "reset-count": 16 },
+	"reset-rv1106@0xff3bca00": { "reset-base": 320, "reset-count": 16 },
+	"reset-rv1106@0xff3bca04": { "reset-base": 336, "reset-count": 16 },
+	"reset-rv1106@0xff3bca08": { "reset-base": 352, "reset-count": 16 },
+	"reset-rv1106@0xff3bca0c": { "reset-base": 368, "reset-count": 16 },
+	"reset-rv1106@0xff3bea00": { "reset-base": 384, "reset-count": 16 },
+	"reset-rv1106@0xff3bea04": { "reset-base": 400, "reset-count": 16 },
+	"reset-rv1106@0xff3bfa00": { "reset-base": 416, "reset-count": 16 },
+
+	"irq-gic400@0xff1f0000": { "interrupt-base": 0, "interrupt-count": 160 },
+	"irq-rv1106-gpio:0@0xff380000": { "interrupt-base": 160, "interrupt-count": 32, "interrupt-parent": 37 },
+	"irq-rv1106-gpio:1@0xff530000": { "interrupt-base": 192, "interrupt-count": 32, "interrupt-parent": 39 },
+	"irq-rv1106-gpio:2@0xff540000": { "interrupt-base": 224, "interrupt-count": 32, "interrupt-parent": 41 },
+	"irq-rv1106-gpio:3@0xff550000": { "interrupt-base": 256, "interrupt-count": 32, "interrupt-parent": 43 },
+	"irq-rv1106-gpio:4@0xff560000": { "interrupt-base": 288, "interrupt-count": 32, "interrupt-parent": 45 },
+
+	"gpio-rv1106:0@0xff380000": { "gpio-base":   0, "gpio-count":  7, "interrupt-offset": 160 },
+	"gpio-rv1106:1@0xff530000": { "gpio-base":  32, "gpio-count": 28, "interrupt-offset": 192 },
+	"gpio-rv1106:2@0xff540000": { "gpio-base":  64, "gpio-count": 10, "interrupt-offset": 224 },
+	"gpio-rv1106:3@0xff550000": { "gpio-base":  96, "gpio-count": 28, "interrupt-offset": 256 },
+	"gpio-rv1106:4@0xff560000": { "gpio-base": 128, "gpio-count": 10, "interrupt-offset": 288 },
+
+	"pwm-rv1106:0@0xff350000": {
+		"clock-name": "clk_pwm0_peri",
+		"channel": 0,
+		"pwm-gpio": -1,
+		"pwm-gpio-config": -1
+	},
+
+	"pwm-rv1106:1@0xff350010": {
+		"clock-name": "clk_pwm0_peri",
+		"channel": 1,
+		"pwm-gpio": 4,
+		"pwm-gpio-config": 2
+	},
+
+	"pwm-rv1106:2@0xff350020": {
+		"clock-name": "clk_pwm0_peri",
+		"channel": 2,
+		"pwm-gpio": -1,
+		"pwm-gpio-config": -1
+	},
+
+	"pwm-rv1106:3@0xff350030": {
+		"clock-name": "clk_pwm0_peri",
+		"channel": 3,
+		"pwm-gpio": -1,
+		"pwm-gpio-config": -1
+	},
+
+	"pwm-rv1106:4@0xff360000": {
+		"clock-name": "clk_pwm1_peri",
+		"channel": 0,
+		"pwm-gpio": -1,
+		"pwm-gpio-config": -1
+	},
+
+	"pwm-rv1106:5@0xff360010": {
+		"clock-name": "clk_pwm1_peri",
+		"channel": 1,
+		"pwm-gpio": -1,
+		"pwm-gpio-config": -1
+	},
+
+	"pwm-rv1106:6@0xff360020": {
+		"clock-name": "clk_pwm1_peri",
+		"channel": 2,
+		"pwm-gpio": -1,
+		"pwm-gpio-config": -1
+	},
+
+	"pwm-rv1106:7@0xff360030": {
+		"clock-name": "clk_pwm1_peri",
+		"channel": 3,
+		"pwm-gpio": -1,
+		"pwm-gpio-config": -1
+	},
+
+	"pwm-rv1106:8@0xff490000": {
+		"clock-name": "clk_pwm2_peri",
+		"channel": 0,
+		"pwm-gpio": -1,
+		"pwm-gpio-config": -1
+	},
+
+	"pwm-rv1106:9@0xff490010": {
+		"clock-name": "clk_pwm2_peri",
+		"channel": 1,
+		"pwm-gpio": -1,
+		"pwm-gpio-config": -1
+	},
+
+	"pwm-rv1106:10@0xff490020": {
+		"clock-name": "clk_pwm2_peri",
+		"channel": 2,
+		"pwm-gpio": -1,
+		"pwm-gpio-config": -1
+	},
+
+	"pwm-rv1106:11@0xff490030": {
+		"clock-name": "clk_pwm2_peri",
+		"channel": 3,
+		"pwm-gpio": -1,
+		"pwm-gpio-config": -1
+	},
+
+	"adc-rv1106@0xff3c0000": {
+		"clock-name": "clk_saradc",
+		"reset": 115,
+		"reference-voltage": 1800000
+	},
+
+	"ce-armv7-timer": {
+		"clock-frequency": -1,
+		"interrupt": 29
+	},
+
+	"cs-armv7-timer": {
+		"clock-frequency": -1
+	},
+
+	"uart-8250:0@0xff4a0000": {
+		"clock-name": "link-uart0",
+		"txd-gpio": -1,
+		"txd-gpio-config": -1,
+		"rxd-gpio": -1,
+		"rxd-gpio-config": -1,
+		"baud-rates": 115200,
+		"data-bits": 8,
+		"parity-bits": 0,
+		"stop-bits": 1
+	},
+
+	"uart-8250:1@0xff4b0000": {
+		"clock-name": "link-uart1",
+		"txd-gpio": -1,
+		"txd-gpio-config": -1,
+		"rxd-gpio": -1,
+		"rxd-gpio-config": -1,
+		"baud-rates": 115200,
+		"data-bits": 8,
+		"parity-bits": 0,
+		"stop-bits": 1
+	},
+
+	"uart-8250:2@0xff4c0000": {
+		"clock-name": "link-uart2",
+		"txd-gpio": 42,
+		"txd-gpio-config": 2,
+		"rxd-gpio": 43,
+		"rxd-gpio-config": 2,
+		"baud-rates": 115200,
+		"data-bits": 8,
+		"parity-bits": 0,
+		"stop-bits": 1
+	},
+
+	"uart-8250:3@0xff4d0000": {
+		"clock-name": "link-uart3",
+		"txd-gpio": -1,
+		"txd-gpio-config": -1,
+		"rxd-gpio": -1,
+		"rxd-gpio-config": -1,
+		"baud-rates": 115200,
+		"data-bits": 8,
+		"parity-bits": 0,
+		"stop-bits": 1
+	},
+
+	"uart-8250:4@0xff4e0000": {
+		"clock-name": "link-uart4",
+		"txd-gpio": -1,
+		"txd-gpio-config": -1,
+		"rxd-gpio": -1,
+		"rxd-gpio-config": -1,
+		"baud-rates": 115200,
+		"data-bits": 8,
+		"parity-bits": 0,
+		"stop-bits": 1
+	},
+
+	"uart-8250:5@0xff4f0000": {
+		"clock-name": "link-uart5",
+		"txd-gpio": -1,
+		"txd-gpio-config": -1,
+		"rxd-gpio": -1,
+		"rxd-gpio-config": -1,
+		"baud-rates": 115200,
+		"data-bits": 8,
+		"parity-bits": 0,
+		"stop-bits": 1
+	},
+
+	"i2c-rv1106:0@0xff310000": {
+		"clock-name": "clk_i2c0",
+		"clock-frequency": 400000,
+		"sda-gpio": -1,
+		"sda-gpio-config": -1,
+		"scl-gpio": -1,
+		"scl-gpio-config": -1
+	},
+
+	"i2c-rv1106:1@0xff320000": {
+		"clock-name": "clk_i2c1",
+		"clock-frequency": 400000,
+		"sda-gpio": 6,
+		"sda-gpio-config": 1,
+		"scl-gpio": 5,
+		"scl-gpio-config": 1
+	},
+
+	"i2c-rv1106:2@0xff450000": {
+		"clock-name": "clk_i2c2",
+		"clock-frequency": 400000,
+		"sda-gpio": -1,
+		"sda-gpio-config": -1,
+		"scl-gpio": -1,
+		"scl-gpio-config": -1
+	},
+
+	"i2c-rv1106:3@0xff460000": {
+		"clock-name": "clk_i2c3",
+		"clock-frequency": 400000,
+		"sda-gpio": -1,
+		"sda-gpio-config": -1,
+		"scl-gpio": -1,
+		"scl-gpio-config": -1
+	},
+
+	"i2c-rv1106:4@0xff470000": {
+		"clock-name": "clk_i2c4",
+		"clock-frequency": 400000,
+		"sda-gpio": 120,
+		"sda-gpio-config": 3,
+		"scl-gpio": 119,
+		"scl-gpio-config": 3
+	},
+
+	"rtc-rv1106@0xff1c0000": {
+		"clock-name": "pclk_vi_rtc_phy"
+	},
+
+	"wdg-rv1106@0xff5a0000": {
+		"clock-name": "link-wdt"
+	},
+
+	"key-adc:0": {
+		"adc-name": "adc-rv1106.0",
+		"adc-channel": 0,
+		"poll-interval-ms": 100,
+		"keys": [
+			{ "min-voltage": 0, "max-voltage": 100000, "key-code": 11 }
+		]
+	},
+
+	"led-gpio:0": {
+		"gpio": 118,
+		"gpio-config": 0,
+		"active-low": false,
+		"default-brightness": 0
+	},
+
+	"led-gpio:1": {
+		"gpio": 123,
+		"gpio-config": 0,
+		"active-low": false,
+		"default-brightness": 0
+	},
+
+	"led-gpio:2": {
+		"gpio": 122,
+		"gpio-config": 0,
+		"active-low": false,
+		"default-brightness": 0
+	},
+
+	"ledtrigger-heartbeat:0": {
+		"led-name": "led-gpio.0"
+	},
+
+	"ledtrigger-heartbeat:1": {
+		"led-name": "led-gpio.1"
+	},
+
+	"ledtrigger-heartbeat:2": {
+		"led-name": "led-gpio.2"
+	},
+
+	"regulator-gpio:0": {
+		"parent": null,
+		"name": "lcd-power",
+		"voltage": 3300000,
+		"gpio": 0,
+		"gpio-config": 0,
+		"active-low": false,
+		"default": {
+			"enable": false
+		}
+	},
+
+	"led-pwm:0": {
+		"pwm-name": "pwm-rv1106.1",
+		"regulator-name": "lcd-power",
+		"pwm-period-ns": 1000000,
+		"pwm-polarity": false,
+		"gamma-correction": 2.2,
+		"default-brightness": 0
+	},
+
+	"console-uart": {
+		"uart-bus": "uart-8250.2"
+	}
+}
