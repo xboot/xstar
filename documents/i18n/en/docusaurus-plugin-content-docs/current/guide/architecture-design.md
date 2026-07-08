@@ -1,6 +1,6 @@
-# XSTAR Architecture Design
+# Architecture Design
 
-This document describes in detail the system architecture and core component design of XSTAR.
+This document describes the XSTAR system architecture and core component design, focusing on "what/why".
 
 ## Table of Contents
 
@@ -16,7 +16,7 @@ This document describes in detail the system architecture and core component des
 - [Initcall Mechanism](#initcall-mechanism)
 - [Device Tree (JSON)](#device-tree-json)
 - [Utility Library (LibX)](#utility-library-libx)
-- [Build System](#build-system)
+- [Data Flow](#data-flow)
 
 ## Overall Architecture
 
@@ -24,66 +24,70 @@ XSTAR adopts a layered architecture, from bottom to top:
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
-│                        Application Layer                          │
+│                       Application Layer                          │
 ├──────────────────────────────────────────────────────────────────┤
-│                       Kernel Subsystems                           │
+│              Kernel Subsystems                                   │
 │  Audio | Command | Core | Font | Graphic | Shell | Time          │
-│  Vision | Window | XFS                                            │
+│  Vision | Window | XFS                                           │
 ├──────────────────────────────────────────────────────────────────┤
-│                       Driver Framework                            │
-│          Driver | Device | Class | KOBJ | DTREE (JSON)            │
+│               Device Driver Framework                            │
+│          Driver | Device | Class | KOBJ | DTREE (JSON)           │
 ├──────────────────────────────────────────────────────────────────┤
-│                  Platform Abstraction (XOS)                       │
+│                 Platform Abstraction Layer (XOS)                 │
 │  Memory | DMA | I/O | File | Thread | Mutex | Semaphore          │
-│  Coroutine | PM | Stdio                                           │
+│  Coroutine | PM | Stdio                                          │
 ├──────────────────────────────────────────────────────────────────┤
-│                      Utility Library (LibX)                       │
+│                  Utility Library (LibX)                          │
 │  Algorithm | Data Structure | Crypto | JSON | DTREE | Encoding   │
 ├──────────────────────────────────────────────────────────────────┤
-│                      Hardware Platforms                           │
+│          Hardware Platforms                                      │
 │  ARM32/64 | RISC-V32/64 | x64 (Baremetal/Linux/FreeRTOS)         │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
-### Layer Description
+### Layer Descriptions
 
-1. **Hardware Platform Layer**: Provides foundational hardware support, including CPU, memory, peripherals, etc.
-2. **LibX Utility Library**: Provides common utility functions for algorithms, data structures, cryptography, encoding, etc.
-3. **XOS Abstraction Layer**: Shields lower-layer differences and provides a unified system call interface.
-4. **Device Driver Framework**: Manages device drivers and device instances, implementing automatic driver probing and registration.
-5. **Kernel Subsystems**: Provides core functionality such as audio, graphics, command, shell, time, vision, window, and file system.
-6. **Application Layer**: Upper-layer applications built on top of the kernel subsystems.
+1. **Hardware Platform Layer**: Provides basic hardware support, including CPU, memory, peripherals, etc.
+2. **LibX Utility Library**: Provides general-purpose algorithms, data structures, crypto, encoding, and other utility functions
+3. **XOS Abstraction Layer**: Shields lower-layer differences, providing a unified syscall interface
+4. **Device Driver Framework**: Manages device drivers and device instances, implementing automatic driver probing and registration
+5. **Kernel Subsystems**: Provides core functionality such as audio, graphics, command, shell, time, vision, window, file system, etc.
+6. **Application Layer**: Upper-layer applications built on top of kernel subsystems
 
 ## Boot Flow
 
 The system entry point is `xstar_init()` (`xstar/xstar.c`). The platform-specific `main()` calls `xstar_init(&env, json)` to complete the entire system initialization:
 
 ```
-main() → xstar_init()
-  ├── xos_environ_init(env)         Install the platform abstraction function table
-  ├── do_initcalls()                Execute all initcalls by level (0→9)
-  ├── do_init_romdisk()             Register the romdisk block device
-  ├── do_init_dtree(dtree)         Parse the device tree JSON and probe all devices
-  ├── do_init_memory()              Register the memory info KOBJ
-  ├── do_init_logger()              Register the log control KOBJ
-  ├── do_init_version()             Register the version info KOBJ
-  ├── do_init_copyright()           Register the copyright verification KOBJ
-  ├── do_init_random()              Initialize the random number generator
+main() -> xstar_init()
+  ├── xos_environ_init(env)         Install platform abstraction function table
+  ├── do_initcalls()                Execute all initcalls by level (0->9)
+  ├── do_init_romdisk()             Register romdisk block device
+  ├── do_init_dtree(dtree)          Parse device tree JSON, probe all devices
+  ├── do_init_wallclock()           Calibrate wall clock from RTC device
+  ├── do_init_memory()              Register memory info KOBJ
+  ├── do_init_logger()              Register logger control KOBJ
+  ├── do_init_version()             Register version info KOBJ
+  ├── do_init_copyright()           Register copyright verification KOBJ
+  ├── do_init_random()              Initialize random number generator
   ├── do_init_feature()             Detect coroutine/thread support features
-  ├── do_init_font()                Load the TrueType font
-  ├── do_init_setting()             Initialize the persistent settings system
-  └── do_show_logo()                Display the boot logo on the framebuffer
+  ├── do_init_font()                Load TrueType font
+  ├── do_init_setting()             Initialize persistent setting system
+  ├── do_init_final()               Execute final-level initcalls
+  └── do_show_logo()                Display boot logo on framebuffer
 ```
 
 Key steps:
 
-- **`xos_environ_init(env)`**: Installs the function pointers provided by the platform into the global `__xos_environ` struct, only overwriting non-NULL entries.
-- **`do_initcalls()`**: Executes the initialization functions in the linker sections in level order 0-9. Driver registration, subsystem initialization, and command registration all happen in this phase.
-- **`do_init_dtree(dtree)`**: Parses the device tree JSON, matches a driver for each device node, calls `probe()`, and creates device instances.
+- **`xos_environ_init(env)`**: Installs platform-provided function pointers into the global `__xos_environ` struct, only overwriting non-NULL entries
+- **`do_initcalls()`**: Executes initialization functions in linker sections sequentially by level 0-9; driver registration, subsystem initialization, and command registration all happen in this phase
+- **`do_init_dtree(dtree)`**: Parses the device tree JSON, matches a driver for each device node and calls `probe()` to create device instances
+- **`do_init_wallclock()`**: Iterates registered RTC devices, reads valid time to calibrate the wall clock (only adopted when the RTC time is reasonable)
+- **`do_init_final()`**: Executes `final_initcall`-level initialization functions, used for last-stage deferred initialization
 
 ## Cross-Platform Abstraction Layer (XOS)
 
-XOS is the core abstraction layer of XSTAR. It uses a function pointer table to shield the differences between platforms and runtime environments.
+XOS is the core abstraction layer of XSTAR, shielding differences across platforms and runtime environments through a function pointer table.
 
 ### Interface Abstraction
 
@@ -143,7 +147,7 @@ struct xos_environ_t {
 
 ### API Categories
 
-XOS provides platform-related operations through `xos_environ_t`, and also directly provides a large number of platform-independent portable APIs:
+XOS provides platform-related operations via `xos_environ_t`, and also directly provides a large number of platform-independent portable APIs:
 
 | Category | Key Functions |
 |----------|---------------|
@@ -177,7 +181,7 @@ Each platform provides a corresponding `xos_environ_t` implementation:
 
 ## Device Driver Framework
 
-The device driver framework uses a driver/device separation design, implementing automatic driver probing and registration.
+The device driver framework adopts a driver/device separation design, implementing automatic driver probing and registration.
 
 ### Core Data Structures
 
@@ -206,7 +210,7 @@ struct device_t {
 
 ### Device Types
 
-The system defines 51 device types (`enum device_type_t`):
+The system defines 50+ device types (`enum device_type_t`):
 
 | Category | Types |
 |----------|-------|
@@ -220,11 +224,11 @@ The system defines 51 device types (`enum device_type_t`):
 | Sensors | `ADC`, `COMPASS`, `GMETER`, `GYROSCOPE`, `HYGROMETER`, `LIGHT`, `OXIMETER`, `PRESSURE`, `PROXIMITY`, `THERMOMETER` |
 | Output | `LED`, `LEDSTRIP`, `LEDTRIGGER`, `DAC`, `PWM`, `SERVO`, `MOTOR`, `STEPPER`, `VIBRATOR` |
 | Power | `BATTERY`, `REGULATOR`, `RNG`, `RTC` |
-| Other | `ATOMIC`, `DMA`, `LIMITER`, `PRINTER`, `SPINLOCK`, `WATCHDOG` |
+| Others | `ATOMIC`, `DMA`, `LIMITER`, `PRINTER`, `SPINLOCK`, `WATCHDOG` |
 
 ### Driver Registration
 
-Drivers are registered automatically via the `driver_initcall` macro:
+Drivers are automatically registered via the `driver_initcall` macro:
 
 ```c
 static struct driver_t my_driver = {
@@ -253,172 +257,55 @@ driver_exitcall(my_driver_exit);
 
 Drivers are stored in a hash table (521 buckets, using the `shash()` hash function), with lookup efficiency close to O(1):
 
-- `register_driver(drv)`: Creates the KOBJ directory `/class/driver/<name>/`, adds a `probe` write entry, and inserts into the hash table.
-- `unregister_driver(drv)`: Removes from the hash table and the KOBJ tree.
-- `search_driver(name)`: Looks up a driver by name in the hash table.
+- `register_driver(drv)`: Creates a KOBJ directory `/class/driver/<name>/`, adds a `probe` write entry, and inserts into the hash table
+- `unregister_driver(drv)`: Removes from the hash table and KOBJ tree
+- `search_driver(name)`: Looks up a driver by name in the hash table
 
 ### Device Registration
 
-Devices are managed via a triple index:
+Devices are managed through a triple index:
 
-- Global list `__device_list`
-- Per-type list `__device_head[type]`
-- Per-name hash table
+- Global linked list `__device_list`
+- Per-type linked list `__device_head[type]`
+- Name-based hash table
 
-`register_device(dev)` adds the device to the triple index and publishes a device-added event via `psub_publish("device.add", dev)`.
+`register_device(dev)` adds the device to all three indexes and publishes a device-add event via `psub_publish("device.add", dev)`.
 
 ### Device Probing
 
-At system startup, `probe_device()` parses the device tree JSON, automatically matches and probes a driver for each node:
+At system boot, `probe_device()` parses the device tree JSON, automatically matching and probing a driver for each node:
 
 ```
-Parse JSON → extract key "driver-name:id@addr" → search_driver(name)
-→ call drv->probe(drv, n) → create device instance → register into the system
+Parse JSON -> extract key "driver-name:id@addr" -> search_driver(name)
+-> call drv->probe(drv, n) -> create device instance -> register to system
 ```
+
+For the complete driver development template (probe/remove/suspend/resume, device tree configuration, Kbuild), see [Development Guide - Driver Development](./development-guide#driver-development).
 
 ## Kernel Subsystems
 
-### Audio System (Audio)
+The XSTAR kernel contains the following subsystems. For detailed API documentation of each subsystem, see the [Subsystem Docs](../subsys/dtree/device-tree):
 
-Complete audio processing chain:
+| Subsystem | Description | Docs |
+|-----------|-------------|------|
+| **Audio** | Full audio processing pipeline: Source -> Mixer -> Effect -> Sink | [Audio Overview](../subsys/audio/overview) |
+| **Command** | Unified command interface, 32+ built-in commands | [Built-in Commands](../command/help) |
+| **Core** | Coroutine, Logger, Profiler, Setting, ThChannel, ThWorker, CoChannel, PSub and other core utilities | See links below |
+| **Font** | 4 font style management, TrueType/CFF parsing | [Font System](../subsys/font/font-system) |
+| **Graphic** | 2D graphics rendering: Surface, shapes, transforms, effects, filters | [Graphics - Surface](../subsys/graphic/Surface) |
+| **Shell** | Interactive shell, command completion, history, working directory | [Shell](../subsys/shell) |
+| **Time** | Red-black tree high-precision timer, wall clock, delay | [Timer](../subsys/timer) |
+| **Vision** | Image processing algorithms (grayscale/RGB888): morphology, threshold, filtering, drawing | [Vision Core Types](../subsys/vision/core-types) |
+| **Window** | Window management, event handling, dirty rectangles, backlight | [Window](../subsys/window) |
+| **XFS** | Virtual file system, multiple mount points, pluggable archivers | [File System](../subsys/xfs) |
 
-```
-Source (audio source) → Mixer (mixer) → Effect (audio effects) → Sink (output device)
-```
+Independent docs for each tool under the Core subsystem:
 
-- **Source**: Audio input abstraction, supporting files (WAV, QOA), capture devices, memory buffers, AFSK modem, tone generator, noise generator, and mixers.
-  - Key APIs: `audio_source_alloc_from_xfs()`, `audio_source_read()`, `audio_source_seek()`
-- **Mixer**: Multi-channel audio mixing; the mixer itself can also be used as a Source.
-  - Key APIs: `audio_mixer_alloc()`, `audio_mixer_add/remove()`, `audio_mixer_read()`
-- **Effect**: Pluggable audio filter chain, supporting effects such as crystalizer, duplicate, IIR, mono, panning, resample, reshape, tremolo, and volume.
-  - Key APIs: `audio_filter_alloc(json, len)`, `audio_effect_process()`
-- **Sink**: Audio output abstraction, supporting playback devices, level meters, spectrum analysis, VAD voice activity detection, and AFSK decoding.
-  - Key APIs: `audio_sink_alloc_from_playback()`, `audio_sink_write()`, `audio_sink_ioctl()`
-
-### Command System (Command)
-
-Unified command interface, supporting 32+ built-in commands:
-
-```c
-struct command_t {
-    char * name;
-    char * desc;
-    void (*usage)(void);
-    void (*exec)(int argc, char **argv);
-};
-```
-
-Built-in commands include: aplay, autoshell, cat, cd, clear, clk, date, dcp, delay, echo, event, go, help, iplay, ls, md, mkdir, mw, net, ntpdate, pwd, reboot, rm, setting, shutdown, standby, sync, test, tscal, uniqueid, version, write.
-
-### Core Utilities (Core)
-
-| Module | Description | Key APIs |
-|--------|-------------|----------|
-| **Coroutine** | Cooperative multitasking | `coroutine_start()`, `coroutine_yield()`, `coroutine_msleep()` |
-| **Logger** | Ring-buffer logging | `LOG(fmt, ...)`, `logger_enable/disable()` |
-| **Profiler** | Performance profiling | `profiler_begin/end()`, `profiler_search()`, `profiler_foreach()` |
-| **Setting** | Persistent key-value store | `setting_set/get/clear/sync/foreach()` |
-| **ThChannel** | Thread-safe ring-buffer channel | `thchannel_alloc()`, `thchannel_send/recv(buf, len, timeout)` |
-| **ThWorker** | Thread work queue | `thworker_alloc()`, `thworker_submit(func, data)`, `thworker_wait()` |
-| **CoChannel** | Coroutine-safe channel (lock-free) | `cochannel_alloc()`, `cochannel_send/recv(sched, buf, len)` |
-| **PSub** | Publish-subscribe system | `psub_publish(topic, data)`, `psub_subscribe(topic, cb, oneshot)` |
-
-### Font System (Font)
-
-Font management supporting 4 font styles (regular, italic, bold, bolditalic):
-
-- **Font**: Font family management, install fonts from XFS or a buffer.
-  - Key APIs: `font_install_from_xfs/buf()`, `font_text_bound/render()`, `font_icon_bound/render()`
-- **TrueType**: TrueType/CFF font parser.
-  - Key APIs: `truetype_init()`, `truetype_scale_for_pixel_height()`, `truetype_make_glyph_bitmap()`
-
-### Shell System (Shell)
-
-Interactive shell, supporting:
-
-- Command auto-completion
-- History navigation
-- Ctrl+C interrupt handling
-- Working directory management
-
-Key APIs: `shell_system(cmdline)`, `shell_readline(prompt)`, `shell_password(prompt)`, `shell_getcwd/setcwd()`
-
-### Time System (Time)
-
-High-precision time management:
-
-| Module | Description | Key APIs |
-|--------|-------------|----------|
-| **Timer** | High-precision timer based on a red-black tree | `timer_init()`, `timer_start()`, `timer_forward()`, `timer_cancel()` |
-| **WallClock** | Wall clock time | `wallclock_gettimeofday/settimeofday()`, `wallclock_gettime/settime()` |
-| **Delay** | Busy-wait delay | `ndelay(ns)`, `udelay(us)`, `mdelay(ms)` |
-| **DelayCall** | One-shot delayed call | `delaycall(ms, func, data)` |
-
-### Vision System (Vision)
-
-Image processing algorithm library, supporting two pixel formats: `VISION_TYPE_GRAY` (8-bit grayscale) and `VISION_TYPE_RGB` (24-bit RGB888).
-
-```c
-struct vision_t {
-    enum vision_type_t type;
-    int width;
-    int height;
-    int npixel;
-    void * datas;
-    size_t ndata;
-};
-```
-
-Key APIs: `vision_alloc()`, `vision_free()`, `vision_clone()`, `vision_convert()`, `vision_clear()`
-
-Supported operations include: bitwise (bit operations), colormap (color mapping), dilate (dilation), erode (erosion), threshold (thresholding), gamma (gamma correction), gray (grayscale), sepia (sepia tone), inrange (range filtering), invert (inversion), resize (scaling), dither (dithering), rectangle (rectangle drawing), text (text rendering).
-
-The vision system and graphics system can be converted to each other: `vision_apply_surface()` / `surface_apply_vision()`.
-
-### Window System (Window)
-
-Window management and event handling:
-
-```c
-struct window_t {
-    struct list_head_t list;
-    struct matrix2d_t lmatrix;
-    struct matrix2d_t gmatrix;
-    struct framebuffer_t * fb;
-    struct surface_t * fbsurface;
-    struct surface_t * surface;
-    struct dirtylist_t * dirtylist;
-    struct fifo_t * event;
-    struct hmap_t * map;
-    int dpi;
-};
-```
-
-- Window creation & management: `window_alloc()`, `window_free()`, `window_exit()`
-- Screen orientation: supports 4 rotations (0/90/180/270) and 4 flips (horizontal/vertical/main-diagonal/anti-diagonal)
-- Dirty-rectangle management: `window_dirtylist_fullscreen()`, `window_dirtylist_add()`, `window_dirtylist_clear()`
-- Render submission: `window_present_clear()`, `window_present_commit()`
-- Event pump: `window_pump_event()`, `push_event()`
-- Backlight control: `window_set_backlight()`, `window_get_backlight()`
-- dp/px conversion: `window_dp_to_px()`
-
-### File System (XFS)
-
-Virtual file system supporting multiple mount points:
-
-```c
-struct xfs_context_t {
-    struct xfs_path_t mounts;
-    struct mutex_t lock;
-};
-```
-
-Key APIs:
-
-- Mount management: `xfs_mount()`, `xfs_umount()`
-- File operations: `xfs_open_read/write/append()`, `xfs_read/write/seek/tell/length()`, `xfs_flush()`, `xfs_close()`
-- Directory operations: `xfs_walk()`, `xfs_isdir/isfile()`, `xfs_mkdir()`, `xfs_remove()`
-- Archiver: `xfs_archiver_t` provides pluggable archive format support
+- Coroutine: [Coroutine](../subsys/coroutine), [CoChannel](../subsys/coroutine/cochannel)
+- Thread: [ThChannel](../subsys/thread/thchannel), [ThWorker](../subsys/thread/thworker)
+- Debug: [Logger](../subsys/debug/logger), [Profiler](../subsys/debug/profiler)
+- Persistence: [Setting](../subsys/setting)
+- Publish-Subscribe: [PSub](../subsys/psub)
 
 ## Coroutine System
 
@@ -456,62 +343,20 @@ void coroutine_nsleep(struct scheduler_t *sched, uint64_t ns);
 
 ## Graphics System
 
-A complete 2D graphics rendering system.
+A complete 2D graphics rendering system, with `surface_t` (32-bit premultiplied ARGB) as the core object.
 
-### Surface Abstraction
+- **Create & Load**: `surface_alloc(w, h)`, `surface_alloc_from_xfs()` (QOI/PNG/JPEG), `surface_alloc_from_buf()`, `surface_alloc_qrcode()`
+- **Rendering**: Fill, bit-block transfer, text, icons, vector shapes (rectangle/circle/arc/curve), affine transforms
+- **Effects**: Frosted glass, shadow, gradient, checkerboard
+- **Filters**: Grayscale, sepia, invert, gamma, hue, saturation, brightness, contrast, opacity, blur
 
-Surface is the core object of the graphics system, with a pixel format of 32-bit premultiplied ARGB:
+The graphics system and vision system can convert to each other: `vision_apply_surface()` / `surface_apply_vision()`.
 
-```c
-struct surface_t {
-    uint32_t *pixels;
-    int width;
-    int height;
-    int stride;
-    int format;
-};
-```
-
-### Creation and Loading
-
-- `surface_alloc(w, h)`: Create a blank Surface
-- `surface_alloc_from_xfs()`: Load an image from XFS (supports QOI, PNG, JPEG)
-- `surface_alloc_from_buf()`: Load from a memory buffer
-- `surface_alloc_qrcode()`: Generate a QR code Surface
-
-### Rendering Operations
-
-- **Basic drawing**: `surface_fill()` (fill), `surface_blit()` (bit-block transfer), `surface_text()` (text), `surface_icon()` (icon)
-- **Vector shapes**: `surface_shape_rectangle()`, `surface_shape_circle()`, `surface_shape_arc()`, `surface_shape_curve_to()`, etc.
-- **Transforms**: `surface_shape_translate/scale/rotate/transform()`
-- **Effects**: `surface_effect_glass()` (frosted glass), `surface_effect_shadow()` (shadow), `surface_effect_gradient()` (gradient), `surface_effect_checkerboard()` (checkerboard)
-- **Filters**: `surface_filter_gray/sepia/invert/gamma/hue/saturate/brightness/contrast/opacity/blur()`
-
-### Matrix Transform
-
-2D affine transformation matrix:
-
-```c
-struct matrix2d_t {
-    double a, b, c, d, e, f;
-};
-```
-
-Key APIs: `matrix2d_init_identity/translate/scale/rotate()`, `matrix2d_multiply/invert()`, `matrix2d_transform_point/distance/bounds/region()`
-
-### Dirty-Rectangle Optimization
-
-```c
-struct dirtylist_t {
-    struct list_head_t list;
-};
-```
-
-Key APIs: `dirtylist_alloc()`, `dirtylist_add()`, `dirtylist_clear()`, `dirtylist_merge()`, `dirtylist_clone()`
+For detailed APIs on Surface, shape drawing, transform matrices, dirty rectangles, filters, etc., see the [Graphics Subsystem Docs](../subsys/graphic/Surface).
 
 ## KOBJ Virtual File System
 
-A virtual file system similar to Linux sysfs, used to access device state and configuration.
+A virtual file system similar to Linux sysfs, used to access device status and configuration.
 
 ### Node Types
 
@@ -534,12 +379,12 @@ struct kobj_t {
 ### Path Examples
 
 - `/class/driver/clk-fixed/probe`: Write JSON to dynamically probe a device
-- `/class/memory/meminfo`: Read memory information
-- `/device/clk/clk.0/rate`: Read the clock frequency
+- `/class/memory/meminfo`: Read memory info
+- `/device/clk/clk.0/rate`: Read clock frequency
 
 ## Publish-Subscribe System
 
-A topic-based publish-subscribe pattern, used for event-driven architecture.
+A topic-based publish-subscribe pattern for event-driven architecture.
 
 ### API
 
@@ -556,6 +401,8 @@ void psub_unsubscribe(const char *topic, void (*callback)(void *, void *), void 
 - `device.suspend`: Device suspended event
 - `device.resume`: Device resumed event
 
+For the complete publish-subscribe API, see the [Publish-Subscribe Docs](../subsys/psub).
+
 ## Initcall Mechanism
 
 A leveled initialization mechanism implemented via linker sections.
@@ -563,16 +410,17 @@ A leveled initialization mechanism implemented via linker sections.
 ### Initcall Levels
 
 ```c
-pure_initcall()      // 0 - Pure initialization (hash tables, device/driver lists)
-machine_initcall()   // 1 - Machine initialization
-core_initcall()      // 2 - Core initialization
-postcore_initcall()  // 3 - Post-core initialization
-driver_initcall()    // 4 - Driver initialization (most commonly used)
-subsys_initcall()    // 5 - Subsystem initialization
-command_initcall()   // 6 - Command initialization
-server_initcall()    // 7 - Server initialization
-wboxtest_initcall()  // 8 - Test initialization
-late_initcall()      // 9 - Late initialization
+pure_initcall()      // 0 - pure init (hash tables, device/driver lists)
+machine_initcall()   // 1 - machine init
+core_initcall()      // 2 - core init
+postcore_initcall()  // 3 - post-core init
+driver_initcall()    // 4 - driver init (most common)
+subsys_initcall()    // 5 - subsystem init
+command_initcall()   // 6 - command init
+server_initcall()    // 7 - server init
+wboxtest_initcall()  // 8 - test init
+late_initcall()      // 9 - late init
+final_initcall()     // final - last-stage init (executed separately by do_init_final())
 ```
 
 ### Implementation Principle
@@ -584,7 +432,7 @@ late_initcall()      // 9 - Late initialization
     __attribute__((used)) \
     __attribute__((__section__("xstar_initcall_" #level))) = fn
 
-/* Initialization execution - in level order 0-9 */
+/* Initialization execution - by level 0-9 in order */
 void do_initcalls(void)
 {
     initcall_t *fn;
@@ -593,7 +441,7 @@ void do_initcalls(void)
             (*fn)();
 }
 
-/* Exit execution - in reverse level order 9-0 */
+/* Exit execution - by level 9-0 in reverse order */
 void do_exitcalls(void)
 {
     /* Execute exitcalls in reverse order */
@@ -602,9 +450,9 @@ void do_exitcalls(void)
 
 ## Device Tree (JSON)
 
-Devices are configured using JSON format, which is more readable and writable than traditional DTS.
+Uses JSON format to configure devices, more readable and writable than traditional DTS.
 
-### Naming Rule
+### Naming Rules
 
 ```
 "driver-name:id@address"
@@ -626,214 +474,50 @@ Devices are configured using JSON format, which is more readable and writable th
         "sda-gpio": "gpio-v1-linux:2",
         "scl-gpio": "gpio-v1-linux:3",
         "delay-us": 5
-    },
-    "uart-linux:0": {
-        "device": "/dev/ttyUSB0",
-        "baud-rates": 115200,
-        "status": "disabled"
     }
 }
 ```
 
-### Property Reading
+Set `"status": "disabled"` to skip device probing. Reference other devices via the `"driver-name:id"` format.
 
-Device tree properties are read via `dt_read_*` functions:
-
-| Function | Return Type | Description |
-|----------|-------------|-------------|
-| `dt_read_string(n, name, def)` | `char *` | Read a string |
-| `dt_read_int(n, name, def)` | `int` | Read an integer |
-| `dt_read_long(n, name, def)` | `long long` | Read a long integer |
-| `dt_read_bool(n, name, def)` | `int` | Read a boolean |
-| `dt_read_double(n, name, def)` | `double` | Read a double |
-| `dt_read_object(n, name)` | `struct dtnode_t` | Read a sub-object |
-
-### State Control
-
-Setting `"status": "disabled"` skips device probing.
-
-### Device References
-
-Reference other devices via the `"driver-name:id"` format:
-
-```json
-{
-    "led-gpio:0": {
-        "gpio": "gpio-v1-linux:10",
-        "active-low": true
-    }
-}
-```
+For property read functions (`dt_read_string/int/long/bool/double/object`) and full usage, see the [Device Tree Docs](../subsys/dtree/device-tree).
 
 ## Utility Library (LibX)
 
-LibX provides common utility functions for algorithms, data structures, cryptography, and encoding. It is the foundation library above XOS.
+LibX provides general-purpose algorithms, data structures, crypto, encoding, and other utility functions. It is the base library above XOS and is currently compiled unconditionally.
 
-### Data Structures
+| Category | Module Examples |
+|----------|-----------------|
+| **Data Structures** | Doubly linked list, hash list, singly linked list, FIFO, queue, hash map, red-black tree, LRU, dynamic string, KOBJ, device tree, initcall |
+| **Crypto/Security** | AES-128/256, RC4, ECDSA-256, SHA-1/256, VM encryption, Reed-Solomon |
+| **Signal/Algorithms** | FFT, biquad filter, Kalman, EWMA, median/mean filter, time-series/key filter, spring animation, backoff, breathing light, easing, window function |
+| **Encoding/Compression** | Base64, JSON, URI, QR code, interleaver, hex dump, CRC-8/16/32, charset, YUV conversion |
+| **String/Utils** | Path, UUID, memory pool, integer square root, unaligned access, byte order, BCD, sorted list, decibel, kernel time |
 
-| Module | Description | Key APIs |
-|--------|-------------|----------|
-| Doubly linked list | `list.h` (header-only) | `init_list_head()`, `list_add/del/splice()`, `list_for_each_entry()` |
-| Hash linked list | `list.h` (header-only) | `struct hlist_head_t`, `struct hlist_node_t` |
-| Singly linked list | `slist.c/h` | Single-pointer linked list |
-| FIFO ring buffer | `fifo.c/h` | Lock-free ring buffer |
-| Queue | `queue.c/h` | General-purpose queue |
-| Hash table | `hmap.c/h` | Key-value hash table |
-| Red-black tree | `rbtree.c/h` | Self-balancing binary search tree |
-| LRU cache | `lru.c/h` | Least recently used cache |
-| Dynamic string | `ds.c/h` | `struct ds_t`, supports append/insert/delete/find/replace |
-| KOBJ | `kobj.c/h` | Hierarchical virtual file system node |
-| Device tree | `dtree.c/h` | JSON device tree parser |
-| Initcall | `initcall.c/h` | Linker-section init/exit registration (10 levels) |
-
-### Crypto/Security
-
-| Module | File |
-|--------|------|
-| AES-128 | `aes128.c/h` |
-| AES-256 | `aes256.c/h` |
-| RC4 | `rc4.c/h` |
-| ECDSA-256 | `ecdsa256.c/h` |
-| SHA-1 | `sha1.c/h` |
-| SHA-256 | `sha256.c/h` |
-| VM crypto | `vmcrypt.c/h` |
-| Reed-Solomon | `rs.c/h` (forward error correction coding) |
-
-### Signal Processing/Algorithms
-
-| Module | Description |
-|--------|-------------|
-| FFT | `fft.c/h` (Fast Fourier Transform) |
-| Biquad filter | `biquad.c/h` (second-order IIR filter) |
-| Kalman filter | `kalman.c/h` |
-| EWMA | `ewma.c/h` (exponentially weighted moving average) |
-| Median filter | `median.c/h` |
-| Mean filter | `mean.c/h` |
-| Time-series filter | `tsfilter.c/h` |
-| Key filter | `keyfilter.c/h` (input debouncing) |
-| Cosine lookup table | `costab.c/h` |
-| Complex arithmetic | `complex.c/h` |
-| Spring animation | `spring.c/h` |
-| Backoff algorithm | `backoff.c/h` (exponential backoff) |
-| Breathing LED | `breathing.c/h` |
-| Easing functions | `easing.c/h` |
-| Window functions | `winfunc.c/h` (Hamming, Hanning, etc.) |
-
-### Encoding/Compression
-
-| Module | Description |
-|--------|-------------|
-| Base64 | `base64.c/h` |
-| JSON | `json.c/h` |
-| URI | `uri.c/h` |
-| QR code generation | `qrcgen.c/h` |
-| Interleaver | `interleaver.c/h` |
-| Hex dump | `hexdump.c/h` |
-| CRC-8/16/32 | `crc8.c/h`, `crc16.c/h`, `crc32.c/h` |
-| String hash | `shash.h` (header-only) |
-| Character set | `charset.c/h` |
-| YUV conversion | `yuv.c/h` |
-
-### String/File Utilities
-
-| Module | Description |
-|--------|-------------|
-| Path operations | `path.c/h` |
-| UUID generation | `uuid.c/h` |
-| Database | `db.c/h` |
-| Process list | `ps.c/h` |
-| Memory pool | `mm.c/h` |
-| Integer square root | `sqrti.c/h` |
-| Unaligned access | `unaligned.h` (header-only) |
-| Byte-order conversion | `byteorder.h` (header-only, be16/le16/be32/le32) |
-| BCD encoding | `bcd.h` (header-only) |
-| Sorted list | `lsort.c/h` |
-| Decibel conversion | `db.c/h` |
-| Kernel time | `ktime.h` (header-only) |
-| Core definitions | `xdef.h` (header-only, `NULL`/`TRUE`/`FALSE`/`container_of`/`XMIN`/`XMAX`) |
-
-## Build System
-
-### Kconfig Configuration
-
-Uses the Kconfig system for configuration management:
-
-```bash
-make <project>/xstar.defconfig    # Apply the project default configuration
-make menuconfig                    # Interactive configuration menu
-```
-
-Configuration is saved in the `.config` file, which generates `.config.h` for use by source code.
-
-### Kbuild Compilation
-
-Uses a Kbuild-style build system:
-
-```makefile
-obj-y += core.o                              # Always compiled
-obj-$(CONFIG_DRV_CLK_FIXED) += clk-fixed.o    # Conditionally compiled
-subdirs-y += adc                              # Recurse into subdirectory
-```
-
-### Project Structure
-
-Each project lives under the `projects/` directory and contains:
-
-- `xstar.defconfig`: Project default configuration
-- `xstarcfg.h`: Project-specific type definitions and platform header
-- `main.c`: Platform-specific entry point
-- `linux/` or `baremetal/`: Platform implementation code
-- `romdisk/`: Read-only file system (containing `dtree/default.json` device tree)
-
-### Build Output
-
-Build output is located in `projects/<project>/output/`, finally generating the `xstar` executable.
+For detailed APIs of each module, see the [Library Docs](../libx/xdef).
 
 ## Data Flow
 
 ### Device Probing Flow
 
 ```
-System boot → Parse device tree (JSON) → Match driver → Call probe() → Create device instance → Register into system
+System boot -> parse device tree (JSON) -> match driver -> call probe() -> create device instance -> register to system
 ```
 
 ### Coroutine Scheduling Flow
 
 ```
-Coroutine start → Execute user function → Call yield() → Save context → Switch to scheduler → Select next coroutine → Restore context
+Coroutine start -> execute user function -> call yield() -> save context -> switch to scheduler -> select next coroutine -> restore context
 ```
 
 ### Graphics Rendering Flow
 
 ```
-Application call → Graphics operation → Record dirty rectangle → Render to surface → G2D/software rendering → Update to framebuffer
+Application call -> graphics operation -> record dirty rectangle -> render to surface -> G2D/software rendering -> update to framebuffer
 ```
 
 ### Publish-Subscribe Flow
 
 ```
-Publish event → Find subscribers → Iterate callback list → Execute callback function → (Optional) Cancel oneshot subscription
+Publish event -> find subscribers -> iterate callback list -> execute callback function -> (optional) cancel oneshot subscription
 ```
-
-## Extensibility
-
-### Adding a New Driver
-
-1. Implement the `driver_t` structure
-2. Implement the `probe/remove/suspend/resume` callbacks
-3. Register the driver using `driver_initcall`
-4. Add the device configuration in the device tree
-
-### Adding a New Command
-
-1. Implement the `command_t` structure
-2. Implement the `exec` callback function
-3. Register the command using `command_initcall`
-4. Add help documentation
-
-### Adding a New Kernel Subsystem
-
-1. Define the subsystem interface
-2. Implement the core functionality
-3. Provide the public API
-4. Register using an appropriate initcall level

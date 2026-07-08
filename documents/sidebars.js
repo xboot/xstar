@@ -1,16 +1,10 @@
 /** @type {import('@docusaurus/plugin-content-docs').SidebarsConfig} */
 const sidebars = {
   guide: [
-    {
-      type: 'category',
-      label: '入门指南',
-      link: { type: 'doc', id: 'guide/build-guide' },
-      items: [
-        'guide/build-guide',
-        'guide/architecture-design',
-        'guide/development-guide',
-      ],
-    },
+    'guide/quick-start',
+    'guide/build-guide',
+    'guide/architecture-design',
+    'guide/development-guide',
   ],
   command: [
     'command/aplay',

@@ -1,6 +1,6 @@
-# XSTAR 开发指南
+# 开发指南
 
-本文档提供 XSTAR 开发的详细指南，包括代码规范、驱动开发、命令开发、测试等内容。
+本文档提供 XSTAR 开发的详细指南，包括代码规范、驱动开发、命令开发、测试等内容。快速上手见[快速开始](./quick-start)，架构背景见[架构设计](./architecture-design)。
 
 ## 目录
 
@@ -83,16 +83,12 @@
 ```c
 #include <xstar.h>
 #include <xos/xos.h>
-
 #include <driver/clk/clk.h>
-
-#include <libx/json.h>
 ```
 
 1. 本地项目头文件（`#include <xstar.h>` 或 `#include <xos/xos.h>`）
 2. 驱动/内核头文件（如 `#include <driver/clk/clk.h>`）
-3. LibX 头文件（如 `#include <libx/json.h>`）
-4. 标准/外部头文件（如果有）
+3. 标准/外部头文件（如果有）
 
 ### 错误处理
 
@@ -272,7 +268,7 @@ obj-$(CONFIG_DRV_XXX) += xxx-driver.o
 
 ### 设备类型
 
-系统定义了 51 种设备类型（`enum device_type_t`），驱动注册设备时需指定对应类型。常用类型：
+系统定义了 50+ 设备类型（`enum device_type_t`），驱动注册设备时需指定对应类型。常用类型：
 
 | 类别 | 类型枚举 |
 |------|---------|
@@ -723,6 +719,76 @@ x64_coroutine_jump:
 - RISC-V32/64：对应项目中的 `riscv32-coroutine.S` / `riscv64-coroutine.S`
 
 ## 常见开发任务
+
+### 添加新项目
+
+1. 在 `projects/` 目录下创建新项目目录：
+
+```bash
+mkdir projects/my-new-project
+cd projects/my-new-project
+```
+
+2. 创建 `xstar.defconfig`：
+
+```makefile
+CONFIG_CROSS_COMPILE="arm-linux-gnueabihf-"
+CONFIG_ARCH_ARM32=y
+CONFIG_ARCH="arm32"
+CONFIG_OPTIMIZE_LEVEL="-O2"
+CONFIG_PROJECT_NAME="my-new-project"
+CONFIG_XSTAR=y
+CONFIG_XSTAR_LOG=y
+# ... 根据需要添加驱动和命令配置
+```
+
+3. 创建 `xstarcfg.h`（参考已有项目的模板）：
+
+```c
+#ifndef __XSTARCFG_H__
+#define __XSTARCFG_H__
+
+#include <stdint.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef unsigned long io_addr_t;
+
+#endif /* __XSTARCFG_H__ */
+```
+
+4. 创建 `Makefile`（复制已有项目的模板，recipe 行用 Tab 缩进）：
+
+```makefile
+XSTAR_DIR     := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST))))/../..)
+XSTAR_DEFCONFIG := $(notdir $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST))))))/xstar.defconfig
+
+.PHONY: all defconfig menuconfig clean distclean
+
+all:
+	@$(MAKE) -s -C $(XSTAR_DIR) all
+defconfig:
+	@$(MAKE) -s -C $(XSTAR_DIR) $(XSTAR_DEFCONFIG)
+menuconfig:
+	@$(MAKE) -s -C $(XSTAR_DIR) menuconfig
+clean:
+	@$(MAKE) -s -C $(XSTAR_DIR) clean
+distclean:
+	@$(MAKE) -s -C $(XSTAR_DIR) distclean
+```
+
+5. 创建平台实现代码（`linux/linux.c` 或 `baremetal/baremetal.c`）和 `main.c`
+
+6. 创建 `romdisk/dtree/default.json` 设备树配置
+
+7. 构建项目：
+
+```bash
+make my-new-project/xstar.defconfig
+make
+```
 
 ### 添加新的设备类型
 
