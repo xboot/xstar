@@ -1,0 +1,7 @@
+subdirs-y += command
+subdirs-y += driver
+subdirs-y += linux
+
+obj-y += main.o
+obj-y += romdisk.o
+
