@@ -1,0 +1,13 @@
+subdirs-y += kernel
+
+obj-y += freertos-copyright.o
+obj-y += freertos-dma.o
+obj-y += freertos-io.o
+obj-y += freertos-mem.o
+obj-y += freertos-mutex.o
+obj-y += freertos.o
+obj-y += freertos-pm.o
+obj-y += freertos-semaphore.o
+obj-y += freertos-thread.o
+obj-y += freertos-timer.o
+obj-y += riscv32-coroutine.o

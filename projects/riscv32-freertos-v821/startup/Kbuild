@@ -1,0 +1,10 @@
+obj-y += start.o
+obj-y += sys-clock.o
+obj-y += sys-jtag.o
+obj-y += sys-memcpy.o
+obj-y += sys-memmove.o
+obj-y += sys-memset.o
+obj-y += sys-uart.o
+obj-y += exception.o
+obj-y += fprw.o
+obj-y += cache-a27l2.o

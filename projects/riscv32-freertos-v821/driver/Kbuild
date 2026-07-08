@@ -1,0 +1,15 @@
+obj-y += adc-v821.o
+obj-y += ce-freertos.o
+obj-y += ce-plmt-timer.o
+obj-y += clk-v821-pll.o
+obj-y += cs-freertos.o
+obj-y += cs-plmt-timer.o
+obj-y += gpio-v821.o
+obj-y += i2c-v821.o
+obj-y += irq-v821-gpio.o
+obj-y += irq-v821.o
+obj-y += reset-v821.o
+obj-y += spi-v821.o
+obj-y += ts-cst816d.o
+obj-y += uart-16550.o
+obj-y += wdg-v821-rtc.o
