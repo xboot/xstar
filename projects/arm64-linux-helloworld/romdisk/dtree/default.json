@@ -1,0 +1,67 @@
+{
+	"ce-linux:0": {
+	},
+
+	"cs-linux:0": {
+	},
+
+	"playback-linux:0": {
+	},
+
+	"capture-linux:0": {
+	},
+
+	"rtc-linux:0": {
+		"device": "/dev/rtc0"
+	},
+
+	"rtc-linux-soft:0": {
+	},
+
+	"net-linux:0": {
+		"interface": "eth0"
+	},
+
+	"cam-linux:0": {
+		"device": "/dev/video0"
+	},
+
+	"uart-linux:0": {
+		"device": "/dev/ttyUSB0",
+		"baud-rates": 115200,
+		"data-bits": 8,
+		"parity-bits": 0,
+		"stop-bits": 1,
+		"status": "disabled"
+	},
+
+	"i2c-linux:0": {
+		"device": "/dev/i2c-0",
+		"status": "disabled"
+	},
+
+	"spi-linux:0": {
+		"device": "/dev/spidev0.0",
+		"status": "disabled"
+	},
+
+	"input-linux:0": {
+		"pointer-range-x": 800,
+		"pointer-range-y": 480,
+		"pointer-sensitivity": 6
+	},
+
+	"fb-linux:0": {
+		"device": "/dev/fb0",
+		"physical-width": 216,
+		"physical-height": 135
+	},
+
+	"fb-linux-drm:0": {
+		"device": "/dev/dri/card0",
+		"connector": "unknown"
+	},
+
+	"console-linux:0": {
+	}
+}
