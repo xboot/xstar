@@ -1,0 +1,7 @@
+#ifndef __RK3506_REG_FIREWALL_H__
+#define __RK3506_REG_FIREWALL_H__
+
+#define RK3506_FIREWALL_DDR_BASE	(0xff5f0000)
+#define FIREWALL_DDR_MST1_REG		(0x24)
+
+#endif /* __RK3506_REG_FIREWALL_H__ */

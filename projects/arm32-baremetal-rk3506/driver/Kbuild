@@ -1,0 +1,8 @@
+obj-y += ce-armv7-timer.o
+obj-y += cs-armv7-timer.o
+obj-y += gpio-rk3506.o
+obj-y += irq-gic400.o
+obj-y += irq-rk3506-gpio.o
+obj-y += reset-rk3506.o
+obj-y += uart-8250.o
+obj-y += wdg-rk3506.o

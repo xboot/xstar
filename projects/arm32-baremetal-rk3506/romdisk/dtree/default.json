@@ -1,0 +1,76 @@
+{
+	"clk-fixed": { "name": "xin24m", "rate": 24000000 },
+	"clk-fixed": { "name": "xin32k", "rate": 32768 },
+
+	"clk-link": { "parent": "xin24m", "name": "link-wdt0" },
+	"clk-link": { "parent": "xin24m", "name": "link-wdt1" },
+
+	"irq-gic400@0xff581000": { "interrupt-base": 0, "interrupt-count": 160 },
+	"irq-rk3506-gpio:0@0xff940000": { "interrupt-base": 160, "interrupt-count": 25, "interrupt-parent": 32 },
+	"irq-rk3506-gpio:1@0xff870000": { "interrupt-base": 192, "interrupt-count": 28, "interrupt-parent": 36 },
+	"irq-rk3506-gpio:2@0xff1c0000": { "interrupt-base": 224, "interrupt-count": 17, "interrupt-parent": 40 },
+	"irq-rk3506-gpio:3@0xff1d0000": { "interrupt-base": 256, "interrupt-count": 15, "interrupt-parent": 44 },
+	"irq-rk3506-gpio:4@0xff1e0000": { "interrupt-base": 288, "interrupt-count": 12, "interrupt-parent": 48 },
+
+	"gpio-rk3506:0@0xff940000": { "gpio-base":   0, "gpio-count": 25, "interrupt-offset": 160 },
+	"gpio-rk3506:1@0xff870000": { "gpio-base":  32, "gpio-count": 28, "interrupt-offset": 192 },
+	"gpio-rk3506:2@0xff1c0000": { "gpio-base":  64, "gpio-count": 17, "interrupt-offset": 224 },
+	"gpio-rk3506:3@0xff1d0000": { "gpio-base":  96, "gpio-count": 15, "interrupt-offset": 256 },
+	"gpio-rk3506:4@0xff1e0000": { "gpio-base": 128, "gpio-count": 12, "interrupt-offset": 288 },
+
+	"ce-armv7-timer": {
+		"clock-frequency": -1,
+		"interrupt": 29
+	},
+
+	"cs-armv7-timer": {
+		"clock-frequency": -1
+	},
+
+	"uart-8250:0@0xff0a0000": {
+		"clock-name": "xin24m",
+		"txd-gpio": 22,
+		"txd-gpio-config": 1,
+		"rxd-gpio": 23,
+		"rxd-gpio-config": 1,
+		"baud-rates": 1500000,
+		"data-bits": 8,
+		"parity-bits": 0,
+		"stop-bits": 1
+	},
+
+	"wdg-rk3506:0@0xff260000": {
+		"clock-name": "link-wdt0"
+	},
+
+	"wdg-rk3506:1@0xff268000": {
+		"clock-name": "link-wdt1"
+	},
+
+	"regulator-gpio:0": {
+		"parent": null,
+		"name": "vcc5v-sys",
+		"voltage": 5000000,
+		"gpio": 51,
+		"gpio-config": 0,
+		"active-low": false,
+		"default": {
+			"enable": true
+		}
+	},
+
+	"led-gpio:0": {
+		"gpio": 32,
+		"gpio-config": 0,
+		"active-low": false,
+		"default-brightness": 0
+	},
+
+	"ledtrigger-heartbeat": {
+		"led-name": "led-gpio.0"
+	},
+
+	"console-uart": {
+		"uart-bus": "uart-8250.0"
+	}
+}
