@@ -1,0 +1,192 @@
+{
+	"clk-fixed": { "name": "ext-32k", "rate": 32768 },
+	"clk-fixed": { "name": "rc-16m", "rate": 16000000 },
+	"clk-fixed": { "name": "dcxo24m", "rate": 24000000 },
+
+	"clk-fixed": { "name": "wdg", "rate": 32000 },
+	"clk-fixed": { "name": "bus-uart0", "rate": 24000000 },
+	"clk-fixed": { "name": "bus-uart1", "rate": 24000000 },
+	"clk-fixed": { "name": "bus-uart2", "rate": 24000000 },
+	"clk-fixed": { "name": "bus-uart3", "rate": 24000000 },
+	"clk-fixed": { "name": "bus-uart4", "rate": 24000000 },
+	"clk-fixed": { "name": "bus-uart5", "rate": 24000000 },
+	"clk-fixed": { "name": "bus-uart6", "rate": 24000000 },
+	"clk-fixed": { "name": "bus-uart7", "rate": 24000000 },
+
+	"reset-t527@0x0200154c": { "reset-base":    0, "reset-count": 32 },
+	"reset-t527@0x0200160c": { "reset-base":   32, "reset-count": 32 },
+	"reset-t527@0x0200162c": { "reset-base":   64, "reset-count": 32 },
+	"reset-t527@0x0200163c": { "reset-base":   96, "reset-count": 32 },
+	"reset-t527@0x0200164c": { "reset-base":  128, "reset-count": 32 },
+	"reset-t527@0x0200168c": { "reset-base":  160, "reset-count": 32 },
+	"reset-t527@0x0200169c": { "reset-base":  192, "reset-count": 32 },
+	"reset-t527@0x0200170c": { "reset-base":  224, "reset-count": 32 },
+	"reset-t527@0x0200171c": { "reset-base":  256, "reset-count": 32 },
+	"reset-t527@0x0200172c": { "reset-base":  288, "reset-count": 32 },
+	"reset-t527@0x0200174c": { "reset-base":  320, "reset-count": 32 },
+	"reset-t527@0x0200178c": { "reset-base":  352, "reset-count": 32 },
+	"reset-t527@0x020017ac": { "reset-base":  384, "reset-count": 32 },
+	"reset-t527@0x0200180c": { "reset-base":  416, "reset-count": 32 },
+	"reset-t527@0x0200182c": { "reset-base":  448, "reset-count": 32 },
+	"reset-t527@0x0200184c": { "reset-base":  480, "reset-count": 32 },
+	"reset-t527@0x0200188c": { "reset-base":  512, "reset-count": 32 },
+	"reset-t527@0x0200190c": { "reset-base":  544, "reset-count": 32 },
+	"reset-t527@0x0200191c": { "reset-base":  576, "reset-count": 32 },
+	"reset-t527@0x0200196c": { "reset-base":  608, "reset-count": 32 },
+	"reset-t527@0x0200197c": { "reset-base":  640, "reset-count": 32 },
+	"reset-t527@0x0200198c": { "reset-base":  672, "reset-count": 32 },
+	"reset-t527@0x0200199c": { "reset-base":  704, "reset-count": 32 },
+	"reset-t527@0x020019cc": { "reset-base":  736, "reset-count": 32 },
+	"reset-t527@0x020019ec": { "reset-base":  768, "reset-count": 32 },
+	"reset-t527@0x020019fc": { "reset-base":  800, "reset-count": 32 },
+	"reset-t527@0x02001a8c": { "reset-base":  832, "reset-count": 32 },
+	"reset-t527@0x02001a9c": { "reset-base":  864, "reset-count": 32 },
+	"reset-t527@0x02001aac": { "reset-base":  896, "reset-count": 32 },
+	"reset-t527@0x02001abc": { "reset-base":  928, "reset-count": 32 },
+	"reset-t527@0x02001acc": { "reset-base":  960, "reset-count": 32 },
+	"reset-t527@0x02001b1c": { "reset-base":  992, "reset-count": 32 },
+	"reset-t527@0x02001b4c": { "reset-base": 1024, "reset-count": 32 },
+	"reset-t527@0x02001b7c": { "reset-base": 1056, "reset-count": 32 },
+	"reset-t527@0x02001b9c": { "reset-base": 1088, "reset-count": 32 },
+	"reset-t527@0x02001bac": { "reset-base": 1120, "reset-count": 32 },
+	"reset-t527@0x02001bbc": { "reset-base": 1152, "reset-count": 32 },
+	"reset-t527@0x02001bcc": { "reset-base": 1184, "reset-count": 32 },
+	"reset-t527@0x02001bfc": { "reset-base": 1216, "reset-count": 32 },
+	"reset-t527@0x02001c1c": { "reset-base": 1248, "reset-count": 32 },
+
+	"gpio-t527@0x02000030": { "gpio-base":  32, "gpio-count": 15, "interrupt-offset": -1 },
+	"gpio-t527@0x02000060": { "gpio-base":  64, "gpio-count": 17, "interrupt-offset": -1 },
+	"gpio-t527@0x02000090": { "gpio-base":  96, "gpio-count": 24, "interrupt-offset": -1 },
+	"gpio-t527@0x020000c0": { "gpio-base": 128, "gpio-count": 16, "interrupt-offset": -1 },
+	"gpio-t527@0x020000f0": { "gpio-base": 160, "gpio-count":  7, "interrupt-offset": -1 },
+	"gpio-t527@0x02000120": { "gpio-base": 192, "gpio-count": 15, "interrupt-offset": -1 },
+	"gpio-t527@0x02000150": { "gpio-base": 224, "gpio-count": 20, "interrupt-offset": -1 },
+	"gpio-t527@0x02000180": { "gpio-base": 256, "gpio-count": 18, "interrupt-offset": -1 },
+	"gpio-t527@0x020001b0": { "gpio-base": 288, "gpio-count": 28, "interrupt-offset": -1 },
+	"gpio-t527@0x02000500": { "gpio-base": 320, "gpio-count": 24, "interrupt-offset": -1 },
+	"gpio-t527@0x07022000": { "gpio-base": 352, "gpio-count": 15, "interrupt-offset": -1 },
+	"gpio-t527@0x07022030": { "gpio-base": 384, "gpio-count":  6, "interrupt-offset": -1 },
+
+	"cs-armv8-timer": {
+		"clock-frequency": 24000000
+	},
+
+	"uart-16550:0@0x02500000": {
+		"clock-name": "bus-uart0",
+		"reset": 560,
+		"txd-gpio": 41,
+		"txd-gpio-config": 2,
+		"rxd-gpio": 42,
+		"rxd-gpio-config": 2,
+		"baud-rates": 115200,
+		"data-bits": 8,
+		"parity-bits": 0,
+		"stop-bits": 1
+	},
+
+	"uart-16550:1@0x02500400": {
+		"clock-name": "bus-uart1",
+		"reset": 561,
+		"txd-gpio": -1,
+		"txd-gpio-config": -1,
+		"rxd-gpio": -1,
+		"rxd-gpio-config": -1,
+		"baud-rates": 115200,
+		"data-bits": 8,
+		"parity-bits": 0,
+		"stop-bits": 1
+	},
+
+	"uart-16550:2@0x02500800": {
+		"clock-name": "bus-uart2",
+		"reset": 562,
+		"txd-gpio": -1,
+		"txd-gpio-config": -1,
+		"rxd-gpio": -1,
+		"rxd-gpio-config": -1,
+		"baud-rates": 115200,
+		"data-bits": 8,
+		"parity-bits": 0,
+		"stop-bits": 1
+	},
+
+	"uart-16550:3@0x02500c00": {
+		"clock-name": "bus-uart3",
+		"reset": 563,
+		"txd-gpio": -1,
+		"txd-gpio-config": -1,
+		"rxd-gpio": -1,
+		"rxd-gpio-config": -1,
+		"baud-rates": 115200,
+		"data-bits": 8,
+		"parity-bits": 0,
+		"stop-bits": 1
+	},
+
+	"uart-16550:4@0x02501000": {
+		"clock-name": "bus-uart4",
+		"reset": 564,
+		"txd-gpio": -1,
+		"txd-gpio-config": -1,
+		"rxd-gpio": -1,
+		"rxd-gpio-config": -1,
+		"baud-rates": 115200,
+		"data-bits": 8,
+		"parity-bits": 0,
+		"stop-bits": 1
+	},
+
+	"uart-16550:5@0x02501400": {
+		"clock-name": "bus-uart5",
+		"reset": 565,
+		"txd-gpio": -1,
+		"txd-gpio-config": -1,
+		"rxd-gpio": -1,
+		"rxd-gpio-config": -1,
+		"baud-rates": 115200,
+		"data-bits": 8,
+		"parity-bits": 0,
+		"stop-bits": 1
+	},
+
+	"uart-16550:6@0x02501800": {
+		"clock-name": "bus-uart6",
+		"reset": 566,
+		"txd-gpio": -1,
+		"txd-gpio-config": -1,
+		"rxd-gpio": -1,
+		"rxd-gpio-config": -1,
+		"baud-rates": 115200,
+		"data-bits": 8,
+		"parity-bits": 0,
+		"stop-bits": 1
+	},
+
+	"uart-16550:7@0x02501c00": {
+		"clock-name": "bus-uart7",
+		"reset": 567,
+		"txd-gpio": -1,
+		"txd-gpio-config": -1,
+		"rxd-gpio": -1,
+		"rxd-gpio-config": -1,
+		"baud-rates": 115200,
+		"data-bits": 8,
+		"parity-bits": 0,
+		"stop-bits": 1
+	},
+
+	"wdg-t527@0x02050000": {
+		"clock-name": "wdg"
+	},
+
+	"led-gpio:0": {
+		"gpio": 202,
+		"gpio-config": 1,
+		"active-low": false,
+		"default-brightness": 0
+	},
+
+	"console-uart": {
+		"uart-bus": "uart-16550.0"
+	}
+}

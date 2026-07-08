@@ -1,0 +1,5 @@
+obj-y += cs-armv8-timer.o
+obj-y += gpio-t527.o
+obj-y += reset-t527.o
+obj-y += uart-16550.o
+obj-y += wdg-t527.o
