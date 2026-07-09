@@ -2,7 +2,10 @@
 
 A portable embedded system framework for writing cross-platform firmware and applications that run unchanged on baremetal, rtos, linux, windows and other OS.
 
-[Quick Start](#quick-start) · [Architecture](#architecture) · [Platforms](#platforms) · [Documents](#documents)
+[![GitHub](https://img.shields.io/badge/GitHub-xboot%2Fxstar-181717?logo=github)](https://github.com/xboot/xstar)
+[![Gitee](https://img.shields.io/badge/Gitee-xboot%2Fxstar-C71D23?logo=gitee)](https://gitee.com/xboot/xstar)
+[![Docs](https://img.shields.io/badge/Docs-xstar.xboot.org-blue?logo=readthedocs)](https://xstar.xboot.org/)
+[![Zhihu](https://img.shields.io/badge/Zhihu-Column-0084FF?logo=zhihu)](https://www.zhihu.com/column/c_2058200382464078772)
 
 ---
 
@@ -74,14 +77,18 @@ See `projects/` for the full list and configs.
 
 ---
 
-## Documents
+## Links
 
-Online documentation: <https://xstar.xboot.org>
+- **Project** (GitHub): <https://github.com/xboot/xstar>
+- **Mirror** (Gitee): <https://gitee.com/xboot/xstar>
+- **Documentation**: <https://xstar.xboot.org/>
+- **Zhihu Column**: <https://www.zhihu.com/column/c_2058200382464078772>
 
 ---
 
-## Discussion Group, Many Big Brother, Please Join Us
-XSTAR Official Tencent QQ Group: [579158551](https://qm.qq.com/q/eYZGJ5msJa) (2000 people)
+## Discussion Groups
+XSTAR Official Tencent QQ Group: [579158551](https://qm.qq.com/q/eYZGJ5msJa)
+XBOOT Official Tencent QQ Group: [658250248](https://jq.qq.com/?_wv=1027&k=5BOkXYO)
 
 ---
 
