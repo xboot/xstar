@@ -88,3 +88,12 @@ make distclean
 make defconfig
 make
 ```
+
+## Get Help
+
+- **Source Repository**: [GitHub](https://github.com/xboot/xstar)
+- **Mirror Repository**: [Gitee](https://gitee.com/xboot/xstar)
+- **Further Reading**: [Zhihu Column](https://www.zhihu.com/column/c_2058200382464078772)
+- **Discussion Groups**:
+  - XSTAR Official QQ Group: [579158551](https://qm.qq.com/q/eYZGJ5msJa)
+  - XBOOT Official QQ Group: [658250248](https://jq.qq.com/?_wv=1027&k=5BOkXYO)

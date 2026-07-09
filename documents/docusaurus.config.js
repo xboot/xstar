@@ -91,6 +91,11 @@ module.exports = {
             type: 'localeDropdown',
             position: 'right',
           },
+          {
+            href: 'https://github.com/xboot/xstar',
+            label: 'GitHub',
+            position: 'right',
+          },
         ],
       },
       footer: {
