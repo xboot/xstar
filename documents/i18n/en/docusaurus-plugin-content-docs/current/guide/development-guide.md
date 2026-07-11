@@ -565,7 +565,7 @@ wboxtest thread
 wboxtest thread mutex
 
 # run specified test N times
-wboxtest thread mutex -c 100
+wboxtest thread mutex -c=100
 ```
 
 ### Kbuild File
@@ -839,23 +839,20 @@ XSTAR provides rich Shell commands for debugging:
 
 ```bash
 # view device list
-ls /kobj/device/
+ls /sys/device/
 
 # view device information
-cat /kobj/device/framebuffer/fb.0/width
+cat /sys/device/framebuffer/fb-linux-sdl.0/width
 
 # view memory information
-cat /kobj/class/memory/meminfo
-
-# view clock information
-clk
+cat /sys/class/memory/meminfo
 
 # view date and time
 date
 
 # run tests
 wboxtest -l
-wboxtest thread mutex -c 10
+wboxtest thread mutex -c=10
 ```
 
 ### Using Log Output

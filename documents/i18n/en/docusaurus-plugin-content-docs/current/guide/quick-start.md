@@ -44,7 +44,7 @@ Once in the Shell, you can run built-in commands:
 help              # List all commands
 version           # Show version info
 ls /              # List the root directory
-ls /kobj/device/  # Show registered devices
+ls /sys/device/   # Show all devices
 date              # Show date and time
 echo hello        # Echo
 ```

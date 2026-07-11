@@ -569,7 +569,7 @@ wboxtest thread
 wboxtest thread mutex
 
 # 运行指定测试 N 次
-wboxtest thread mutex -c 100
+wboxtest thread mutex -c=100
 ```
 
 ### Kbuild 文件
@@ -845,23 +845,20 @@ XSTAR 提供丰富的 Shell 命令用于调试：
 
 ```bash
 # 查看设备列表
-ls /kobj/device/
+ls /sys/device/
 
 # 查看设备信息
-cat /kobj/device/framebuffer/fb.0/width
+cat /sys/device/framebuffer/fb-linux-sdl.0/width
 
 # 查看内存信息
-cat /kobj/class/memory/meminfo
-
-# 查看时钟信息
-clk
+cat /sys/class/memory/meminfo
 
 # 查看日期时间
 date
 
 # 运行测试
 wboxtest -l
-wboxtest thread mutex -c 10
+wboxtest thread mutex -c=10
 ```
 
 ### 使用日志输出
