@@ -42,6 +42,16 @@
 		"status": "disabled"
 	},
 
+	"thermometer-linux:0": {
+		"path": "/sys/devices/virtual/thermal/thermal_zone0/temp",
+		"status": "disabled"
+	},
+
+	"thermometer-linux:1": {
+		"path": "/sys/devices/virtual/thermal/thermal_zone1/temp",
+		"status": "disabled"
+	},
+
 	"playback-linux:0": {
 	},
 

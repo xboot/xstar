@@ -14,4 +14,5 @@ obj-y += playback-linux.o
 obj-y += rtc-linux.o
 obj-y += rtc-linux-soft.o
 obj-y += spi-linux.o
+obj-y += thermometer-linux.o
 obj-y += uart-linux.o
