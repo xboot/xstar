@@ -87,8 +87,8 @@ See `projects/` for the full list and configs.
 ---
 
 ## Discussion Groups
-XSTAR Official Tencent QQ Group: [579158551](https://qm.qq.com/q/eYZGJ5msJa)
-XBOOT Official Tencent QQ Group: [658250248](https://jq.qq.com/?_wv=1027&k=5BOkXYO)
+- XSTAR Official Tencent QQ Group: [579158551](https://qm.qq.com/q/eYZGJ5msJa)
+- XBOOT Official Tencent QQ Group: [658250248](https://jq.qq.com/?_wv=1027&k=5BOkXYO)
 
 ---
 
