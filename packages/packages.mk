@@ -3,8 +3,8 @@
 #
 
 ifdef CONFIG_PKG_LIBC
-CFLAGS		+= -I $(PKGDIR)/libc-0.0.0/inc -I $(PKGDIR)/libc-0.0.0/inc/$(CONFIG_ARCH)
-CXXFLAGS	+= -I $(PKGDIR)/libc-0.0.0/inc -I $(PKGDIR)/libc-0.0.0/inc/$(CONFIG_ARCH)
+CFLAGS		+= -I $(PKGDIR)/libc-0.0.0/inc -I $(PKGDIR)/libc-0.0.0/inc/$(CONFIG_ARCH:"%"=%)
+CXXFLAGS	+= -I $(PKGDIR)/libc-0.0.0/inc -I $(PKGDIR)/libc-0.0.0/inc/$(CONFIG_ARCH:"%"=%)
 endif
 
 ifdef CONFIG_PKG_LIBM
