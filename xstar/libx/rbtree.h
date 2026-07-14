@@ -1,6 +1,10 @@
 #ifndef	__XSTAR_LIBX_RBTREE_H__
 #define	__XSTAR_LIBX_RBTREE_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <xstarcfg.h>
 
 typedef io_addr_t rb_color_t;
@@ -59,5 +63,9 @@ static inline void rb_link_node(struct rb_node * node, struct rb_node * parent, 
 	     pos && ({ n = rb_entry_safe(rb_next_postorder(&pos->field), \
 			typeof(*pos), field); 1; }); \
 	     pos = n)
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __XSTAR_LIBX_RBTREE_H__ */
