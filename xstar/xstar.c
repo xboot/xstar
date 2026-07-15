@@ -46,27 +46,36 @@ static void do_init_romdisk(void)
  */
 static void do_init_dtree(const char * dtree)
 {
-	struct xfs_context_t * ctx = xfs_alloc();
-	if(ctx)
+	size_t len;
+
+	if(dtree && ((len = xos_strlen(dtree)) > 0) && (dtree[0] == '{') && (dtree[len - 1] == '}'))
 	{
-		struct xfs_file_t * file = xfs_open_read(ctx, dtree ? dtree : "/romdisk/dtree/default.json");
-		if(file)
+		probe_device(dtree, len);
+	}
+	else
+	{
+		struct xfs_context_t * ctx = xfs_alloc();
+		if(ctx)
 		{
-			int64_t l = xfs_length(file);
-			if(l > 0)
+			struct xfs_file_t * file = xfs_open_read(ctx, dtree ? dtree : "/romdisk/dtree/default.json");
+			if(file)
 			{
-				char * json = xos_mem_malloc(l);
-				if(json)
+				int64_t l = xfs_length(file);
+				if(l > 0)
 				{
-					int64_t len = xfs_read(file, json, l);
-					if(len > 0)
-						probe_device(json, len);
-					xos_mem_free(json);
+					char * json = xos_mem_malloc(l);
+					if(json)
+					{
+						int64_t length = xfs_read(file, json, l);
+						if(length > 0)
+							probe_device(json, length);
+						xos_mem_free(json);
+					}
 				}
+				xfs_close(file);
 			}
-			xfs_close(file);
+			xfs_free(ctx);
 		}
-		xfs_free(ctx);
 	}
 }
 
