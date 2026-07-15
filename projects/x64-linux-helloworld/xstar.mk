@@ -28,6 +28,7 @@ end:
 	$(Q)$(RM) $(SDKDIR)
 	$(Q)$(MKDIR) $(SDKDIR) $(SDKDIR)/inc $(SDKDIR)/inc/project $(SDKDIR)/lib
 	$(Q)cat $(OUTDIR)/.objects.lst | tr ' ' '\n' | grep '\.o$$' | grep -v 'main\.o' | xargs $(AR) rcs $(SDKDIR)/lib/libxstar.a
+	$(Q)$(STRIP) --strip-debug $(SDKDIR)/lib/libxstar.a
 	$(Q)$(CD) $(TOPDIR) && $(FIND) xstar -name '*.h' | xargs $(CP) --parents -t $(SDKDIR)/inc
 	$(Q)$(CD) $(TOPDIR) && $(FIND) packages -name '*.h' | xargs $(CP) --parents -t $(SDKDIR)/inc
 	$(Q)$(CD) $(PRJDIR) && $(FIND) . -name '*.h' -not -path './output/*' | xargs $(CP) --parents -t $(SDKDIR)/inc/project
