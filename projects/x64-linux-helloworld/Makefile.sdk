@@ -49,8 +49,8 @@ CFLAGS			+= -D_GNU_SOURCE -ffunction-sections -fdata-sections -Wa,--noexecstack 
 CXXFLAGS		+= -D_GNU_SOURCE -ffunction-sections -fdata-sections -Wa,--noexecstack -ffreestanding
 LDFLAGS			+= -Wl,-gc-sections -z noexecstack
 
-INCDIRS			+= .
-SRCDIRS			+= .
+INCDIRS			+= . user
+SRCDIRS			+= . user
 LIBDIRS			+= $(TOPDIR)/lib
 LIBS			+= -lc -lm -lgcc -lrt -lpthread -lasound
 

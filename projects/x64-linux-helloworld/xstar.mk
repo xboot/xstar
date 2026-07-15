@@ -27,7 +27,7 @@ end:
 	$(Q)echo "[SDK] Generating xstar sdk"
 	$(Q)$(RM) $(SDKDIR)
 	$(Q)$(MKDIR) $(SDKDIR) $(SDKDIR)/inc $(SDKDIR)/inc/project $(SDKDIR)/lib
-	$(Q)cat $(OUTDIR)/.objects.lst | tr ' ' '\n' | grep '\.o$$' | grep -v '/main\.o$$' | grep -v '/romdisk\.o$$' | xargs $(AR) rcs $(SDKDIR)/lib/libxstar.a
+	$(Q)cat $(OUTDIR)/.objects.lst | tr ' ' '\n' | grep '\.o$$' | grep -v '/main\.o$$' | grep -v '/romdisk\.o$$' | grep -v '/user/' | xargs $(AR) rcs $(SDKDIR)/lib/libxstar.a
 	$(Q)$(STRIP) --strip-debug $(SDKDIR)/lib/libxstar.a
 	$(Q)$(CD) $(TOPDIR) && $(FIND) xstar -name '*.h' | xargs $(CP) --parents -t $(SDKDIR)/inc
 	$(Q)$(CD) $(TOPDIR) && $(FIND) packages -name '*.h' | xargs $(CP) --parents -t $(SDKDIR)/inc
@@ -40,3 +40,6 @@ end:
 	$(Q)$(CP) $(PKGDIR)/packages.mk $(SDKDIR)/
 	$(Q)$(CP) $(PRJDIR)/Makefile.sdk $(SDKDIR)/Makefile
 	$(Q)echo "/output" > $(SDKDIR)/.gitignore
+ifneq ($(wildcard $(PRJDIR)/user),)
+	$(Q)$(CD) $(PRJDIR) && $(FIND) user -type f -not -name Kbuild -not -name Kconfig | xargs $(CP) --parents -t $(SDKDIR)
+endif
