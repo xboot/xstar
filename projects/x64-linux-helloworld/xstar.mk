@@ -27,7 +27,7 @@ end:
 	$(Q)echo "[SDK] Generating xstar sdk"
 	$(Q)$(RM) $(SDKDIR)
 	$(Q)$(MKDIR) $(SDKDIR) $(SDKDIR)/inc $(SDKDIR)/inc/project $(SDKDIR)/lib
-	$(Q)cat $(OUTDIR)/.objects.lst | tr ' ' '\n' | grep '\.o$$' | grep -v 'main\.o' | xargs $(AR) rcs $(SDKDIR)/lib/libxstar.a
+	$(Q)cat $(OUTDIR)/.objects.lst | tr ' ' '\n' | grep '\.o$$' | grep -v '/main\.o$$' | grep -v '/romdisk\.o$$' | xargs $(AR) rcs $(SDKDIR)/lib/libxstar.a
 	$(Q)$(STRIP) --strip-debug $(SDKDIR)/lib/libxstar.a
 	$(Q)$(CD) $(TOPDIR) && $(FIND) xstar -name '*.h' | xargs $(CP) --parents -t $(SDKDIR)/inc
 	$(Q)$(CD) $(TOPDIR) && $(FIND) packages -name '*.h' | xargs $(CP) --parents -t $(SDKDIR)/inc
@@ -35,5 +35,8 @@ end:
 	$(Q)$(CP) $(TOPDIR)/.config.h $(SDKDIR)/inc/
 	$(Q)$(CP) $(TOPDIR)/.config $(SDKDIR)/
 	$(Q)$(CP) $(PRJDIR)/main.c $(SDKDIR)/
+	$(Q)$(CP) $(PRJDIR)/romdisk.c $(SDKDIR)/
+	$(Q)$(CP) $(PRJDIR)/romdisk $(SDKDIR)/
 	$(Q)$(CP) $(PKGDIR)/packages.mk $(SDKDIR)/
 	$(Q)$(CP) $(PRJDIR)/Makefile.sdk $(SDKDIR)/Makefile
+	$(Q)echo "/output" > $(SDKDIR)/.gitignore

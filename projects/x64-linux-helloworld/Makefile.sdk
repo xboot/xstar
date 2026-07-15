@@ -1,10 +1,14 @@
 export
 sinclude $(wildcard .config)
 
+CROSS_COMPILE	?=
+
 TOPDIR			:= $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
 PKGDIR			:= $(TOPDIR)/inc/packages
+OUTDIR			:= $(TOPDIR)/output
+OBJDIR			:= $(OUTDIR)/.obj
+XSTAR			:= $(OUTDIR)/xstar
 
-CROSS_COMPILE	?=
 AS				:= $(CROSS_COMPILE)gcc -x assembler-with-cpp
 CC 				:= $(CROSS_COMPILE)gcc
 CXX				:= $(CROSS_COMPILE)g++
@@ -17,6 +21,9 @@ STRIP			:= $(CROSS_COMPILE)strip
 MKDIR			:= mkdir -p
 CP				:= cp -af
 RM				:= rm -fr
+CD				:= cd
+FIND			:= find
+CPIO			:= cpio -o -H newc --quiet
 
 INCLUDES		:= -include $(TOPDIR)/inc/.config.h
 INCLUDES		+= -I $(TOPDIR)/inc
@@ -49,52 +56,57 @@ LIBS			+= -lc -lm -lgcc -lrt -lpthread -lasound
 
 sinclude $(TOPDIR)/packages.mk
 
-OUTPUT			:= output
-NAME			:= $(OUTPUT)/xstar
-
 INCDIRS			:= $(patsubst %, -I %, $(sort $(INCDIRS)))
 LIBDIRS			:= $(patsubst %, -L %, $(sort $(LIBDIRS)))
 SRCDIRS			:= $(sort $(SRCDIRS))
-OBJDIRS			:= $(patsubst %, .obj/%, $(SRCDIRS))
+OBJDIRS			:= $(patsubst %, $(OBJDIR)/%, $(SRCDIRS))
 
 SFILES			:= $(foreach dir, $(SRCDIRS), $(wildcard $(dir)/*.S))
 CFILES			:= $(foreach dir, $(SRCDIRS), $(wildcard $(dir)/*.c))
 CPPFILES		:= $(foreach dir, $(SRCDIRS), $(wildcard $(dir)/*.cpp))
 
-SDEPS			:= $(patsubst %, .obj/%, $(SFILES:.S=.o.d))
-CDEPS			:= $(patsubst %, .obj/%, $(CFILES:.c=.o.d))
-CPPDEPS			:= $(patsubst %, .obj/%, $(CPPFILES:.cpp=.o.d))
+SDEPS			:= $(patsubst %, $(OBJDIR)/%, $(SFILES:.S=.o.d))
+CDEPS			:= $(patsubst %, $(OBJDIR)/%, $(CFILES:.c=.o.d))
+CPPDEPS			:= $(patsubst %, $(OBJDIR)/%, $(CPPFILES:.cpp=.o.d))
 DEPS			:= $(SDEPS) $(CDEPS) $(CPPDEPS)
 
-SOBJS			:= $(patsubst %, .obj/%, $(SFILES:.S=.o))
-COBJS			:= $(patsubst %, .obj/%, $(CFILES:.c=.o))
-CPPOBJS			:= $(patsubst %, .obj/%, $(CPPFILES:.cpp=.o)) 
+SOBJS			:= $(patsubst %, $(OBJDIR)/%, $(SFILES:.S=.o))
+COBJS			:= $(patsubst %, $(OBJDIR)/%, $(CFILES:.c=.o))
+CPPOBJS			:= $(patsubst %, $(OBJDIR)/%, $(CPPFILES:.cpp=.o))
 OBJS			:= $(SOBJS) $(COBJS) $(CPPOBJS)
 
 VPATH			:= $(OBJDIRS)
 
-.PHONY: all run clean
+.PHONY: all romdisk clean
 
-all : $(NAME)
+all : romdisk $(XSTAR)
 
-$(NAME) : $(OBJS)
+$(XSTAR) : $(OBJS)
 	@echo [LD] Linking $@
 	@$(CC) $(LDFLAGS) $(LIBDIRS) $^ -Wl,--whole-archive -lxstar -Wl,--no-whole-archive -o $@ $(LIBS)
 	@$(SZ) $@
+	@$(STRIP) $@
 
-$(SOBJS) : .obj/%.o : %.S
+$(SOBJS) : $(OBJDIR)/%.o : %.S
 	@echo [AS] $<
 	@$(AS) $(ASFLAGS) -MD -MP -MF $@.d $(INCDIRS) -c $< -o $@
 
-$(COBJS) : .obj/%.o : %.c
+$(COBJS) : $(OBJDIR)/%.o : %.c
 	@echo [CC] $<
 	@$(CC) $(CFLAGS) -MD -MP -MF $@.d $(INCDIRS) -c $< -o $@
 
-$(CPPOBJS) : .obj/%.o : %.cpp
+$(CPPOBJS) : $(OBJDIR)/%.o : %.cpp
 	@echo [CXX] $<
 	@$(CXX) $(CXXFLAGS) -MD -MP -MF $@.d $(INCDIRS) -c $< -o $@
 
-clean:
-	@$(RM) .obj $(OUTPUT)
+$(OBJDIR)/romdisk.o : romdisk
 
-sinclude $(shell $(MKDIR) $(OBJDIRS) $(OUTPUT)) $(DEPS)
+romdisk :
+	@echo [ROMDISK] Packing romdisk
+	@$(FIND) $(OBJDIR) -name romdisk.o -delete
+	@$(FIND) romdisk | $(CPIO) > $(OBJDIR)/romdisk.cpio
+
+clean:
+	@$(RM) $(OUTDIR)
+
+sinclude $(shell $(MKDIR) $(OUTDIR) $(OBJDIRS)) $(DEPS)
