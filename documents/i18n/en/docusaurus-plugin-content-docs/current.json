@@ -79,6 +79,10 @@
     "message": "Graphics",
     "description": "The label for category '图形' in sidebar 'subsystems'"
   },
+  "sidebar.subsystems.category.矢量绘图": {
+    "message": "Vector Graphics",
+    "description": "The label for category '矢量绘图' in sidebar 'subsystems'"
+  },
   "sidebar.subsystems.category.视觉": {
     "message": "Vision",
     "description": "The label for category '视觉' in sidebar 'subsystems'"
@@ -177,11 +181,7 @@
   },
   "sidebar.subsystems.doc.Surface": {
     "message": "Surface",
-    "description": "The label for the doc item 'Surface' in sidebar 'subsystems', linking to the doc graphic/Surface"
-  },
-  "sidebar.subsystems.doc.Shape绘图": {
-    "message": "Shape Drawing",
-    "description": "The label for the doc item 'Shape绘图' in sidebar 'subsystems', linking to the doc graphic/shape-drawing"
+    "description": "The label for the doc item 'Surface' in sidebar 'subsystems', linking to the doc graphic/surface"
   },
   "sidebar.subsystems.doc.特效": {
     "message": "Visual Effect",
@@ -190,6 +190,10 @@
   "sidebar.subsystems.doc.滤镜": {
     "message": "Filter",
     "description": "The label for the doc item '滤镜' in sidebar 'subsystems', linking to the doc graphic/filter"
+  },
+  "sidebar.subsystems.doc.矢量绘图": {
+    "message": "Vector Graphics",
+    "description": "The label for the doc item '矢量绘图' in sidebar 'subsystems', linking to the doc cg/cg"
   },
   "sidebar.subsystems.doc.核心类型": {
     "message": "Core Types",

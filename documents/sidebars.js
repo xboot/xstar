@@ -193,10 +193,16 @@ const sidebars = {
         'subsys/graphic/transform-matrix',
         'subsys/graphic/dirty-rectangle',
         'subsys/graphic/blur',
-        'subsys/graphic/Surface',
-        'subsys/graphic/shape-drawing',
+        'subsys/graphic/surface',
         'subsys/graphic/visual-effect',
         'subsys/graphic/filter',
+      ],
+    },
+    {
+      type: 'category',
+      label: '矢量绘图',
+      items: [
+        'subsys/cg/cg',
       ],
     },
     {

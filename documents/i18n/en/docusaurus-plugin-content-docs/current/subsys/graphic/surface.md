@@ -11,9 +11,8 @@ struct surface_t {
     int stride;
     int pixlen;
     void * pixels;
-    struct render_t * r;
-    void * rctx;
-    void * g2d;
+    struct g2d_t * g2d;
+    struct cg_render_t * cg;
     void * priv;
 };
 ```
@@ -51,3 +50,12 @@ struct surface_t {
 | `surface_get_stride(s)` | Get stride |
 | `surface_get_pixels(s)` | Get pixel pointer |
 | `surface_get_pixlen(s)` | Get pixel data length |
+
+## CG Integration
+
+| Function | Description |
+|------|------|
+| `surface_get_cg_surface(s)` | Get associated `cg_surface_t` (lazy init) |
+| `surface_get_cg_ctx(s)` | Get associated `cg_ctx_t` (lazy init) |
+
+The cg context enables vector drawing (paths, fills, strokes, gradients, etc.), see the [Vector Graphics](../cg/cg) docs. `surface_blit()` and `surface_fill()` automatically fall back to cg rendering when G2D hardware acceleration is unavailable.

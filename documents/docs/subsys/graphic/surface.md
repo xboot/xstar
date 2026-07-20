@@ -11,9 +11,8 @@ struct surface_t {
     int stride;
     int pixlen;
     void * pixels;
-    struct render_t * r;
-    void * rctx;
-    void * g2d;
+    struct g2d_t * g2d;
+    struct cg_render_t * cg;
     void * priv;
 };
 ```
@@ -51,3 +50,12 @@ struct surface_t {
 | `surface_get_stride(s)` | 获取跨度 |
 | `surface_get_pixels(s)` | 获取像素指针 |
 | `surface_get_pixlen(s)` | 获取像素数据长度 |
+
+## CG 集成
+
+| 函数 | 说明 |
+|------|------|
+| `surface_get_cg_surface(s)` | 获取关联的 `cg_surface_t`（惰性创建） |
+| `surface_get_cg_ctx(s)` | 获取关联的 `cg_ctx_t`（惰性创建） |
+
+通过 cg 上下文可进行矢量绘图（路径、填充、描边、渐变等），详见[矢量绘图](../cg/cg)文档。`surface_blit()` 和 `surface_fill()` 在 G2D 硬件加速不可用时自动回退到 cg 渲染。

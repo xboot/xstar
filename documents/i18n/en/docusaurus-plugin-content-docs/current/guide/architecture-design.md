@@ -292,7 +292,7 @@ The XSTAR kernel contains the following subsystems. For detailed API documentati
 | **Command** | Unified command interface, 32+ built-in commands | [Built-in Commands](../command/help) |
 | **Core** | Coroutine, Logger, Profiler, Setting, ThChannel, ThWorker, CoChannel, PSub and other core utilities | See links below |
 | **Font** | 4 font style management, TrueType/CFF parsing | [Font System](../subsys/font/font-system) |
-| **Graphic** | 2D graphics rendering: Surface, shapes, transforms, effects, filters | [Graphics - Surface](../subsys/graphic/Surface) |
+| **Graphic** | 2D graphics rendering: Surface, shapes, transforms, effects, filters | [Graphics - Surface](../subsys/graphic/surface) |
 | **Shell** | Interactive shell, command completion, history, working directory | [Shell](../subsys/shell) |
 | **Time** | Red-black tree high-precision timer, wall clock, delay | [Timer](../subsys/timer) |
 | **Vision** | Image processing algorithms (grayscale/RGB888): morphology, threshold, filtering, drawing | [Vision Core Types](../subsys/vision/core-types) |
@@ -352,7 +352,7 @@ A complete 2D graphics rendering system, with `surface_t` (32-bit premultiplied 
 
 The graphics system and vision system can convert to each other: `vision_apply_surface()` / `surface_apply_vision()`.
 
-For detailed APIs on Surface, shape drawing, transform matrices, dirty rectangles, filters, etc., see the [Graphics Subsystem Docs](../subsys/graphic/Surface).
+For detailed APIs on Surface, shape drawing, transform matrices, dirty rectangles, filters, etc., see the [Graphics Subsystem Docs](../subsys/graphic/surface).
 
 ## KOBJ Virtual File System
 
