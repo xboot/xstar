@@ -52,8 +52,7 @@ enum {
 	GPIO_VER_ID			= 0x78,
 };
 
-struct irq_rv1103_gpio_pdata_t
-{
+struct irq_rv1103_gpio_pdata_t {
 	io_addr_t addr;
 	int base;
 	int nirq;

@@ -1,23 +1,7 @@
-#ifndef __XFT_H__
-#define __XFT_H__
+#ifndef __XSTAR_KERNEL_CG_XFG_H__
+#define __XSTAR_KERNEL_CG_XFG_H__
 
 #include <xos/xos.h>
-
-#undef malloc
-#undef memalign
-#undef realloc
-#undef calloc
-#undef free
-#define malloc 		xos_mem_malloc
-#define memalign	xos_mem_memalign
-#define realloc		xos_mem_realloc
-#define calloc		xos_mem_calloc
-#define free		xos_mem_free
-
-#undef memcpy
-#undef memset
-#define memcpy		xos_memcpy
-#define memset		xos_memset
 
 /*
  * type
@@ -145,4 +129,4 @@ XCG_FT_Error XCG_FT_Stroker_GetCounts(XCG_FT_Stroker stroker, XCG_FT_UInt * anum
 void XCG_FT_Stroker_Export(XCG_FT_Stroker stroker, XCG_FT_Outline * outline);
 void XCG_FT_Stroker_Done(XCG_FT_Stroker stroker);
 
-#endif /* __XFT_H__ */
+#endif /* __XSTAR_KERNEL_CG_XFG_H__ */

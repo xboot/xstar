@@ -1,11 +1,11 @@
-#ifndef __CG_H__
-#define __CG_H__
+#ifndef __XSTAR_KERNEL_CG_H__
+#define __XSTAR_KERNEL_CG_H__
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <xft.h>
+#include <kernel/cg/xft.h>
 
 struct cg_point_t {
 	float x;
@@ -347,4 +347,4 @@ void cg_paint_with_alpha(struct cg_ctx_t * ctx, float alpha);
 }
 #endif
 
-#endif /* __CG_H__ */
+#endif /* __XSTAR_KERNEL_CG_H__ */

@@ -1,7 +1,6 @@
 #include <linux/linux.h>
 
-struct playback_linux_pdata_t
-{
+struct playback_linux_pdata_t {
 	void * ctx;
 };
 

@@ -11,6 +11,8 @@ extern "C" {
 #include <kernel/audio/mixer.h>
 #include <kernel/audio/sink.h>
 #include <kernel/audio/source.h>
+#include <kernel/cg/cg.h>
+#include <kernel/cg/xft.h>
 #include <kernel/command/command.h>
 #include <kernel/core/cochannel.h>
 #include <kernel/core/coroutine.h>
@@ -25,6 +27,8 @@ extern "C" {
 #include <kernel/graphic/blur.h>
 #include <kernel/graphic/color.h>
 #include <kernel/graphic/dirtylist.h>
+#include <kernel/graphic/effect.h>
+#include <kernel/graphic/filter.h>
 #include <kernel/graphic/matrix2d.h>
 #include <kernel/graphic/region.h>
 #include <kernel/graphic/surface.h>

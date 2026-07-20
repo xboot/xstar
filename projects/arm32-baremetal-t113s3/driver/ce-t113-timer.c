@@ -30,8 +30,7 @@
 #define TIMER_INTV(x)	((x + 1) * 0x10 + 0x04)
 #define TIMER_CUR(x)	((x + 1) * 0x10 + 0x08)
 
-struct ce_t113_timer_pdata_t
-{
+struct ce_t113_timer_pdata_t {
 	io_addr_t addr;
 	char * clk;
 	int irq;

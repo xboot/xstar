@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-#include <kernel/graphic/surface.h>
+#include <kernel/graphic/effect.h>
 
 static inline void blend(uint32_t * d, uint32_t * s)
 {

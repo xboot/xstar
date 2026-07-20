@@ -52,8 +52,7 @@ enum {
 	GPIO_VER_ID			= 0x78,
 };
 
-struct gpio_rv1106_pdata_t
-{
+struct gpio_rv1106_pdata_t {
 	io_addr_t addr;
 	io_addr_t ioc;
 	io_addr_t pmuioc;

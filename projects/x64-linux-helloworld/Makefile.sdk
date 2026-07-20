@@ -29,7 +29,6 @@ INCLUDES		:= -include $(TOPDIR)/inc/.config.h
 INCLUDES		+= -I $(TOPDIR)/inc
 INCLUDES		+= -I $(TOPDIR)/inc/xstar
 INCLUDES		+= -I $(TOPDIR)/inc/xstar/external/jpeg-9d
-INCLUDES		+= -I $(TOPDIR)/inc/xstar/external/libcg-1.1.3
 INCLUDES		+= -I $(TOPDIR)/inc/xstar/external/libpng-1.6.37
 INCLUDES		+= -I $(TOPDIR)/inc/xstar/external/zlib-1.2.11
 INCLUDES		+= -I $(TOPDIR)/inc/project

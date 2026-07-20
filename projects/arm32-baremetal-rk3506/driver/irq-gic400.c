@@ -47,8 +47,7 @@ enum {
 	CPU_HIGHPRI 		= 0x2018,
 };
 
-struct irq_gic400_pdata_t
-{
+struct irq_gic400_pdata_t {
 	io_addr_t addr;
 	int base;
 	int nirq;

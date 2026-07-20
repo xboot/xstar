@@ -68,7 +68,7 @@ static void arc_run(struct wboxtest_t * wbt, void * data)
 
 	if(pdat)
 	{
-		srand(0);
+		xos_srand(0);
 		pdat->calls = 0;
 		pdat->t2 = pdat->t1 = ktime_get();
 		do {
@@ -80,19 +80,20 @@ static void arc_run(struct wboxtest_t * wbt, void * data)
 			struct color_t c;
 			color_init(&c, xos_rand() & 0xff, xos_rand() & 0xff, xos_rand() & 0xff, 255);
 			int thickness = wboxtest_random_int(0, 50);
-			surface_shape_save(s);
-			surface_shape_arc(s, x, y, radius, a1 * (M_PI / 180.0), a2 * (M_PI / 180.0));
-			surface_shape_set_source_color(s, &c);
+			struct cg_ctx_t * cg = surface_get_cg_ctx(s);
+			cg_save(cg);
+			cg_arc(cg, x, y, radius, a1 * (M_PI / 180.0), a2 * (M_PI / 180.0));
+			cg_set_source_rgba(cg, c.r / 255.0, c.g / 255.0, c.b / 255.0, c.a / 255.0);
 			if(thickness > 0)
 			{
-				surface_shape_set_line_width(s, thickness);
-				surface_shape_stroke(s);
+				cg_set_line_width(cg, thickness);
+				cg_stroke(cg);
 			}
 			else
 			{
-				surface_shape_fill(s);
+				cg_fill(cg);
 			}
-			surface_shape_restore(s);
+			cg_restore(cg);
 			pdat->calls++;
 			pdat->t2 = ktime_get();
 		} while(ktime_before(pdat->t2, ktime_add_ms(pdat->t1, 2000)));

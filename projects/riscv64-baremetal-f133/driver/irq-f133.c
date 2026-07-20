@@ -35,8 +35,7 @@
 #define PLIC_STH			(0x201000)
 #define PLIC_SCLAIM			(0x201004)
 
-struct irq_f133_pdata_t
-{
+struct irq_f133_pdata_t {
 	io_addr_t addr;
 	int base;
 	int nirq;

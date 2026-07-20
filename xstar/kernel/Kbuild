@@ -1,4 +1,5 @@
 subdirs-y += audio
+subdirs-y += cg
 subdirs-y += command
 subdirs-y += core
 subdirs-y += font

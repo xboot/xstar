@@ -68,11 +68,11 @@ static void polyline_run(struct wboxtest_t * wbt, void * data)
 
 	if(pdat)
 	{
-		srand(0);
+		xos_srand(0);
 		pdat->calls = 0;
 		pdat->t2 = pdat->t1 = ktime_get();
 		do {
-			int x[10], y[10];
+			int x[10] = { 0 }, y[10] = { 0 };
 			int n = wboxtest_random_int(2, 10);
 			for(int i = 0; i < n; i++)
 			{
@@ -82,21 +82,22 @@ static void polyline_run(struct wboxtest_t * wbt, void * data)
 			struct color_t c;
 			color_init(&c, xos_rand() & 0xff, xos_rand() & 0xff, xos_rand() & 0xff, 255);
 			int thickness = wboxtest_random_int(0, 50);
-			surface_shape_save(s);
-			surface_shape_move_to(s, x[0], y[0]);
+			struct cg_ctx_t * cg = surface_get_cg_ctx(s);
+			cg_save(cg);
+			cg_move_to(cg, x[0], y[0]);
 			for(int i = 1; i < n; i++)
-				surface_shape_line_to(s, x[i], y[i]);
-			surface_shape_set_source_color(s, &c);
+				cg_line_to(cg, x[i], y[i]);
+			cg_set_source_rgba(cg, c.r / 255.0, c.g / 255.0, c.b / 255.0, c.a / 255.0);
 			if(thickness > 0)
 			{
-				surface_shape_set_line_width(s, thickness);
-				surface_shape_stroke(s);
+				cg_set_line_width(cg, thickness);
+				cg_stroke(cg);
 			}
 			else
 			{
-				surface_shape_fill(s);
+				cg_fill(cg);
 			}
-			surface_shape_restore(s);
+			cg_restore(cg);
 			pdat->calls++;
 			pdat->t2 = ktime_get();
 		} while(ktime_before(pdat->t2, ktime_add_ms(pdat->t1, 2000)));

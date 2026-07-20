@@ -184,20 +184,21 @@ static int do_tscal(int argc, char ** argv)
 				int y = cal.yfb[cal.index];
 
 				struct surface_t * s = window_get_surface(w);
-				surface_shape_save(s);
-				surface_shape_set_source_color(s, &(struct color_t){ 0xff, 0xff, 0x00, 0xff });
-				surface_shape_set_line_width(s, 2);
-				surface_shape_move_to(s, x - 15, y);
-				surface_shape_line_to(s, x + 15, y);
-				surface_shape_stroke(s);
-				surface_shape_set_line_width(s, 2);
-				surface_shape_move_to(s, x, y - 15);
-				surface_shape_line_to(s, x, y + 15);
-				surface_shape_stroke(s);
-				surface_shape_set_line_width(s, 4);
-				surface_shape_circle(s, x, y, 15);
-				surface_shape_stroke(s);
-				surface_shape_restore(s);
+				struct cg_ctx_t * cg = surface_get_cg_ctx(s);
+				cg_save(cg);
+				cg_set_source_rgba(cg, 1.0, 1.0, 0.0, 1.0);
+				cg_set_line_width(cg, 2);
+				cg_move_to(cg, x - 15, y);
+				cg_line_to(cg, x + 15, y);
+				cg_stroke(cg);
+				cg_set_line_width(cg, 2);
+				cg_move_to(cg, x, y - 15);
+				cg_line_to(cg, x, y + 15);
+				cg_stroke(cg);
+				cg_set_line_width(cg, 4);
+				cg_circle(cg, x, y, 15);
+				cg_stroke(cg);
+				cg_restore(cg);
 			}
 			window_present_commit(w);
 			if(shell_ctrlc())

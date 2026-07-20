@@ -1,7 +1,6 @@
 #include <linux/linux.h>
 
-struct capture_linux_pdata_t
-{
+struct capture_linux_pdata_t {
 	void * ctx;
 };
 

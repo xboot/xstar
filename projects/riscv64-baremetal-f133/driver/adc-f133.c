@@ -44,8 +44,7 @@ enum {
 	GPADC_CH1_DATA		= 0x84,
 };
 
-struct adc_f133_pdata_t
-{
+struct adc_f133_pdata_t {
 	io_addr_t virt;
 	char * clk;
 	int reset;

@@ -1783,143 +1783,147 @@ struct surface_t * xui_load_surface(struct xui_context_t * ctx, const char * pat
 
 static inline void xui_surface_shape_line(struct surface_t * s, struct region_t * clip, struct xui_cmd_line_t * cmd)
 {
+	struct cg_ctx_t * cg = surface_get_cg_ctx(s);
 	struct region_t r;
 
-	surface_shape_save(s);
+	cg_save(cg);
 	if(clip)
 	{
 		region_init(&r, 0, 0, surface_get_width(s), surface_get_height(s));
 		if(region_intersect(&r, &r, clip))
 		{
-			surface_shape_rectangle(s, r.x, r.y, r.w, r.h);
-			surface_shape_clip(s);
+			cg_rectangle(cg, r.x, r.y, r.w, r.h);
+			cg_clip(cg);
 		}
 		else
 		{
-			surface_shape_restore(s);
+			cg_restore(cg);
 			return;
 		}
 	}
-	surface_shape_move_to(s, cmd->p0.x, cmd->p0.y);
-	surface_shape_line_to(s, cmd->p1.x, cmd->p1.y);
-	surface_shape_set_source_color(s, &cmd->c);
-	surface_shape_set_line_width(s, cmd->thickness > 0 ? cmd->thickness : 1);
-	surface_shape_stroke(s);
-	surface_shape_restore(s);
+	cg_move_to(cg, cmd->p0.x, cmd->p0.y);
+	cg_line_to(cg, cmd->p1.x, cmd->p1.y);
+	cg_set_source_rgba(cg, cmd->c.r / 255.0, cmd->c.g / 255.0, cmd->c.b / 255.0, cmd->c.a / 255.0);
+	cg_set_line_width(cg, cmd->thickness > 0 ? cmd->thickness : 1);
+	cg_stroke(cg);
+	cg_restore(cg);
 }
 
 static inline void xui_surface_shape_polyline(struct surface_t * s, struct region_t * clip, struct xui_cmd_polyline_t * cmd)
 {
+	struct cg_ctx_t * cg = surface_get_cg_ctx(s);
 	struct region_t r;
 	int i;
 
 	if(cmd->n > 0)
 	{
-		surface_shape_save(s);
+		cg_save(cg);
 		if(clip)
 		{
 			region_init(&r, 0, 0, surface_get_width(s), surface_get_height(s));
 			if(region_intersect(&r, &r, clip))
 			{
-				surface_shape_rectangle(s, r.x, r.y, r.w, r.h);
-				surface_shape_clip(s);
+				cg_rectangle(cg, r.x, r.y, r.w, r.h);
+				cg_clip(cg);
 			}
 			else
 			{
-				surface_shape_restore(s);
+				cg_restore(cg);
 				return;
 			}
 		}
-		surface_shape_move_to(s, cmd->p[0].x, cmd->p[0].y);
+		cg_move_to(cg, cmd->p[0].x, cmd->p[0].y);
 		for(i = 1; i < cmd->n; i++)
-			surface_shape_line_to(s, cmd->p[i].x, cmd->p[i].y);
-		surface_shape_set_source_color(s, &cmd->c);
+			cg_line_to(cg, cmd->p[i].x, cmd->p[i].y);
+		cg_set_source_rgba(cg, cmd->c.r / 255.0, cmd->c.g / 255.0, cmd->c.b / 255.0, cmd->c.a / 255.0);
 		if(cmd->thickness > 0)
 		{
-			surface_shape_set_line_width(s, cmd->thickness);
-			surface_shape_stroke(s);
+			cg_set_line_width(cg, cmd->thickness);
+			cg_stroke(cg);
 		}
 		else
 		{
-			surface_shape_fill(s);
+			cg_fill(cg);
 		}
-		surface_shape_restore(s);
+		cg_restore(cg);
 	}
 }
 
 static inline void xui_surface_shape_curve(struct surface_t * s, struct region_t * clip, struct xui_cmd_curve_t * cmd)
 {
+	struct cg_ctx_t * cg = surface_get_cg_ctx(s);
 	struct region_t r;
 	int i;
 
 	if(cmd->n >= 4)
 	{
-		surface_shape_save(s);
+		cg_save(cg);
 		if(clip)
 		{
 			region_init(&r, 0, 0, surface_get_width(s), surface_get_height(s));
 			if(region_intersect(&r, &r, clip))
 			{
-				surface_shape_rectangle(s, r.x, r.y, r.w, r.h);
-				surface_shape_clip(s);
+				cg_rectangle(cg, r.x, r.y, r.w, r.h);
+				cg_clip(cg);
 			}
 			else
 			{
-				surface_shape_restore(s);
+				cg_restore(cg);
 				return;
 			}
 		}
-		surface_shape_move_to(s, cmd->p[0].x, cmd->p[0].y);
+		cg_move_to(cg, cmd->p[0].x, cmd->p[0].y);
 		for(i = 1; i <= cmd->n - 3; i += 3)
-			surface_shape_curve_to(s, cmd->p[i].x, cmd->p[i].y, cmd->p[i + 1].x, cmd->p[i + 1].y, cmd->p[i + 2].x, cmd->p[i + 2].y);
-		surface_shape_set_source_color(s, &cmd->c);
+			cg_cubic_to(cg, cmd->p[i].x, cmd->p[i].y, cmd->p[i + 1].x, cmd->p[i + 1].y, cmd->p[i + 2].x, cmd->p[i + 2].y);
+		cg_set_source_rgba(cg, cmd->c.r / 255.0, cmd->c.g / 255.0, cmd->c.b / 255.0, cmd->c.a / 255.0);
 		if(cmd->thickness > 0)
 		{
-			surface_shape_set_line_width(s, cmd->thickness);
-			surface_shape_stroke(s);
+			cg_set_line_width(cg, cmd->thickness);
+			cg_stroke(cg);
 		}
 		else
 		{
-			surface_shape_fill(s);
+			cg_fill(cg);
 		}
-		surface_shape_restore(s);
+		cg_restore(cg);
 	}
 }
 
 static inline void xui_surface_shape_triangle(struct surface_t * s, struct region_t * clip, struct xui_cmd_triangle_t * cmd)
 {
+	struct cg_ctx_t * cg = surface_get_cg_ctx(s);
 	struct region_t r;
 
-	surface_shape_save(s);
+	cg_save(cg);
 	if(clip)
 	{
 		region_init(&r, 0, 0, surface_get_width(s), surface_get_height(s));
 		if(region_intersect(&r, &r, clip))
 		{
-			surface_shape_rectangle(s, r.x, r.y, r.w, r.h);
-			surface_shape_clip(s);
+			cg_rectangle(cg, r.x, r.y, r.w, r.h);
+			cg_clip(cg);
 		}
 		else
 		{
-			surface_shape_restore(s);
+			cg_restore(cg);
 			return;
 		}
 	}
-	surface_shape_move_to(s, cmd->p0.x, cmd->p0.y);
-	surface_shape_line_to(s, cmd->p1.x, cmd->p1.y);
-	surface_shape_line_to(s, cmd->p2.x, cmd->p2.y);
-	surface_shape_close_path(s);
-	surface_shape_set_source_color(s, &cmd->c);
+	cg_move_to(cg, cmd->p0.x, cmd->p0.y);
+	cg_line_to(cg, cmd->p1.x, cmd->p1.y);
+	cg_line_to(cg, cmd->p2.x, cmd->p2.y);
+	cg_close_path(cg);
+	cg_set_source_rgba(cg, cmd->c.r / 255.0, cmd->c.g / 255.0, cmd->c.b / 255.0, cmd->c.a / 255.0);
 	if(cmd->thickness > 0)
 	{
-		surface_shape_set_line_width(s, cmd->thickness);
-		surface_shape_stroke(s);
+		cg_set_line_width(cg, cmd->thickness);
+		cg_stroke(cg);
 	}
 	else
 	{
-		surface_shape_fill(s);
+		cg_fill(cg);
 	}
-	surface_shape_restore(s);
+	cg_restore(cg);
 }
 
 static inline void xui_surface_shape_rectangle(struct surface_t * s, struct region_t * clip, struct xui_cmd_rectangle_t * cmd)
@@ -1932,19 +1936,20 @@ static inline void xui_surface_shape_rectangle(struct surface_t * s, struct regi
 	}
 	else
 	{
+		struct cg_ctx_t * cg = surface_get_cg_ctx(s);
 		struct region_t r;
-		surface_shape_save(s);
+		cg_save(cg);
 		if(clip)
 		{
 			region_init(&r, 0, 0, surface_get_width(s), surface_get_height(s));
 			if(region_intersect(&r, &r, clip))
 			{
-				surface_shape_rectangle(s, r.x, r.y, r.w, r.h);
-				surface_shape_clip(s);
+				cg_rectangle(cg, r.x, r.y, r.w, r.h);
+				cg_clip(cg);
 			}
 			else
 			{
-				surface_shape_restore(s);
+				cg_restore(cg);
 				return;
 			}
 		}
@@ -1952,209 +1957,213 @@ static inline void xui_surface_shape_rectangle(struct surface_t * s, struct regi
 		int radius = cmd->radius & 0xffff;
 		if(radius > 0)
 		{
-			surface_shape_move_to(s, cmd->x + radius, cmd->y);
-			surface_shape_line_to(s, cmd->x + cmd->w - radius, cmd->y);
+			cg_move_to(cg, cmd->x + radius, cmd->y);
+			cg_line_to(cg, cmd->x + cmd->w - radius, cmd->y);
 			if(corner & (1 << 1))
 			{
-				surface_shape_line_to(s, cmd->x + cmd->w, cmd->y);
-				surface_shape_line_to(s, cmd->x + cmd->w, cmd->y + radius);
+				cg_line_to(cg, cmd->x + cmd->w, cmd->y);
+				cg_line_to(cg, cmd->x + cmd->w, cmd->y + radius);
 			}
 			else
 			{
-				surface_shape_arc(s, cmd->x + cmd->w - radius, cmd->y + radius, radius, - M_PI_2, 0);
+				cg_arc(cg, cmd->x + cmd->w - radius, cmd->y + radius, radius, - M_PI_2, 0);
 			}
-			surface_shape_line_to(s, cmd->x + cmd->w, cmd->y + cmd->h - radius);
+			cg_line_to(cg, cmd->x + cmd->w, cmd->y + cmd->h - radius);
 			if(corner & (1 << 2))
 			{
-				surface_shape_line_to(s, cmd->x + cmd->w, cmd->y + cmd->h);
-				surface_shape_line_to(s, cmd->w - radius, cmd->y + cmd->h);
+				cg_line_to(cg, cmd->x + cmd->w, cmd->y + cmd->h);
+				cg_line_to(cg, cmd->w - radius, cmd->y + cmd->h);
 			}
 			else
 			{
-				surface_shape_arc(s, cmd->x + cmd->w - radius, cmd->y + cmd->h - radius, radius, 0, M_PI_2);
+				cg_arc(cg, cmd->x + cmd->w - radius, cmd->y + cmd->h - radius, radius, 0, M_PI_2);
 			}
-			surface_shape_line_to(s, cmd->x + radius, cmd->y + cmd->h);
+			cg_line_to(cg, cmd->x + radius, cmd->y + cmd->h);
 			if(corner & (1 << 3))
 			{
-				surface_shape_line_to(s, cmd->x, cmd->y + cmd->h);
+				cg_line_to(cg, cmd->x, cmd->y + cmd->h);
 			}
 			else
 			{
-				surface_shape_arc(s, cmd->x + radius, cmd->y + cmd->h - radius, radius, M_PI_2, M_PI);
+				cg_arc(cg, cmd->x + radius, cmd->y + cmd->h - radius, radius, M_PI_2, M_PI);
 			}
 			if(corner & (1 << 0))
 			{
-				surface_shape_line_to(s, cmd->x, cmd->y);
-				surface_shape_line_to(s, cmd->x + radius, cmd->y);
+				cg_line_to(cg, cmd->x, cmd->y);
+				cg_line_to(cg, cmd->x + radius, cmd->y);
 			}
 			else
 			{
-				surface_shape_arc(s, cmd->x + radius, cmd->y + radius, radius, M_PI, M_PI + M_PI_2);
+				cg_arc(cg, cmd->x + radius, cmd->y + radius, radius, M_PI, M_PI + M_PI_2);
 			}
 		}
 		else
 		{
-			surface_shape_rectangle(s, cmd->x, cmd->y, cmd->w, cmd->h);
+			cg_rectangle(cg, cmd->x, cmd->y, cmd->w, cmd->h);
 		}
-		surface_shape_set_source_color(s, &cmd->c);
+		cg_set_source_rgba(cg, cmd->c.r / 255.0, cmd->c.g / 255.0, cmd->c.b / 255.0, cmd->c.a / 255.0);
 		if(cmd->thickness > 0)
 		{
-			surface_shape_set_line_width(s, cmd->thickness);
-			surface_shape_stroke(s);
+			cg_set_line_width(cg, cmd->thickness);
+			cg_stroke(cg);
 		}
 		else
 		{
-			surface_shape_fill(s);
+			cg_fill(cg);
 		}
-		surface_shape_restore(s);
+		cg_restore(cg);
 	}
 }
 
 static inline void xui_surface_shape_polygon(struct surface_t * s, struct region_t * clip, struct xui_cmd_polygon_t * cmd)
 {
+	struct cg_ctx_t * cg = surface_get_cg_ctx(s);
 	struct region_t r;
 	int i;
 
 	if(cmd->n > 0)
 	{
-		surface_shape_save(s);
+		cg_save(cg);
 		if(clip)
 		{
 			region_init(&r, 0, 0, surface_get_width(s), surface_get_height(s));
 			if(region_intersect(&r, &r, clip))
 			{
-				surface_shape_rectangle(s, r.x, r.y, r.w, r.h);
-				surface_shape_clip(s);
+				cg_rectangle(cg, r.x, r.y, r.w, r.h);
+				cg_clip(cg);
 			}
 			else
 			{
-				surface_shape_restore(s);
+				cg_restore(cg);
 				return;
 			}
 		}
-		surface_shape_move_to(s, cmd->p[0].x, cmd->p[0].y);
+		cg_move_to(cg, cmd->p[0].x, cmd->p[0].y);
 		for(i = 1; i < cmd->n; i++)
-			surface_shape_line_to(s, cmd->p[i].x, cmd->p[i].y);
-		surface_shape_close_path(s);
-		surface_shape_set_source_color(s, &cmd->c);
+			cg_line_to(cg, cmd->p[i].x, cmd->p[i].y);
+		cg_close_path(cg);
+		cg_set_source_rgba(cg, cmd->c.r / 255.0, cmd->c.g / 255.0, cmd->c.b / 255.0, cmd->c.a / 255.0);
 		if(cmd->thickness > 0)
 		{
-			surface_shape_set_line_width(s, cmd->thickness);
-			surface_shape_stroke(s);
+			cg_set_line_width(cg, cmd->thickness);
+			cg_stroke(cg);
 		}
 		else
 		{
-			surface_shape_fill(s);
+			cg_fill(cg);
 		}
-		surface_shape_restore(s);
+		cg_restore(cg);
 	}
 }
 
 static inline void xui_surface_shape_circle(struct surface_t * s, struct region_t * clip, struct xui_cmd_circle_t * cmd)
 {
+	struct cg_ctx_t * cg = surface_get_cg_ctx(s);
 	struct region_t r;
 
 	if(cmd->radius > 0)
 	{
-		surface_shape_save(s);
+		cg_save(cg);
 		if(clip)
 		{
 			region_init(&r, 0, 0, surface_get_width(s), surface_get_height(s));
 			if(region_intersect(&r, &r, clip))
 			{
-				surface_shape_rectangle(s, r.x, r.y, r.w, r.h);
-				surface_shape_clip(s);
+				cg_rectangle(cg, r.x, r.y, r.w, r.h);
+				cg_clip(cg);
 			}
 			else
 			{
-				surface_shape_restore(s);
+				cg_restore(cg);
 				return;
 			}
 		}
-		surface_shape_circle(s, cmd->x, cmd->y, cmd->radius);
-		surface_shape_set_source_color(s, &cmd->c);
+		cg_circle(cg, cmd->x, cmd->y, cmd->radius);
+		cg_set_source_rgba(cg, cmd->c.r / 255.0, cmd->c.g / 255.0, cmd->c.b / 255.0, cmd->c.a / 255.0);
 		if(cmd->thickness > 0)
 		{
-			surface_shape_set_line_width(s, cmd->thickness);
-			surface_shape_stroke(s);
+			cg_set_line_width(cg, cmd->thickness);
+			cg_stroke(cg);
 		}
 		else
 		{
-			surface_shape_fill(s);
+			cg_fill(cg);
 		}
-		surface_shape_restore(s);
+		cg_restore(cg);
 	}
 }
 
 static inline void xui_surface_shape_ellipse(struct surface_t * s, struct region_t * clip, struct xui_cmd_ellipse_t * cmd)
 {
+	struct cg_ctx_t * cg = surface_get_cg_ctx(s);
 	struct region_t r;
 
 	if((cmd->w > 0) && (cmd->h > 0))
 	{
-		surface_shape_save(s);
+		cg_save(cg);
 		if(clip)
 		{
 			region_init(&r, 0, 0, surface_get_width(s), surface_get_height(s));
 			if(region_intersect(&r, &r, clip))
 			{
-				surface_shape_rectangle(s, r.x, r.y, r.w, r.h);
-				surface_shape_clip(s);
+				cg_rectangle(cg, r.x, r.y, r.w, r.h);
+				cg_clip(cg);
 			}
 			else
 			{
-				surface_shape_restore(s);
+				cg_restore(cg);
 				return;
 			}
 		}
-		surface_shape_ellipse(s, cmd->x, cmd->y, cmd->w, cmd->h);
-		surface_shape_set_source_color(s, &cmd->c);
+		cg_ellipse(cg, cmd->x, cmd->y, cmd->w, cmd->h);
+		cg_set_source_rgba(cg, cmd->c.r / 255.0, cmd->c.g / 255.0, cmd->c.b / 255.0, cmd->c.a / 255.0);
 		if(cmd->thickness > 0)
 		{
-			surface_shape_set_line_width(s, cmd->thickness);
-			surface_shape_stroke(s);
+			cg_set_line_width(cg, cmd->thickness);
+			cg_stroke(cg);
 		}
 		else
 		{
-			surface_shape_fill(s);
+			cg_fill(cg);
 		}
-		surface_shape_restore(s);
+		cg_restore(cg);
 	}
 }
 
 static inline void xui_surface_shape_arc(struct surface_t * s, struct region_t * clip, struct xui_cmd_arc_t * cmd)
 {
+	struct cg_ctx_t * cg = surface_get_cg_ctx(s);
 	struct region_t r;
 
 	if(cmd->radius > 0)
 	{
-		surface_shape_save(s);
+		cg_save(cg);
 		if(clip)
 		{
 			region_init(&r, 0, 0, surface_get_width(s), surface_get_height(s));
 			if(region_intersect(&r, &r, clip))
 			{
-				surface_shape_rectangle(s, r.x, r.y, r.w, r.h);
-				surface_shape_clip(s);
+				cg_rectangle(cg, r.x, r.y, r.w, r.h);
+				cg_clip(cg);
 			}
 			else
 			{
-				surface_shape_restore(s);
+				cg_restore(cg);
 				return;
 			}
 		}
-		surface_shape_arc(s, cmd->x, cmd->y, cmd->radius, cmd->a1 * (M_PI / 180.0), cmd->a2 * (M_PI / 180.0));
-		surface_shape_set_source_color(s, &cmd->c);
+		cg_arc(cg, cmd->x, cmd->y, cmd->radius, cmd->a1 * (M_PI / 180.0), cmd->a2 * (M_PI / 180.0));
+		cg_set_source_rgba(cg, cmd->c.r / 255.0, cmd->c.g / 255.0, cmd->c.b / 255.0, cmd->c.a / 255.0);
 		if(cmd->thickness > 0)
 		{
-			surface_shape_set_line_width(s, cmd->thickness);
-			surface_shape_stroke(s);
+			cg_set_line_width(cg, cmd->thickness);
+			cg_stroke(cg);
 		}
 		else
 		{
-			surface_shape_fill(s);
+			cg_fill(cg);
 		}
-		surface_shape_restore(s);
+		cg_restore(cg);
 	}
 }
 
@@ -2171,42 +2180,43 @@ static inline void xui_surface_icon(struct surface_t * s, struct region_t * clip
 
 static inline void xui_surface_effect_ripple(struct surface_t * s, struct region_t * clip, struct xui_cmd_ripple_t * cmd)
 {
+	struct cg_ctx_t * cg = surface_get_cg_ctx(s);
 	struct region_t r;
 
 	if(cmd->radius > 0)
 	{
-		surface_shape_save(s);
+		cg_save(cg);
 		if(clip)
 		{
 			region_init(&r, 0, 0, surface_get_width(s), surface_get_height(s));
 			if(region_intersect(&r, &r, clip))
 			{
-				surface_shape_rectangle(s, r.x, r.y, r.w, r.h);
-				surface_shape_clip(s);
+				cg_rectangle(cg, r.x, r.y, r.w, r.h);
+				cg_clip(cg);
 			}
 			else
 			{
-				surface_shape_restore(s);
+				cg_restore(cg);
 				return;
 			}
 		}
 		if((cmd->m.w > 0) && (cmd->m.h > 0))
 		{
-			surface_shape_round_rectangle(s, cmd->m.x, cmd->m.y, cmd->m.w, cmd->m.h, cmd->m.radius);
-			surface_shape_clip(s);
+			cg_round_rectangle(cg, cmd->m.x, cmd->m.y, cmd->m.w, cmd->m.h, cmd->m.radius, cmd->m.radius);
+			cg_clip(cg);
 		}
-		surface_shape_circle(s, cmd->x, cmd->y, cmd->radius);
-		surface_shape_set_source_color(s, &cmd->c);
+		cg_circle(cg, cmd->x, cmd->y, cmd->radius);
+		cg_set_source_rgba(cg, cmd->c.r / 255.0, cmd->c.g / 255.0, cmd->c.b / 255.0, cmd->c.a / 255.0);
 		if(cmd->thickness > 0)
 		{
-			surface_shape_set_line_width(s, cmd->thickness);
-			surface_shape_stroke(s);
+			cg_set_line_width(cg, cmd->thickness);
+			cg_stroke(cg);
 		}
 		else
 		{
-			surface_shape_fill(s);
+			cg_fill(cg);
 		}
-		surface_shape_restore(s);
+		cg_restore(cg);
 	}
 }
 

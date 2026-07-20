@@ -22,52 +22,53 @@
  * SOFTWARE.
  */
 
-#include <xos/xos.h>
 #include <png.h>
 #include <pngstruct.h>
 #include <jpeglib.h>
 #include <jerror.h>
-#include <driver/g2d/g2d.h>
+#include <xos/xos.h>
 #include <kernel/graphic/surface.h>
 
-static struct list_head_t __render_list = {
-	.next = &__render_list,
-	.prev = &__render_list,
-};
-static struct mutex_t __render_lock;
-
-extern struct render_t render_cg;
-inline __attribute__((always_inline)) struct render_t * search_render(void)
+struct cg_surface_t * surface_get_cg_surface(struct surface_t * s)
 {
-	struct render_t * r = (struct render_t *)list_first_entry_or_null(&__render_list, struct render_t, list);
-	if(!r)
-		r = &render_cg;
-	return r;
+	if(s)
+	{
+		struct cg_render_t * cg = s->cg;
+		if(!cg)
+		{
+			cg = xos_mem_malloc(sizeof(struct cg_render_t));
+			if(cg)
+			{
+				cg->surface = cg_surface_create_for_data(s->width, s->height, s->pixels);
+				cg->ctx = cg_create(cg->surface);
+				s->cg = cg;
+			}
+		}
+		if(cg)
+			return s->cg->surface;
+	}
+	return NULL;
 }
 
-int register_render(struct render_t * r)
+struct cg_ctx_t * surface_get_cg_ctx(struct surface_t * s)
 {
-	if(!r || !r->name)
-		return FALSE;
-
-	init_list_head(&r->list);
-	xos_mutex_lock(&__render_lock);
-	list_add(&r->list, &__render_list);
-	xos_mutex_unlock(&__render_lock);
-
-	return TRUE;
-}
-
-int unregister_render(struct render_t * r)
-{
-	if(!r || !r->name)
-		return FALSE;
-
-	xos_mutex_lock(&__render_lock);
-	list_del(&r->list);
-	xos_mutex_unlock(&__render_lock);
-
-	return TRUE;
+	if(s)
+	{
+		struct cg_render_t * cg = s->cg;
+		if(!cg)
+		{
+			cg = xos_mem_malloc(sizeof(struct cg_render_t));
+			if(cg)
+			{
+				cg->surface = cg_surface_create_for_data(s->width, s->height, s->pixels);
+				cg->ctx = cg_create(cg->surface);
+				s->cg = cg;
+			}
+		}
+		if(cg)
+			return s->cg->ctx;
+	}
+	return NULL;
 }
 
 struct surface_t * surface_alloc(int width, int height)
@@ -98,9 +99,8 @@ struct surface_t * surface_alloc(int width, int height)
 	s->stride = stride;
 	s->pixlen = pixlen;
 	s->pixels = pixels;
-	s->r = search_render();
-	s->rctx = s->r->create(s);
 	s->g2d = search_first_g2d();
+	s->cg = NULL;
 	s->priv = NULL;
 	return s;
 }
@@ -109,8 +109,12 @@ void surface_free(struct surface_t * s)
 {
 	if(s)
 	{
-		if(s->r)
-			s->r->destroy(s->rctx);
+		if(s->cg)
+		{
+			cg_destroy(s->cg->ctx);
+			cg_surface_destroy(s->cg->surface);
+			xos_mem_free(s->cg);
+		}
 		xos_mem_free(s->pixels);
 		xos_mem_free(s);
 	}
@@ -919,9 +923,8 @@ struct surface_t * surface_clone(struct surface_t * s, int x, int y, int w, int 
 	o->stride = stride;
 	o->pixlen = pixlen;
 	o->pixels = pixels;
-	o->r = search_render();
-	o->rctx = o->r->create(o);
 	o->g2d = search_first_g2d();
+	o->cg = NULL;
 	o->priv = NULL;
 	return o;
 }
@@ -1009,9 +1012,8 @@ struct surface_t * surface_extend(struct surface_t * s, int width, int height, c
 	o->stride = stride;
 	o->pixlen = pixlen;
 	o->pixels = pixels;
-	o->r = search_render();
-	o->rctx = o->r->create(o);
 	o->g2d = search_first_g2d();
+	o->cg = NULL;
 	o->priv = NULL;
 	return o;
 }
@@ -1153,29 +1155,31 @@ void surface_blit(struct surface_t * s, struct region_t * clip, struct matrix2d_
 {
 	if(!g2d_blit(s->g2d, s, clip, m, o))
 	{
+		struct cg_ctx_t * cg = surface_get_cg_ctx(s);
 		struct region_t r;
-		surface_shape_save(s);
+
+		cg_save(cg);
 		if(clip)
 		{
 			region_init(&r, 0, 0, surface_get_width(s), surface_get_height(s));
 			if(region_intersect(&r, &r, clip))
 			{
-				surface_shape_rectangle(s, r.x, r.y, r.w, r.h);
-				surface_shape_clip(s);
+				cg_rectangle(cg, r.x, r.y, r.w, r.h);
+				cg_clip(cg);
 			}
 			else
 			{
-				surface_shape_restore(s);
+				cg_restore(cg);
 				return;
 			}
 		}
 		if(m)
-			surface_shape_set_matrix(s, m);
-		surface_shape_rectangle(s, 0, 0, o->width, o->height);
-		surface_shape_clip(s);
-		surface_shape_set_source(s, o, 0, 0);
-		surface_shape_paint(s);
-		surface_shape_restore(s);
+			cg_set_matrix(cg, (struct cg_matrix_t *)m);
+		cg_rectangle(cg, 0, 0, o->width, o->height);
+		cg_clip(cg);
+		cg_set_source_surface(cg, surface_get_cg_surface(o), 0, 0);
+		cg_paint(cg);
+		cg_restore(cg);
 	}
 }
 
@@ -1183,40 +1187,29 @@ void surface_fill(struct surface_t * s, struct region_t * clip, struct matrix2d_
 {
 	if(!g2d_fill(s->g2d, s, clip, m, w, h, c))
 	{
+		struct cg_ctx_t * cg = surface_get_cg_ctx(s);
 		struct region_t r;
-		surface_shape_save(s);
+
+		cg_save(cg);
 		if(clip)
 		{
 			region_init(&r, 0, 0, surface_get_width(s), surface_get_height(s));
 			if(region_intersect(&r, &r, clip))
 			{
-				surface_shape_rectangle(s, r.x, r.y, r.w, r.h);
-				surface_shape_clip(s);
+				cg_rectangle(cg, r.x, r.y, r.w, r.h);
+				cg_clip(cg);
 			}
 			else
 			{
-				surface_shape_restore(s);
+				cg_restore(cg);
 				return;
 			}
 		}
 		if(m)
-			surface_shape_set_matrix(s, m);
-		surface_shape_rectangle(s, 0, 0, w, h);
-		surface_shape_set_source_color(s, c);
-		surface_shape_fill(s);
-		surface_shape_restore(s);
+			cg_set_matrix(cg, (struct cg_matrix_t *)m);
+		cg_rectangle(cg, 0, 0, w, h);
+		cg_set_source_rgba(cg, c->r / 255.0, c->g / 255.0, c->b / 255.0, c->a / 255.0);
+		cg_fill(cg);
+		cg_restore(cg);
 	}
 }
-
-static void surface_pure_init(void)
-{
-	xos_mutex_init(&__render_lock);
-}
-
-static void surface_pure_exit(void)
-{
-	xos_mutex_exit(&__render_lock);
-}
-
-pure_initcall(surface_pure_init);
-pure_exitcall(surface_pure_exit);

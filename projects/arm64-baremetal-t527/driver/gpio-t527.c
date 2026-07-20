@@ -38,8 +38,7 @@ enum {
 	GPIO_PUL1	= 0x28,
 };
 
-struct gpio_t527_pdata_t
-{
+struct gpio_t527_pdata_t {
 	io_addr_t addr;
 	int base;
 	int ngpio;

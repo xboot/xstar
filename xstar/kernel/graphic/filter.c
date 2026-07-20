@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-#include <kernel/graphic/surface.h>
+#include <kernel/graphic/filter.h>
 
 void surface_filter_gray(struct surface_t * s)
 {

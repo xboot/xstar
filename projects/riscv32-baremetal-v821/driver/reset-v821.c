@@ -24,8 +24,7 @@
 
 #include <xstar.h>
 
-struct reset_v821_pdata_t
-{
+struct reset_v821_pdata_t {
 	io_addr_t addr;
 	int base;
 	int nreset;

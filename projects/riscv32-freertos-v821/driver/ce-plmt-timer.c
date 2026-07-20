@@ -30,8 +30,7 @@ extern void hook_core_interrupt(int cause, void (*func)(void *), void * data);
 #define PLMT_MTIME			(0x0000)
 #define PLMT_MTIMECMP(cpu)	(0x0008 + ((cpu) * 8))
 
-struct ce_plmt_timer_pdata_t
-{
+struct ce_plmt_timer_pdata_t {
 	io_addr_t addr;
 	char * clk;
 	int cpu;

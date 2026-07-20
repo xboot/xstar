@@ -10,6 +10,8 @@ extern "C" {
 #include <driver/driver.h>
 #include <kernel/graphic/surface.h>
 
+struct surface_t;
+
 struct g2d_t {
 	char * name;
 

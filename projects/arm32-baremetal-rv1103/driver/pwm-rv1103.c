@@ -31,8 +31,7 @@
 #define PWM_INTSTS			(0x40)
 #define PWM_INT_EN			(0x44)
 
-struct pwm_rv1103_pdata_t
-{
+struct pwm_rv1103_pdata_t {
 	io_addr_t addr;
 	char * clk;
 	int channel;

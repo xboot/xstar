@@ -68,7 +68,7 @@ static void line_run(struct wboxtest_t * wbt, void * data)
 
 	if(pdat)
 	{
-		srand(0);
+		xos_srand(0);
 		pdat->calls = 0;
 		pdat->t2 = pdat->t1 = ktime_get();
 		do {
@@ -79,13 +79,14 @@ static void line_run(struct wboxtest_t * wbt, void * data)
 			struct color_t c;
 			color_init(&c, xos_rand() & 0xff, xos_rand() & 0xff, xos_rand() & 0xff, 255);
 			int thickness = wboxtest_random_int(0, 50);
-			surface_shape_save(s);
-			surface_shape_move_to(s, x0, y0);
-			surface_shape_line_to(s, x1, y1);
-			surface_shape_set_source_color(s, &c);
-			surface_shape_set_line_width(s, thickness > 0 ? thickness : 1);
-			surface_shape_stroke(s);
-			surface_shape_restore(s);
+			struct cg_ctx_t * cg = surface_get_cg_ctx(s);
+			cg_save(cg);
+			cg_move_to(cg, x0, y0);
+			cg_line_to(cg, x1, y1);
+			cg_set_source_rgba(cg, c.r / 255.0, c.g / 255.0, c.b / 255.0, c.a / 255.0);
+			cg_set_line_width(cg, thickness > 0 ? thickness : 1);
+			cg_stroke(cg);
+			cg_restore(cg);
 			pdat->calls++;
 			pdat->t2 = ktime_get();
 		} while(ktime_before(pdat->t2, ktime_add_ms(pdat->t1, 2000)));

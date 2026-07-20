@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-#include <xft.h>
+#include <kernel/cg/xft.h>
 
 /*
  * type
@@ -1400,14 +1400,14 @@ void XCG_FT_Raster_Render(const XCG_FT_Raster_Params * params)
 		length *= 2;
 		if(length > XCG_FT_MAXIMUM_POOL_SIZE)
 			break;
-		void * heap = malloc(length);
+		void * heap = xos_mem_malloc(length);
 		if(heap == NULL)
 			break;
 		if(worker.skip_spans < 0)
 			rendered_spans += -worker.skip_spans;
 		worker.skip_spans = rendered_spans;
 		error = gray_raster_render(&worker, heap, length, params);
-		free(heap);
+		xos_mem_free(heap);
 	}
 }
 
@@ -1694,13 +1694,13 @@ static XCG_FT_Error ft_stroke_border_grow(XCG_FT_StrokeBorder border, XCG_FT_UIn
 
 		while(cur_max < new_max)
 			cur_max += (cur_max >> 1) + 16;
-		new_pts = (XCG_FT_Vector *)realloc(border->points, cur_max * sizeof(XCG_FT_Vector));
+		new_pts = (XCG_FT_Vector *)xos_mem_realloc(border->points, cur_max * sizeof(XCG_FT_Vector));
 		if(!new_pts)
 		{
 			error = -3;
 			goto Exit;
 		}
-		new_tags = (XCG_FT_Byte *)realloc(border->tags, cur_max * sizeof(XCG_FT_Byte));
+		new_tags = (XCG_FT_Byte *)xos_mem_realloc(border->tags, cur_max * sizeof(XCG_FT_Byte));
 		if(!new_tags)
 		{
 			error = -3;
@@ -1895,8 +1895,8 @@ static void ft_stroke_border_reset(XCG_FT_StrokeBorder border)
 
 static void ft_stroke_border_done(XCG_FT_StrokeBorder border)
 {
-	free(border->points);
-	free(border->tags);
+	xos_mem_free(border->points);
+	xos_mem_free(border->tags);
 
 	border->num_points = 0;
 	border->max_points = 0;
@@ -1945,7 +1945,7 @@ Fail:
 static void ft_stroke_border_export(XCG_FT_StrokeBorder border, XCG_FT_Outline * outline)
 {
 	if(outline->points != NULL && border->points != NULL)
-		memcpy(outline->points + outline->n_points, border->points, border->num_points * sizeof(XCG_FT_Vector));
+		xos_memcpy(outline->points + outline->n_points, border->points, border->num_points * sizeof(XCG_FT_Vector));
 	if(outline->tags)
 	{
 		XCG_FT_UInt count = border->num_points;
@@ -2005,7 +2005,7 @@ XCG_FT_Error XCG_FT_Stroker_New(XCG_FT_Stroker * astroker)
 {
 	XCG_FT_Error error = 0;
 	XCG_FT_Stroker stroker = NULL;
-	stroker = (XCG_FT_StrokerRec *)calloc(1, sizeof(XCG_FT_StrokerRec));
+	stroker = (XCG_FT_StrokerRec *)xos_mem_calloc(1, sizeof(XCG_FT_StrokerRec));
 	if(stroker)
 	{
 		ft_stroke_border_init(&stroker->borders[0]);
@@ -2042,7 +2042,7 @@ void XCG_FT_Stroker_Done(XCG_FT_Stroker stroker)
 	{
 		ft_stroke_border_done(&stroker->borders[0]);
 		ft_stroke_border_done(&stroker->borders[1]);
-		free(stroker);
+		xos_mem_free(stroker);
 	}
 }
 

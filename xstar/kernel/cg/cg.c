@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-#include <cg.h>
+#include <kernel/cg/cg.h>
 
 #ifndef CG_MIN
 #define CG_MIN(a, b)		({typeof(a) _amin = (a); typeof(b) _bmin = (b); (void)(&_amin == &_bmin); _amin < _bmin ? _amin : _bmin;})
@@ -71,7 +71,7 @@
 			int capacity = (array).size + (count); \
 			int newcapacity = (array).capacity == 0 ? 8 : (array).capacity; \
 			while(newcapacity < capacity) { newcapacity <<= 1; } \
-			(array).data = realloc((array).data, (size_t)newcapacity * sizeof((array).data[0])); \
+			(array).data = xos_mem_realloc((array).data, (size_t)newcapacity * sizeof((array).data[0])); \
 			(array).capacity = newcapacity; \
 		} \
 	} while(0)
@@ -80,14 +80,14 @@
 	do { \
 		if(newdata && count > 0) { \
 			cg_array_ensure(array, count); \
-			memcpy((array).data + (array).size, newdata, (count) * sizeof((newdata)[0])); \
+			xos_memcpy((array).data + (array).size, newdata, (count) * sizeof((newdata)[0])); \
 			(array).size += count; \
 		} \
 	} while(0)
 
 #define cg_array_append(array, other)	cg_array_append_data(array, (other).data, (other).size)
 #define cg_array_clear(array)			((array).size = 0)
-#define cg_array_destroy(array)			free((array).data)
+#define cg_array_destroy(array)			xos_mem_free((array).data)
 
 void cg_matrix_init(struct cg_matrix_t * m, float a, float b, float c, float d, float tx, float ty)
 {
@@ -199,7 +199,7 @@ void cg_matrix_multiply(struct cg_matrix_t * m, struct cg_matrix_t * m1, struct 
 		t.tx += m1->ty * m2->c;
 		t.ty += m1->tx * m2->b;
 	}
-	memcpy(m, &t, sizeof(struct cg_matrix_t));
+	xos_memcpy(m, &t, sizeof(struct cg_matrix_t));
 }
 
 int cg_matrix_invert(struct cg_matrix_t * m)
@@ -249,19 +249,19 @@ static void cg_matrix_map_points(struct cg_matrix_t * m, struct cg_point_t * src
 
 struct cg_surface_t * cg_surface_create(int width, int height)
 {
-	struct cg_surface_t * surface = malloc(sizeof(struct cg_surface_t));
+	struct cg_surface_t * surface = xos_mem_malloc(sizeof(struct cg_surface_t));
 	surface->refcnt = 1;
 	surface->width = width;
 	surface->height = height;
 	surface->stride = width << 2;
 	surface->owndata = 1;
-	surface->pixels = calloc(1, (size_t)(height * surface->stride));
+	surface->pixels = xos_mem_calloc(1, (size_t)(height * surface->stride));
 	return surface;
 }
 
 struct cg_surface_t * cg_surface_create_for_data(int width, int height, void * pixels)
 {
-	struct cg_surface_t * surface = malloc(sizeof(struct cg_surface_t));
+	struct cg_surface_t * surface = xos_mem_malloc(sizeof(struct cg_surface_t));
 	surface->refcnt = 1;
 	surface->width = width;
 	surface->height = height;
@@ -276,8 +276,8 @@ void cg_surface_destroy(struct cg_surface_t * surface)
 	if(surface && (--surface->refcnt == 0))
 	{
 		if(surface->owndata)
-			free(surface->pixels);
-		free(surface);
+			xos_mem_free(surface->pixels);
+		xos_mem_free(surface);
 	}
 }
 
@@ -290,7 +290,7 @@ struct cg_surface_t * cg_surface_reference(struct cg_surface_t * surface)
 
 static void * cg_paint_create(enum cg_paint_type_t type, size_t size)
 {
-	struct cg_paint_t * paint = malloc(size);
+	struct cg_paint_t * paint = xos_mem_malloc(size);
 	paint->refcnt = 1;
 	paint->type = type;
 	return paint;
@@ -380,7 +380,7 @@ void cg_paint_destroy(struct cg_paint_t * paint)
 			struct cg_texture_paint_t * texture = (struct cg_texture_paint_t *)(paint);
 			cg_surface_destroy(texture->surface);
 		}
-		free(paint);
+		xos_mem_free(paint);
 	}
 }
 
@@ -433,7 +433,7 @@ static enum cg_path_command_t cg_path_iterator_next(struct cg_path_iterator_t * 
 
 struct cg_path_t * cg_path_create(void)
 {
-	struct cg_path_t * path = malloc(sizeof(struct cg_path_t));
+	struct cg_path_t * path = xos_mem_malloc(sizeof(struct cg_path_t));
 	path->refcnt = 1;
 	path->num_points = 0;
 	path->num_contours = 0;
@@ -449,7 +449,7 @@ void cg_path_destroy(struct cg_path_t * path)
 	if(path && (--path->refcnt == 0))
 	{
 		cg_array_destroy(path->elements);
-		free(path);
+		xos_mem_free(path);
 	}
 }
 
@@ -1288,7 +1288,7 @@ static XCG_FT_Outline * ft_outline_create(int points, int contours)
 	size_t tags_size = ALIGN_SIZE((points + contours) * sizeof(char));
 	size_t contours_size = ALIGN_SIZE(contours * sizeof(int));
 	size_t contours_flag_size = ALIGN_SIZE(contours * sizeof(char));
-	XCG_FT_Outline * outline = malloc(points_size + tags_size + contours_size + contours_flag_size + sizeof(XCG_FT_Outline));
+	XCG_FT_Outline * outline = xos_mem_malloc(points_size + tags_size + contours_size + contours_flag_size + sizeof(XCG_FT_Outline));
 
 	XCG_FT_Byte * outline_data = (XCG_FT_Byte*)(outline + 1);
 	outline->points = (XCG_FT_Vector*)(outline_data);
@@ -1303,7 +1303,7 @@ static XCG_FT_Outline * ft_outline_create(int points, int contours)
 
 static void ft_outline_destroy(XCG_FT_Outline * outline)
 {
-	free(outline);
+	xos_mem_free(outline);
 }
 
 #define FT_COORD(x)		(XCG_FT_Pos)(roundf(x * 64))
@@ -1929,7 +1929,7 @@ static void composition_clear(uint32_t * dest, int length, uint32_t * src, uint3
 static void composition_source(uint32_t * dest, int length, uint32_t * src, uint32_t const_alpha)
 {
 	if(const_alpha == 255)
-		memcpy(dest, src, length * sizeof(uint32_t));
+		xos_memcpy(dest, src, length * sizeof(uint32_t));
 	else
 	{
 		uint32_t ialpha = 255 - const_alpha;
@@ -2716,7 +2716,7 @@ static void cg_blend(struct cg_ctx_t * ctx, struct cg_span_buffer_t * span_buffe
 
 static struct cg_state_t * cg_state_create(void)
 {
-	struct cg_state_t * state = malloc(sizeof(struct cg_state_t));
+	struct cg_state_t * state = xos_mem_malloc(sizeof(struct cg_state_t));
 	state->paint = NULL;
 	state->color = (struct cg_color_t){0.0f, 0.0f, 0.0f, 1.0f};
 	state->matrix = (struct cg_matrix_t){1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f};
@@ -2769,7 +2769,7 @@ static void cg_state_destroy(struct cg_state_t * state)
 	cg_paint_destroy(state->paint);
 	cg_array_destroy(state->stroke.dash.array);
 	cg_span_buffer_destroy(&state->clip_spans);
-	free(state);
+	xos_mem_free(state);
 }
 
 struct cg_paint_t * cg_get_source(struct cg_ctx_t * ctx, struct cg_color_t * color)
@@ -2864,7 +2864,7 @@ void cg_clip_extents(struct cg_ctx_t * ctx, struct cg_rect_t * extents)
 
 struct cg_ctx_t * cg_create(struct cg_surface_t * surface)
 {
-	struct cg_ctx_t * ctx = malloc(sizeof(struct cg_ctx_t));
+	struct cg_ctx_t * ctx = xos_mem_malloc(sizeof(struct cg_ctx_t));
 	ctx->surface = cg_surface_reference(surface);
 	ctx->path = cg_path_create();
 	ctx->state = cg_state_create();
@@ -2895,7 +2895,7 @@ void cg_destroy(struct cg_ctx_t * ctx)
 		cg_span_buffer_destroy(&ctx->clip_spans);
 		cg_surface_destroy(ctx->surface);
 		cg_path_destroy(ctx->path);
-		free(ctx);
+		xos_mem_free(ctx);
 	}
 }
 
@@ -3315,6 +3315,7 @@ void cg_paint(struct cg_ctx_t * ctx)
 		cg_blend(ctx, &ctx->clip_spans);
 	}
 }
+
 void cg_paint_with_alpha(struct cg_ctx_t * ctx, float alpha)
 {
 	cg_save(ctx);

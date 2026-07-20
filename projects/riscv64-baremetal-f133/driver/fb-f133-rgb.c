@@ -27,8 +27,7 @@
 #include <f133/reg-de.h>
 #include <f133/reg-tconlcd.h>
 
-struct fb_f133_rgb_pdata_t
-{
+struct fb_f133_rgb_pdata_t {
 	io_addr_t addr_de;
 	io_addr_t addr_tconlcd;
 

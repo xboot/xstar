@@ -168,8 +168,7 @@ enum {
 #define SDXC_SEND_AUTO_STOPCCSD		(1 << 9)
 #define SDXC_CEATA_DEV_IRQ_ENABLE	(1 << 10)
 
-struct sdhci_t113_pdata_t
-{
+struct sdhci_t113_pdata_t {
 	io_addr_t addr;
 	char * pclk;
 	int reset;

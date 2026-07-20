@@ -34,8 +34,7 @@ enum {
 	GPIO_INT_DEB	= 0x18,
 };
 
-struct irq_t113_gpio_pdata_t
-{
+struct irq_t113_gpio_pdata_t {
 	io_addr_t addr;
 	int base;
 	int nirq;

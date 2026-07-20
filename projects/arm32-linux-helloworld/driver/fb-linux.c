@@ -1,7 +1,6 @@
 #include <linux/linux.h>
 
-struct fb_linux_pdata_t
-{
+struct fb_linux_pdata_t {
 	int width;
 	int height;
 	int pwidth;
@@ -50,9 +49,8 @@ static struct surface_t * fb_create(struct framebuffer_t * fb, int width, int he
 	s->stride = surface->stride;
 	s->pixlen = surface->pixlen;
 	s->pixels = surface->pixels;
-	s->r = search_render();
-	s->rctx = s->r->create(s);
 	s->g2d = search_first_g2d();
+	s->cg = NULL;
 	s->priv = surface;
 
 	return s;
@@ -64,8 +62,12 @@ static void fb_destroy(struct framebuffer_t * fb, struct surface_t * s)
 
 	if(s)
 	{
-		if(s->r)
-			s->r->destroy(s->rctx);
+		if(s->cg)
+		{
+			cg_destroy(s->cg->ctx);
+			cg_surface_destroy(s->cg->surface);
+			xos_mem_free(s->cg);
+		}
 		linux_fb_surface_destroy(pdat->priv, s->priv);
 		xos_mem_free(s->priv);
 		xos_mem_free(s);

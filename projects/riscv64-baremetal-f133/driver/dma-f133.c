@@ -57,8 +57,7 @@ struct dma_f133_desc_t {
 	uint32_t reserved[2];
 };
 
-struct dma_f133_pdata_t
-{
+struct dma_f133_pdata_t {
 	io_addr_t addr;
 	char * clk;
 	int irq;

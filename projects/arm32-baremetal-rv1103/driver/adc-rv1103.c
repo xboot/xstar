@@ -35,8 +35,7 @@ enum {
 	SARADC_DATA_BASE 	= 0x120,
 };
 
-struct adc_rv1103_pdata_t
-{
+struct adc_rv1103_pdata_t {
 	io_addr_t addr;
 	char * clk;
 	int reset;
