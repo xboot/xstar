@@ -37,9 +37,10 @@ static inline void color_set_premult(struct color_t * c, uint32_t v)
 		}
 		else
 		{
-			c->r = c->r * 255 / a;
-			c->g = c->g * 255 / a;
-			c->b = c->b * 255 / a;
+			uint32_t ia = (0xff << 15) / a;
+			c->r = (((v >> 16) & 0xff) * ia) >> 15;
+			c->g = (((v >> 8) & 0xff) * ia) >> 15;
+			c->b = (((v >> 0) & 0xff) * ia) >> 15;
 			c->a = a;
 		}
 	}
