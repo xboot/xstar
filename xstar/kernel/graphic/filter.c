@@ -55,9 +55,9 @@ void surface_filter_sepia(struct surface_t * s)
 			b = (p[2] * 17826L + p[1] * 34996L + p[0] * 8585L) >> 16;
 			g = (p[2] * 22872L + p[1] * 44958L + p[0] * 11010L) >> 16;
 			r = (p[2] * 25756L + p[1] * 50397L + p[0] * 12386L) >> 16;
-			p[0] = XMIN(b, 255);
-			p[1] = XMIN(g, 255);
-			p[2] = XMIN(r, 255);
+			p[0] = XMIN(b, (int)p[3]);
+			p[1] = XMIN(g, (int)p[3]);
+			p[2] = XMIN(r, (int)p[3]);
 		}
 	}
 }
@@ -108,7 +108,7 @@ void surface_filter_gamma(struct surface_t * s, float gamma)
 	int i, len = surface_get_width(s) * surface_get_height(s);
 	unsigned char * p = surface_get_pixels(s);
 	unsigned char lut[256];
-	int t;
+	int t, b, g, r;
 
 	for(i = 0; i < 256; i++)
 	{
@@ -119,9 +119,21 @@ void surface_filter_gamma(struct surface_t * s, float gamma)
 	{
 		if(p[3] != 0)
 		{
-			p[0] = lut[p[0]];
-			p[1] = lut[p[1]];
-			p[2] = lut[p[2]];
+			if(p[3] == 255)
+			{
+				p[0] = lut[p[0]];
+				p[1] = lut[p[1]];
+				p[2] = lut[p[2]];
+			}
+			else
+			{
+				b = p[0] * 255 / p[3];
+				g = p[1] * 255 / p[3];
+				r = p[2] * 255 / p[3];
+				p[0] = XDIV255(lut[b] * p[3]);
+				p[1] = XDIV255(lut[g] * p[3]);
+				p[2] = XDIV255(lut[r] * p[3]);
+			}
 		}
 	}
 }
@@ -170,9 +182,9 @@ void surface_filter_hue(struct surface_t * s, int angle)
 				tb = (m[6] * r + m[7] * g + m[8] * b) >> 16;
 				tg = (m[3] * r + m[4] * g + m[5] * b) >> 16;
 				tr = (m[0] * r + m[1] * g + m[2] * b) >> 16;
-				p[0] = XCLAMP(XDIV255(tb * p[3]), 0, 255);
-				p[1] = XCLAMP(XDIV255(tg * p[3]), 0, 255);
-				p[2] = XCLAMP(XDIV255(tr * p[3]), 0, 255);
+				p[0] = XDIV255(XCLAMP(tb, 0, 255) * p[3]);
+				p[1] = XDIV255(XCLAMP(tg, 0, 255) * p[3]);
+				p[2] = XDIV255(XCLAMP(tr, 0, 255) * p[3]);
 			}
 		}
 	}
@@ -246,9 +258,9 @@ void surface_filter_saturate(struct surface_t * s, int saturate)
 				r = r + ((r - lv) * alpha >> 7);
 				g = g + ((g - lv) * alpha >> 7);
 				b = b + ((b - lv) * alpha >> 7);
-				p[0] = XCLAMP(XDIV255(b * p[3]), 0, 255);
-				p[1] = XCLAMP(XDIV255(g * p[3]), 0, 255);
-				p[2] = XCLAMP(XDIV255(r * p[3]), 0, 255);
+				p[0] = XDIV255(XCLAMP(b, 0, 255) * p[3]);
+				p[1] = XDIV255(XCLAMP(g, 0, 255) * p[3]);
+				p[2] = XDIV255(XCLAMP(r, 0, 255) * p[3]);
 			}
 		}
 	}
@@ -313,9 +325,9 @@ void surface_filter_contrast(struct surface_t * s, int contrast)
 				tb = ((b << 7) + (b - 128) * v) >> 7;
 				tg = ((g << 7) + (g - 128) * v) >> 7;
 				tr = ((r << 7) + (r - 128) * v) >> 7;
-				p[0] = XCLAMP(XDIV255(tb * p[3]), 0, 255);
-				p[1] = XCLAMP(XDIV255(tg * p[3]), 0, 255);
-				p[2] = XCLAMP(XDIV255(tr * p[3]), 0, 255);
+				p[0] = XDIV255(XCLAMP(tb, 0, 255) * p[3]);
+				p[1] = XDIV255(XCLAMP(tg, 0, 255) * p[3]);
+				p[2] = XDIV255(XCLAMP(tr, 0, 255) * p[3]);
 			}
 		}
 	}
@@ -358,8 +370,8 @@ void surface_filter_haldclut(struct surface_t * s, struct surface_t * clut, cons
 	int cw = surface_get_width(clut);
 	int ch = surface_get_height(clut);
 	unsigned char * t, * cp, * cq = surface_get_pixels(clut);
-	double sum[9];
-	double dr, dg, db, xdr, xdg, xdb;
+	float sum[9];
+	float dr, dg, db, xdr, xdg, xdb;
 	int ri, gi, bi;
 	int x, y, v;
 	int level, level2, level_1, level_2;
@@ -452,48 +464,48 @@ void surface_filter_haldclut(struct surface_t * s, struct surface_t * clut, cons
 							ri = XDIV255(p[2] * level_1);
 							if(ri > level_2)
 								ri = level_2;
-							db = (double)p[0] * level_1 / 255 - bi;
-							dg = (double)p[1] * level_1 / 255 - gi;
-							dr = (double)p[2] * level_1 / 255 - ri;
+							db = (float)p[0] * level_1 / 255 - bi;
+							dg = (float)p[1] * level_1 / 255 - gi;
+							dr = (float)p[2] * level_1 / 255 - ri;
 							xdb = 1 - db;
 							xdg = 1 - dg;
 							xdr = 1 - dr;
 							cp = cq + ((bi * level2 + gi * level + ri) << 2);
 							t = cp;
-							sum[0] = (double)t[0] * xdr;
-							sum[1] = (double)t[1] * xdr;
-							sum[2] = (double)t[2] * xdr;
+							sum[0] = (float)t[0] * xdr;
+							sum[1] = (float)t[1] * xdr;
+							sum[2] = (float)t[2] * xdr;
 							t += 4;
-							sum[0] += (double)t[0] * dr;
-							sum[1] += (double)t[1] * dr;
-							sum[2] += (double)t[2] * dr;
+							sum[0] += (float)t[0] * dr;
+							sum[1] += (float)t[1] * dr;
+							sum[2] += (float)t[2] * dr;
 							t = cp + (level << 2);
-							sum[3] = (double)t[0] * xdr;
-							sum[4] = (double)t[1] * xdr;
-							sum[5] = (double)t[2] * xdr;
+							sum[3] = (float)t[0] * xdr;
+							sum[4] = (float)t[1] * xdr;
+							sum[5] = (float)t[2] * xdr;
 							t += 4;
-							sum[3] += (double)t[0] * dr;
-							sum[4] += (double)t[1] * dr;
-							sum[5] += (double)t[2] * dr;
+							sum[3] += (float)t[0] * dr;
+							sum[4] += (float)t[1] * dr;
+							sum[5] += (float)t[2] * dr;
 							sum[6] = sum[0] * xdg + sum[3] * dg;
 							sum[7] = sum[1] * xdg + sum[4] * dg;
 							sum[8] = sum[2] * xdg + sum[5] * dg;
 							t = cp + (level2 << 2);
-							sum[0] = (double)t[0] * xdr;
-							sum[1] = (double)t[1] * xdr;
-							sum[2] = (double)t[2] * xdr;
+							sum[0] = (float)t[0] * xdr;
+							sum[1] = (float)t[1] * xdr;
+							sum[2] = (float)t[2] * xdr;
 							t += 4;
-							sum[0] += (double)t[0] * dr;
-							sum[1] += (double)t[1] * dr;
-							sum[2] += (double)t[2] * dr;
+							sum[0] += (float)t[0] * dr;
+							sum[1] += (float)t[1] * dr;
+							sum[2] += (float)t[2] * dr;
 							t = cp + ((level2 + level) << 2);
-							sum[3] = (double)t[0] * xdr;
-							sum[4] = (double)t[1] * xdr;
-							sum[5] = (double)t[2] * xdr;
+							sum[3] = (float)t[0] * xdr;
+							sum[4] = (float)t[1] * xdr;
+							sum[5] = (float)t[2] * xdr;
 							t += 4;
-							sum[3] += (double)t[0] * dr;
-							sum[4] += (double)t[1] * dr;
-							sum[5] += (double)t[2] * dr;
+							sum[3] += (float)t[0] * dr;
+							sum[4] += (float)t[1] * dr;
+							sum[5] += (float)t[2] * dr;
 							sum[0] = sum[0] * xdg + sum[3] * dg;
 							sum[1] = sum[1] * xdg + sum[4] * dg;
 							sum[2] = sum[2] * xdg + sum[5] * dg;
@@ -515,48 +527,48 @@ void surface_filter_haldclut(struct surface_t * s, struct surface_t * clut, cons
 							ri = p[2] * level_1 / p[3];
 							if(ri > level_2)
 								ri = level_2;
-							db = (double)p[0] * level_1 / p[3] - bi;
-							dg = (double)p[1] * level_1 / p[3] - gi;
-							dr = (double)p[2] * level_1 / p[3] - ri;
+							db = (float)p[0] * level_1 / p[3] - bi;
+							dg = (float)p[1] * level_1 / p[3] - gi;
+							dr = (float)p[2] * level_1 / p[3] - ri;
 							xdb = 1 - db;
 							xdg = 1 - dg;
 							xdr = 1 - dr;
 							cp = cq + ((bi * level2 + gi * level + ri) << 2);
 							t = cp;
-							sum[0] = (double)t[0] * xdr;
-							sum[1] = (double)t[1] * xdr;
-							sum[2] = (double)t[2] * xdr;
+							sum[0] = (float)t[0] * xdr;
+							sum[1] = (float)t[1] * xdr;
+							sum[2] = (float)t[2] * xdr;
 							t += 4;
-							sum[0] += (double)t[0] * dr;
-							sum[1] += (double)t[1] * dr;
-							sum[2] += (double)t[2] * dr;
+							sum[0] += (float)t[0] * dr;
+							sum[1] += (float)t[1] * dr;
+							sum[2] += (float)t[2] * dr;
 							t = cp + (level << 2);
-							sum[3] = (double)t[0] * xdr;
-							sum[4] = (double)t[1] * xdr;
-							sum[5] = (double)t[2] * xdr;
+							sum[3] = (float)t[0] * xdr;
+							sum[4] = (float)t[1] * xdr;
+							sum[5] = (float)t[2] * xdr;
 							t += 4;
-							sum[3] += (double)t[0] * dr;
-							sum[4] += (double)t[1] * dr;
-							sum[5] += (double)t[2] * dr;
+							sum[3] += (float)t[0] * dr;
+							sum[4] += (float)t[1] * dr;
+							sum[5] += (float)t[2] * dr;
 							sum[6] = sum[0] * xdg + sum[3] * dg;
 							sum[7] = sum[1] * xdg + sum[4] * dg;
 							sum[8] = sum[2] * xdg + sum[5] * dg;
 							t = cp + (level2 << 2);
-							sum[0] = (double)t[0] * xdr;
-							sum[1] = (double)t[1] * xdr;
-							sum[2] = (double)t[2] * xdr;
+							sum[0] = (float)t[0] * xdr;
+							sum[1] = (float)t[1] * xdr;
+							sum[2] = (float)t[2] * xdr;
 							t += 4;
-							sum[0] += (double)t[0] * dr;
-							sum[1] += (double)t[1] * dr;
-							sum[2] += (double)t[2] * dr;
+							sum[0] += (float)t[0] * dr;
+							sum[1] += (float)t[1] * dr;
+							sum[2] += (float)t[2] * dr;
 							t = cp + ((level2 + level) << 2);
-							sum[3] = (double)t[0] * xdr;
-							sum[4] = (double)t[1] * xdr;
-							sum[5] = (double)t[2] * xdr;
+							sum[3] = (float)t[0] * xdr;
+							sum[4] = (float)t[1] * xdr;
+							sum[5] = (float)t[2] * xdr;
 							t += 4;
-							sum[3] += (double)t[0] * dr;
-							sum[4] += (double)t[1] * dr;
-							sum[5] += (double)t[2] * dr;
+							sum[3] += (float)t[0] * dr;
+							sum[4] += (float)t[1] * dr;
+							sum[5] += (float)t[2] * dr;
 							sum[0] = sum[0] * xdg + sum[3] * dg;
 							sum[1] = sum[1] * xdg + sum[4] * dg;
 							sum[2] = sum[2] * xdg + sum[5] * dg;
