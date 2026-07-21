@@ -73,20 +73,16 @@ struct cg_ctx_t * surface_get_cg_ctx(struct surface_t * s)
 
 struct surface_t * surface_alloc(int width, int height)
 {
-	struct surface_t * s;
-	void * pixels;
-	int stride, pixlen;
-
 	if(width < 0 || height < 0)
 		return NULL;
 
-	s = xos_mem_malloc(sizeof(struct surface_t));
+	struct surface_t * s = xos_mem_malloc(sizeof(struct surface_t));
 	if(!s)
 		return NULL;
 
-	stride = width << 2;
-	pixlen = height * stride;
-	pixels = xos_mem_malloc(pixlen);
+	int stride = width << 2;
+	int pixlen = height * stride;
+	void * pixels = xos_mem_malloc(pixlen);
 	if(!pixels)
 	{
 		xos_mem_free(s);
@@ -141,7 +137,6 @@ static inline uint32_t qoi_read32(uint8_t * buf, int * p)
 
 static struct surface_t * surface_alloc_from_buf_qoi(const void * buf, int len)
 {
-	struct surface_t * s;
 	struct color_t idx[64];
 	struct color_t px;
 	int p = 0, run = 0;
@@ -159,18 +154,18 @@ static struct surface_t * surface_alloc_from_buf_qoi(const void * buf, int len)
 	if((width <= 0) || (height <= 0) || (channels < 3) || (channels > 4) || (colorspace > 1) || (magic != 0x716f6966) || (height >= 400000000 / width))
 		return NULL;
 
-	s = surface_alloc(width, height);
+	struct surface_t * s = surface_alloc(width, height);
 	if(!s)
 		return NULL;
 
-	uint8_t * pixels = (uint8_t *)surface_get_pixels(s);
-	int pixlen = surface_get_pixlen(s);
+	uint32_t * pixels = (uint32_t *)surface_get_pixels(s);
+	int npixels = surface_get_pixlen(s) >> 2;
 	int chklen = len - 8;
 
 	xos_memset(idx, 0, sizeof(idx));
 	color_init(&px, 0, 0, 0, 255);
 
-	for(int i = 0; i < pixlen; i += 4)
+	for(int i = 0; i < npixels; i++)
 	{
 		if(run > 0)
 		{
@@ -194,7 +189,7 @@ static struct surface_t * surface_alloc_from_buf_qoi(const void * buf, int len)
 			}
 			else if((b1 & QOI_MASK_2) == QOI_OP_INDEX)
 			{
-				xos_memcpy(&px, &idx[b1], sizeof(struct color_t));
+				px = idx[b1];
 			}
 			else if((b1 & QOI_MASK_2) == QOI_OP_DIFF)
 			{
@@ -214,32 +209,9 @@ static struct surface_t * surface_alloc_from_buf_qoi(const void * buf, int len)
 			{
 				run = (b1 & 0x3f);
 			}
-			xos_memcpy(&idx[(px.r * 3 + px.g * 5 + px.b * 7 + px.a * 11) & 0x3f], &px, sizeof(struct color_t));
+			idx[(px.r * 3 + px.g * 5 + px.b * 7 + px.a * 11) & 0x3f] = px;
 		}
-		if(px.a != 0)
-		{
-			if(px.a == 255)
-			{
-				pixels[i + 0] = px.b;
-				pixels[i + 1] = px.g;
-				pixels[i + 2] = px.r;
-				pixels[i + 3] = px.a;
-			}
-			else
-			{
-				pixels[i + 0] = XDIV255(px.b * px.a);
-				pixels[i + 1] = XDIV255(px.g * px.a);
-				pixels[i + 2] = XDIV255(px.r * px.a);
-				pixels[i + 3] = px.a;
-			}
-		}
-		else
-		{
-			pixels[i + 0] = 0;
-			pixels[i + 1] = 0;
-			pixels[i + 2] = 0;
-			pixels[i + 3] = 0;
-		}
+		pixels[i] = color_get_premult(&px);
 	}
 	return s;
 }
@@ -268,17 +240,9 @@ static struct surface_t * surface_alloc_from_xfs_qoi(struct xfs_context_t * ctx,
 	return s;
 }
 
-static inline int multiply_alpha(int alpha, int color)
-{
-	int temp = (alpha * color) + 0x80;
-	return ((temp + (temp >> 8)) >> 8);
-}
-
 static void premultiply_data(png_structp png, png_row_infop row_info, png_bytep data)
 {
-	unsigned int i;
-
-	for(i = 0; i < row_info->rowbytes; i += 4)
+	for(unsigned int i = 0; i < row_info->rowbytes; i += 4)
 	{
 		uint8_t * base = &data[i];
 		uint8_t alpha = base[3];
@@ -293,12 +257,11 @@ static void premultiply_data(png_structp png, png_row_infop row_info, png_bytep 
 			uint8_t red = base[0];
 			uint8_t green = base[1];
 			uint8_t blue = base[2];
-
 			if(alpha != 0xff)
 			{
-				red = multiply_alpha(alpha, red);
-				green = multiply_alpha(alpha, green);
-				blue = multiply_alpha(alpha, blue);
+				red = XDIV255(alpha * red);
+				green = XDIV255(alpha * green);
+				blue = XDIV255(alpha * blue);
 			}
 			p = (alpha << 24) | (red << 16) | (green << 8) | (blue << 0);
 		}
@@ -308,28 +271,22 @@ static void premultiply_data(png_structp png, png_row_infop row_info, png_bytep 
 
 static void convert_bytes_to_data(png_structp png, png_row_infop row_info, png_bytep data)
 {
-	unsigned int i;
-
-	for(i = 0; i < row_info->rowbytes; i += 4)
+	for(unsigned int i = 0; i < row_info->rowbytes; i += 4)
 	{
 		uint8_t * base = &data[i];
 		uint8_t red = base[0];
 		uint8_t green = base[1];
 		uint8_t blue = base[2];
-		uint32_t pixel;
-
-		pixel = (0xff << 24) | (red << 16) | (green << 8) | (blue << 0);
+		uint32_t pixel = (0xff << 24) | (red << 16) | (green << 8) | (blue << 0);
 		xos_memcpy(base, &pixel, sizeof(uint32_t));
 	}
 }
 
 static void png_xfs_read_data(png_structp png, png_bytep data, size_t length)
 {
-	size_t check;
-
 	if(png == NULL)
 		return;
-	check = xfs_read((struct xfs_file_t *)png->io_ptr, data, length);
+	size_t check = xfs_read((struct xfs_file_t *)png->io_ptr, data, length);
 	if(check != length)
 		png_error(png, "Read Error");
 }
