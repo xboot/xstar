@@ -15,10 +15,7 @@ struct window_t {
     struct dirtylist_t * dirtylist; /* Dirty rectangle list */
     struct fifo_t * event;          /* Event FIFO queue */
     struct hmap_t * map;            /* Input device mapping */
-    struct {
-        struct surface_t * s;       /* Watermark Surface */
-        struct region_t r;          /* Watermark region */
-    } watermark;
+    int copyright;                  /* Copyright flag */
     int gmflag;                     /* Global matrix update flag */
     int dpi;                        /* Screen DPI */
 };
@@ -98,7 +95,6 @@ Conversion formula: `px = max(dpi * dp / 160, 1)`
 | `window_dp_to_px(w, dp)` | Convert dp to pixels (inline) |
 | `window_set_backlight(w, brightness)` | Set backlight brightness (inline) |
 | `window_get_backlight(w)` | Get backlight brightness (inline) |
-| `window_set_watermark(w, buf, len)` | Set watermark image (PNG data) |
 | `window_set_matrix(w, m)` | Set the local transform matrix |
 
 ### Dirty Rectangle and Presentation
@@ -167,5 +163,4 @@ int bl = window_get_backlight(w);
 - The rendering Surface pixel format is 32-bit premultiplied ARGB
 - The dirty rectangle mechanism avoids full-screen refresh, improving rendering efficiency
 - `window_present_commit()` uses G2D hardware acceleration (if available) for Surface compositing
-- A default XSTAR watermark is set during `window_alloc()`; it can be customized via `window_set_watermark()`
 - `window_pump_event()` is non-blocking; returns 0 immediately when no events are available

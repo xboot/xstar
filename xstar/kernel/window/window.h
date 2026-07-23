@@ -36,10 +36,7 @@ struct window_t {
 	struct dirtylist_t * dirtylist;
 	struct fifo_t * event;
 	struct hmap_t * map;
-	struct {
-		struct surface_t * s;
-		struct region_t r;
-	} watermark;
+	int copyright;
 	int gmflag;
 	int dpi;
 };
@@ -118,7 +115,6 @@ static inline int window_get_backlight(struct window_t * w)
 
 struct window_t * window_alloc(const char * fb, const char * input, int orientation);
 void window_free(struct window_t * w);
-void window_set_watermark(struct window_t * w, const void * buf, int len);
 void window_set_matrix(struct window_t * w, struct matrix2d_t * m);
 void window_exit(struct window_t * w);
 void window_dirtylist_fullscreen(struct window_t * w);

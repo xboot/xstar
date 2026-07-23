@@ -15,10 +15,7 @@ struct window_t {
     struct dirtylist_t * dirtylist; /* 脏矩形列表 */
     struct fifo_t * event;          /* 事件 FIFO 队列 */
     struct hmap_t * map;            /* 输入设备映射表 */
-    struct {
-        struct surface_t * s;       /* 水印 Surface */
-        struct region_t r;          /* 水印区域 */
-    } watermark;
+    int copyright;                  /* 版权标志 */
     int gmflag;                     /* 全局矩阵更新标志 */
     int dpi;                        /* 屏幕 DPI */
 };
@@ -98,7 +95,6 @@ int px = window_dp_to_px(w, 16);  /* 16dp 转换为像素 */
 | `window_dp_to_px(w, dp)` | dp 转像素（内联函数） |
 | `window_set_backlight(w, brightness)` | 设置背光亮度（内联函数） |
 | `window_get_backlight(w)` | 获取背光亮度（内联函数） |
-| `window_set_watermark(w, buf, len)` | 设置水印图片（PNG 数据） |
 | `window_set_matrix(w, m)` | 设置本地变换矩阵 |
 
 ### 脏矩形与呈现
@@ -167,5 +163,4 @@ int bl = window_get_backlight(w);
 - 渲染 Surface 的像素格式为 32 位预乘 ARGB
 - 脏矩形机制避免全屏刷新，提高渲染效率
 - `window_present_commit()` 内部通过 G2D 硬件加速（若可用）执行 Surface 合成
-- 水印在 `window_alloc()` 时自动设置默认 XSTAR 水印，可通过 `window_set_watermark()` 自定义
 - `window_pump_event()` 为非阻塞接口，无事件时立即返回 0
