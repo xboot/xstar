@@ -49,8 +49,7 @@ struct mhandle_cpio_t {
 	struct block_t * blk;
 };
 
-struct fhandle_cpio_t
-{
+struct fhandle_cpio_t {
 	struct list_head_t head;
 	struct hlist_node_t node;
 	char * name;

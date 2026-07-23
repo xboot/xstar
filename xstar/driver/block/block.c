@@ -24,8 +24,7 @@
 
 #include <driver/block/block.h>
 
-struct sub_block_pdata_t
-{
+struct sub_block_pdata_t {
 	uint64_t offset;
 	uint64_t length;
 	struct block_t * pblk;
