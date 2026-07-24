@@ -26,13 +26,11 @@
 
 static inline void blurinner(unsigned char * p, int * zr, int * zg, int * zb, int * za, int alpha)
 {
-	int r, g, b;
-	unsigned char a;
+	int b = p[0];
+	int g = p[1];
+	int r = p[2];
+	unsigned char a = p[3];
 
-	b = p[0];
-	g = p[1];
-	r = p[2];
-	a = p[3];
 	*zb += (alpha * ((b << 7) - *zb)) >> 16;
 	*zg += (alpha * ((g << 7) - *zg)) >> 16;
 	*zr += (alpha * ((r << 7) - *zr)) >> 16;
@@ -46,13 +44,12 @@ static inline void blurinner(unsigned char * p, int * zr, int * zg, int * zb, in
 static inline void blurrow(unsigned char * pixel, int width, int height, int x, int y, int w, int index, int alpha)
 {
 	unsigned char * p = pixel + (y + index) * (width << 2) + (x << 2);
-	int zr, zg, zb, za;
+	int zb = p[0] << 7;
+	int zg = p[1] << 7;
+	int zr = p[2] << 7;
+	int za = p[3] << 7;
 	int i;
 
-	zb = p[0] << 7;
-	zg = p[1] << 7;
-	zr = p[2] << 7;
-	za = p[3] << 7;
 	for(i = 0; i < w; i++, p += 4)
 		blurinner(p, &zr, &zg, &zb, &za, alpha);
 	for(i = w - 2, p -= 8; i >= 0; i--, p -= 4)
@@ -62,15 +59,14 @@ static inline void blurrow(unsigned char * pixel, int width, int height, int x, 
 static inline void blurcol(unsigned char * pixel, int width, int height, int x, int y, int h, int index, int alpha)
 {
 	int stride = width << 2;
-	unsigned char * p = pixel + (y + 1) * stride + ((x + index) << 2);
-	int zr, zg, zb, za;
+	unsigned char * p = pixel + y * stride + ((x + index) << 2);
+	int zb = p[0] << 7;
+	int zg = p[1] << 7;
+	int zr = p[2] << 7;
+	int za = p[3] << 7;
 	int i;
 
-	zb = p[0] << 7;
-	zg = p[1] << 7;
-	zr = p[2] << 7;
-	za = p[3] << 7;
-	for(i = 1; i < h; i++, p += stride)
+	for(i = 0; i < h; i++, p += stride)
 		blurinner(p, &zr, &zg, &zb, &za, alpha);
 	for(i = h - 2, p -= (stride << 1); i >= 0; i--, p -= stride)
 		blurinner(p, &zr, &zg, &zb, &za, alpha);
@@ -78,11 +74,12 @@ static inline void blurcol(unsigned char * pixel, int width, int height, int x, 
 
 void blur(unsigned char * pixel, int width, int height, int x, int y, int w, int h, int radius)
 {
-	int alpha = (int)((1 << 16) * (1.0 - expf(-2.3 / (radius + 1.0))));
-	int i;
-
-	for(i = 0; i < h; i++)
-		blurrow(pixel, width, height, x, y, w, i, alpha);
-	for(i = 0; i < w; i++)
-		blurcol(pixel, width, height, x, y, h, i, alpha);
+	if(radius > 0)
+	{
+		int alpha = (int)((1 << 16) * (1.0 - expf(-2.3 / (radius + 1.0))));
+		for(int i = 0; i < h; i++)
+			blurrow(pixel, width, height, x, y, w, i, alpha);
+		for(int i = 0; i < w; i++)
+			blurcol(pixel, width, height, x, y, h, i, alpha);
+	}
 }
