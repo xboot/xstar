@@ -24,7 +24,7 @@ struct cg_surface_t {
     int width;
     int height;
     int stride;
-    int owndata;
+    int owns;
     unsigned char * pixels;
 };
 ```
