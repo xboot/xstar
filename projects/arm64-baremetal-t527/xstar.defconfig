@@ -15,6 +15,12 @@ CONFIG_ARCH_ARM64=y
 # CONFIG_ARCH_X32 is not set
 # CONFIG_ARCH_X64 is not set
 CONFIG_OPTIMIZE_LEVEL="-O3"
+# CONFIG_OPTIMIZE_LEVEL_O0 is not set
+# CONFIG_OPTIMIZE_LEVEL_O1 is not set
+# CONFIG_OPTIMIZE_LEVEL_O2 is not set
+CONFIG_OPTIMIZE_LEVEL_O3=y
+# CONFIG_OPTIMIZE_LEVEL_OS is not set
+CONFIG_DEBUG_SYMBOL="-g -ggdb"
 # end of Compile Options
 
 #
@@ -22,11 +28,6 @@ CONFIG_OPTIMIZE_LEVEL="-O3"
 #
 CONFIG_PROJECT_NAME="arm64-baremetal-t527"
 # end of Project Selection
-
-#
-# Project Options
-#
-# end of Project Options
 
 #
 # Package Libraries

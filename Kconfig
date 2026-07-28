@@ -22,23 +22,38 @@ config ARCH
 choice
 	prompt "Architecture type"
 	default ARCH_X64
+	help
+		Select the target CPU architecture. This determines the
+		cross-compiler toolchain, platform-specific source files and
+		linker settings used for the build. The selected value is
+		exposed as CONFIG_ARCH (e.g. "arm32", "x64") for use by the
+		build system.
+
 	config ARCH_ARM32
-		bool "ARM 32-bit"
+		bool "ARM 32-bits"
 	config ARCH_ARM64
-		bool "ARM 64-bit"
+		bool "ARM 64-bits"
 	config ARCH_RISCV32
-		bool "RISC-V 32-bit"
+		bool "RISC-V 32-bits"
 	config ARCH_RISCV64
-		bool "RISC-V 64-bit"
+		bool "RISC-V 64-bits"
 	config ARCH_X32
-		bool "X86 32-bit"
+		bool "X86 32-bits"
 	config ARCH_X64
-		bool "X86 64-bit"
+		bool "X86 64-bits"
 endchoice
 
 config OPTIMIZE_LEVEL
-	string "Optimization level"
-	default "-O3"
+	string
+	default "-O0" if OPTIMIZE_LEVEL_O0
+	default "-O1" if OPTIMIZE_LEVEL_O1
+	default "-O2" if OPTIMIZE_LEVEL_O2
+	default "-O3" if OPTIMIZE_LEVEL_O3
+	default "-Os" if OPTIMIZE_LEVEL_OS
+
+choice
+	prompt "Optimization level"
+	default OPTIMIZE_LEVEL_O3
 	help
 		Compiler optimization level. Common values:
 		-O0: No optimization
@@ -46,6 +61,27 @@ config OPTIMIZE_LEVEL
 		-O2: Moderate optimization
 		-O3: Aggressive optimization
 		-Os: Optimize for size
+
+config OPTIMIZE_LEVEL_O0
+	bool "-O0"
+config OPTIMIZE_LEVEL_O1
+	bool "-O1"
+config OPTIMIZE_LEVEL_O2
+	bool "-O2"
+config OPTIMIZE_LEVEL_O3
+	bool "-O3"
+config OPTIMIZE_LEVEL_OS
+	bool "-Os"
+endchoice
+
+config DEBUG_SYMBOL
+	string "Debug symbol flags"
+	default "-g -ggdb"
+	help
+		Compiler debug information flags passed to the compiler. Common
+		values: -g, -ggdb, -g3, -ggdb3. Leave empty to disable debug
+		symbol generation and reduce object file size for release builds.
+
 endmenu
 
 source "projects/Kconfig"
