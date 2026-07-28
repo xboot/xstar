@@ -55,9 +55,9 @@ INCLUDES		+= -I $(TOPDIR)/xstar/external/jpeg-9d
 INCLUDES		+= -I $(TOPDIR)/xstar/external/libpng-1.6.37
 INCLUDES		+= -I $(TOPDIR)/xstar/external/zlib-1.2.11
 
-ASFLAGS			:= $(INCLUDES) $(CONFIG_DEBUG_SYMBOL:"%"=%) $(CONFIG_OPTIMIZE_LEVEL:"%"=%) -Wall -std=gnu99
-CFLAGS			:= $(INCLUDES) $(CONFIG_DEBUG_SYMBOL:"%"=%) $(CONFIG_OPTIMIZE_LEVEL:"%"=%) -Wall -std=gnu99
-CXXFLAGS		:= $(INCLUDES) $(CONFIG_DEBUG_SYMBOL:"%"=%) $(CONFIG_OPTIMIZE_LEVEL:"%"=%) -Wall
+ASFLAGS			:= $(INCLUDES) $(if $(CONFIG_DEBUG_SYMBOL),-g -ggdb) $(CONFIG_OPTIMIZE_LEVEL:"%"=%) -Wall -std=gnu99
+CFLAGS			:= $(INCLUDES) $(if $(CONFIG_DEBUG_SYMBOL),-g -ggdb) $(CONFIG_OPTIMIZE_LEVEL:"%"=%) -Wall -std=gnu99
+CXXFLAGS		:= $(INCLUDES) $(if $(CONFIG_DEBUG_SYMBOL),-g -ggdb) $(CONFIG_OPTIMIZE_LEVEL:"%"=%) -Wall
 LDFLAGS			:=
 OCFLAGS			:= -v -O binary
 ODFLAGS			:=

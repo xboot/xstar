@@ -75,12 +75,11 @@ config OPTIMIZE_LEVEL_OS
 endchoice
 
 config DEBUG_SYMBOL
-	string "Debug symbol flags"
-	default "-g -ggdb"
+	bool "Generate debug symbols (-g -ggdb)"
+	default y
 	help
-		Compiler debug information flags passed to the compiler. Common
-		values: -g, -ggdb, -g3, -ggdb3. Leave empty to disable debug
-		symbol generation and reduce object file size for release builds.
+		Enable generation of debug information (-g -ggdb) for use with
+		gdb. Disable for release builds to reduce object file size.
 
 endmenu
 
