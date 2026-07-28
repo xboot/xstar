@@ -135,7 +135,7 @@ static ssize_t printer_write_testpage(struct kobj_t * kobj, void * buf, size_t s
 	/*
 	 * qrcode
 	 */
-	printer_print_qrcode(p, PRINTER_ALIGN_CENTER, 8, "%s", xos_copyright_uniqueid());
+	printer_print_qrcode(p, PRINTER_ALIGN_CENTER, 8, "%s", copyright_uniqueid());
 	printer_feed(p, 16);
 	printer_print_hr(p, 8, 8);
 	printer_feed(p, 16);

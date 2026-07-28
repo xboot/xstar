@@ -115,11 +115,6 @@ struct xos_environ_t {
 	} pm;
 
 	struct {
-		char * (*uniqueid)(void);
-		int (*verify)(void);
-	} copyright;
-
-	struct {
 		char * (*cwd)(void);
 		int (*open)(const char * path, const char * mode);
 		int (*close)(int fd);
@@ -403,21 +398,6 @@ static inline void xos_pm_standby(void)
 {
 	#undef standby
 	__xos_environ.pm.standby();
-}
-
-/*
- * copyright
- */
-static inline char * xos_copyright_uniqueid(void)
-{
-	#undef uniqueid
-	return __xos_environ.copyright.uniqueid();
-}
-
-static inline int xos_copyright_verify(void)
-{
-	#undef verify
-	return __xos_environ.copyright.verify();
 }
 
 /*

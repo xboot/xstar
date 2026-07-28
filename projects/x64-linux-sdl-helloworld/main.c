@@ -41,11 +41,6 @@ static struct xos_environ_t env = {
 		.standby = linux_pm_standby,
 	},
 
-	.copyright = {
-		.uniqueid = linux_copyright_uniqueid,
-		.verify = linux_copyright_verify,
-	},
-
 	.file = {
 		.cwd = linux_file_cwd,
 		.open = linux_file_open,

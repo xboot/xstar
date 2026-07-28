@@ -1,4 +1,5 @@
 obj-y += cochannel.o
+obj-y += copyright.o
 obj-y += coroutine.o
 obj-y += logger.o
 obj-y += profiler.o

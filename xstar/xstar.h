@@ -15,6 +15,7 @@ extern "C" {
 #include <kernel/cg/xft.h>
 #include <kernel/command/command.h>
 #include <kernel/core/cochannel.h>
+#include <kernel/core/copyright.h>
 #include <kernel/core/coroutine.h>
 #include <kernel/core/logger.h>
 #include <kernel/core/profiler.h>

@@ -24,7 +24,7 @@
 
 #include <freertos/freertos.h>
 
-char * freertos_copyright_uniqueid(void)
+char * copyright_uniqueid(void)
 {
 	static char uniqueid[32 + 1] = { 0 };
 	io_addr_t addr = 0x43006200;
@@ -38,7 +38,7 @@ char * freertos_copyright_uniqueid(void)
 	return uniqueid;
 }
 
-int freertos_copyright_verify(void)
+int copyright_verify(void)
 {
 	return 1;
 }

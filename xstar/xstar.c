@@ -197,12 +197,12 @@ static struct kobj_t * search_class_copyright_kobj(void)
 
 static ssize_t copyright_read_uniqueid(struct kobj_t * kobj, void * buf, size_t size)
 {
-	return xos_sprintf(buf, "%s", xos_copyright_uniqueid());
+	return xos_sprintf(buf, "%s", copyright_uniqueid());
 }
 
 static ssize_t copyright_read_verify(struct kobj_t * kobj, void * buf, size_t size)
 {
-	return xos_sprintf(buf, "%s", xos_copyright_verify() ? "okay" : "fail");
+	return xos_sprintf(buf, "%d", copyright_verify() ? 1 : 0);
 }
 
 static void do_init_copyright(void)

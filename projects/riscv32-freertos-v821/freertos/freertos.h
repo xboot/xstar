@@ -12,9 +12,6 @@ void freertos_init(void);
 void freertos_run(void (*func)(void *));
 void freertos_exit(void);
 
-char * freertos_copyright_uniqueid(void);
-int freertos_copyright_verify(void);
-
 void * freertos_dma_alloc_coherent(unsigned long size);
 void freertos_dma_free_coherent(void * addr);
 void * freertos_dma_alloc_noncoherent(unsigned long size);

@@ -41,11 +41,6 @@ static struct xos_environ_t env = {
 		.standby = win_pm_standby,
 	},
 
-	.copyright = {
-		.uniqueid = win_copyright_uniqueid,
-		.verify = win_copyright_verify,
-	},
-
 	.file = {
 		.cwd = win_file_cwd,
 		.open = win_file_open,

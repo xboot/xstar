@@ -24,12 +24,12 @@
 
 #include <baremetal/baremetal.h>
 
-char * baremetal_copyright_uniqueid(void)
+char * copyright_uniqueid(void)
 {
 	return "0123456789";
 }
 
-int baremetal_copyright_verify(void)
+int copyright_verify(void)
 {
 	return 1;
 }

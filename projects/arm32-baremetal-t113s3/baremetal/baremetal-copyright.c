@@ -24,7 +24,7 @@
 
 #include <baremetal/baremetal.h>
 
-char * baremetal_copyright_uniqueid(void)
+char * copyright_uniqueid(void)
 {
 	static char uniqueid[32 + 1] = { 0 };
 	io_addr_t addr = 0x03006200;
@@ -38,7 +38,7 @@ char * baremetal_copyright_uniqueid(void)
 	return uniqueid;
 }
 
-int baremetal_copyright_verify(void)
+int copyright_verify(void)
 {
 	return 1;
 }

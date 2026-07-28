@@ -137,12 +137,6 @@ void linux_cam_stop(void * context);
 int linux_cam_capture(void * context, void ** buf);
 
 /*
- * Copyright interface
- */
-char * linux_copyright_uniqueid(void);
-int linux_copyright_verify(void);
-
-/*
  * Linux dirtylist
  */
 struct linux_dirtylist_item_t {

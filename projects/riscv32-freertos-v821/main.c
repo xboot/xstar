@@ -45,11 +45,6 @@ static struct xos_environ_t env = {
 		.standby = freertos_pm_standby,
 	},
 
-	.copyright = {
-		.uniqueid = freertos_copyright_uniqueid,
-		.verify = freertos_copyright_verify,
-	},
-
 	.file = {
 		.cwd = NULL,
 		.open = NULL,

@@ -24,6 +24,7 @@
 
 #include <driver/g2d/g2d.h>
 #include <driver/clocksource/clocksource.h>
+#include <kernel/core/copyright.h>
 #include <kernel/window/window.h>
 
 static void fb_dummy_setbl(struct framebuffer_t * fb, int brightness)
@@ -545,7 +546,7 @@ struct window_t * window_alloc(const char * fb, const char * input, int orientat
 			}
 		}
 	}
-	w->copyright = xos_copyright_verify() ? 1 : 0;
+	w->copyright = copyright_verify() ? 1 : 0;
 
 	xos_mutex_lock(&__window_lock);
 	list_add(&w->list, &__window_list);

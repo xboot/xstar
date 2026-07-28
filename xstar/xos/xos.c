@@ -167,19 +167,6 @@ static void __xos_pm_standby(void)
 }
 
 /*
- * copyright
- */
-static char * __xos_copyright_uniqueid(void)
-{
-	return "0123456789";
-}
-
-static int __xos_copyright_verify(void)
-{
-	return 1;
-}
-
-/*
  * file
  */
 static char * __xos_file_cwd(void)
@@ -577,11 +564,6 @@ struct xos_environ_t __xos_environ = {
 		.standby = __xos_pm_standby,
 	},
 
-	.copyright = {
-		.uniqueid = __xos_copyright_uniqueid,
-		.verify = __xos_copyright_verify,
-	},
-
 	.file = {
 		.cwd = __xos_file_cwd,
 		.open = __xos_file_open,
@@ -719,14 +701,6 @@ void xos_environ_init(struct xos_environ_t * env)
 			__xos_environ.pm.reboot = env->pm.reboot;
 		if(env->pm.standby)
 			__xos_environ.pm.standby = env->pm.standby;
-
-		/*
-		 * copyright
-		 */
-		if(env->copyright.uniqueid)
-			__xos_environ.copyright.uniqueid = env->copyright.uniqueid;
-		if(env->copyright.verify)
-			__xos_environ.copyright.verify = env->copyright.verify;
 
 		/*
 		 * file

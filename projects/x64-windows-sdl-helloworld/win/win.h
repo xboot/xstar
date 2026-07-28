@@ -111,12 +111,6 @@ void win_init(void);
 void win_exit(void);
 
 /*
- * Copyright interface
- */
-char * win_copyright_uniqueid(void);
-int win_copyright_verify(void);
-
-/*
  * Win dirtylist
  */
 struct win_dirtylist_item_t {

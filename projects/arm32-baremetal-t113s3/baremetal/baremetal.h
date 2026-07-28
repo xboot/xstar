@@ -7,9 +7,6 @@ extern "C" {
 
 #include <xstar.h>
 
-char * baremetal_copyright_uniqueid(void);
-int baremetal_copyright_verify(void);
-
 void * baremetal_dma_alloc_coherent(unsigned long size);
 void baremetal_dma_free_coherent(void * addr);
 void * baremetal_dma_alloc_noncoherent(unsigned long size);

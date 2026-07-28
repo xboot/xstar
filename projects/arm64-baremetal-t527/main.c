@@ -41,11 +41,6 @@ static struct xos_environ_t env = {
 		.standby = baremetal_pm_standby,
 	},
 
-	.copyright = {
-		.uniqueid = baremetal_copyright_uniqueid,
-		.verify = baremetal_copyright_verify,
-	},
-
 	.file = {
 		.cwd = NULL,
 		.open = NULL,

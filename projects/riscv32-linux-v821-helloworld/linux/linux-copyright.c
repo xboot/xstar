@@ -16,7 +16,7 @@ static char * strim(char * s)
 	return s;
 }
 
-char * linux_copyright_uniqueid(void)
+char * copyright_uniqueid(void)
 {
 	static char uniqueid[32 + 1] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
 	FILE * fp = fopen("/sys/class/sunxi_info/sys_info", "r");
@@ -50,7 +50,7 @@ char * linux_copyright_uniqueid(void)
 	return uniqueid;
 }
 
-int linux_copyright_verify(void)
+int copyright_verify(void)
 {
 	return 1;
 }

@@ -23,58 +23,15 @@
  */
 
 #include <kernel/core/copyright.h>
-#include <kernel/shell/context.h>
-#include <kernel/command/command.h>
 
-static void usage(void)
+static char * __copyright_uniqueid(void)
 {
-	shell_printf("usage:\r\n");
-	shell_printf("    uniqueid [qrcode invert]\r\n");
+	return "0123456789";
 }
+extern __typeof(__copyright_uniqueid) copyright_uniqueid __attribute__((weak, alias("__copyright_uniqueid")));
 
-static int do_uniqueid(int argc, char ** argv)
+static int __copyright_verify(void)
 {
-	struct sarg_t sarg;
-	int invert = 1;
-
-	sarg_init(&sarg, argc, argv);
-	if(!sarg_valid(&sarg, NULL, 0, 1))
-	{
-		usage();
-		return -1;
-	}
-	const char * p0 = sarg_at(&sarg, 0);
-	if(p0)
-		invert = (xos_strtoul(p0, NULL, 0) != 0) ? 1 : 0;
-
-	char * id = copyright_uniqueid();
-	shell_printf("ID: %s\r\n", id);
-
-	char * s = qrcgen_tostring(id, invert);
-	if(s)
-	{
-		shell_printf("%s", s);
-		xos_mem_free(s);
-	}
-	return 0;
+	return 1;
 }
-
-static struct command_t cmd_uniqueid = {
-	.name	= "uniqueid",
-	.desc	= "show qrcode for system uniqueid",
-	.usage	= usage,
-	.exec	= do_uniqueid,
-};
-
-static void uniqueid_cmd_init(void)
-{
-	register_command(&cmd_uniqueid);
-}
-
-static void uniqueid_cmd_exit(void)
-{
-	unregister_command(&cmd_uniqueid);
-}
-
-command_initcall(uniqueid_cmd_init);
-command_exitcall(uniqueid_cmd_exit);
+extern __typeof(__copyright_verify) copyright_verify __attribute__((weak, alias("__copyright_verify")));
