@@ -621,10 +621,6 @@ static struct xos_environ_t env = {
         .reboot   = my_reboot,
         .standby  = my_standby,
     },
-    .copyright = {
-        .uniqueid = my_uniqueid,
-        .verify   = my_verify,
-    },
     .file = {
         .cwd     = my_cwd,
         .open    = my_file_open,
