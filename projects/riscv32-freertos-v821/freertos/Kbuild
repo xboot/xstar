@@ -1,6 +1,5 @@
 subdirs-y += kernel
 
-obj-y += freertos-copyright.o
 obj-y += freertos-dma.o
 obj-y += freertos-io.o
 obj-y += freertos-mem.o

@@ -3,6 +3,7 @@ obj-y += cam-linux.o
 obj-y += capture-linux.o
 obj-y += ce-linux.o
 obj-y += console-linux.o
+obj-y += copyright-platform.o
 obj-y += cs-linux.o
 obj-y += fb-linux-drm.o
 obj-y += fb-linux.o

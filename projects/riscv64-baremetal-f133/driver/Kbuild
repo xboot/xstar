@@ -2,6 +2,7 @@ obj-y += adc-f133.o
 obj-y += cam-f133-tvd.o
 obj-y += ce-f133-timer.o
 obj-y += clk-f133-pll.o
+obj-y += copyright-platform.o
 obj-y += cs-f133-timer.o
 obj-y += dma-f133.o
 obj-y += fb-f133-rgb.o

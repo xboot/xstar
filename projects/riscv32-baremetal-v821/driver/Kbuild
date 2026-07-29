@@ -1,6 +1,7 @@
 obj-y += adc-v821.o
 obj-y += ce-plmt-timer.o
 obj-y += clk-v821-pll.o
+obj-y += copyright-platform.o
 obj-y += cs-plmt-timer.o
 obj-y += gpio-v821.o
 obj-y += i2c-v821.o

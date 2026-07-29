@@ -24,14 +24,62 @@
 
 #include <kernel/core/copyright.h>
 
-static char * __copyright_uniqueid(void)
+static const char * __copyright_dummy_uniqueid(void)
 {
 	return "0123456789";
 }
-extern __typeof(__copyright_uniqueid) copyright_uniqueid __attribute__((weak, alias("__copyright_uniqueid")));
 
-static int __copyright_verify(void)
+static int __copyright_dummy_keygen(const char * msg, void * key, int maxlen)
+{
+	if(key && (maxlen > 0))
+	{
+		uint8_t digest[SHA256_DIGEST_SIZE];
+		int len = XMIN((int)sizeof(digest), maxlen);
+		sha256_hash(msg, xos_strlen(msg), digest);
+		xos_memcpy(key, digest, len);
+		return len;
+	}
+	return 0;
+}
+
+static int __copyright_dummy_verify(void)
 {
 	return 1;
 }
-extern __typeof(__copyright_verify) copyright_verify __attribute__((weak, alias("__copyright_verify")));
+
+static struct copyright_t __copyright_dummy = {
+	.uniqueid	= __copyright_dummy_uniqueid,
+	.keygen		= __copyright_dummy_keygen,
+	.verify		= __copyright_dummy_verify,
+};
+static struct copyright_t * __copyright = &__copyright_dummy;
+
+const char * copyright_uniqueid(void)
+{
+	const char * id = __copyright->uniqueid();
+	if(id)
+		return id;
+	return __copyright_dummy_uniqueid();
+}
+
+int copyright_keygen(const char * msg, void * key, int maxlen)
+{
+	int len = __copyright->keygen(msg, key, maxlen);
+	if(len > 0)
+		return len;
+	return __copyright_dummy_keygen(msg, key, maxlen);
+}
+
+int copyright_verify(void)
+{
+	return __copyright->verify();
+}
+
+void register_copyright(struct copyright_t * c)
+{
+	if(c && c->uniqueid && c->keygen && c->verify)
+	{
+		if(__copyright == &__copyright_dummy)
+			__copyright = c;
+	}
+}

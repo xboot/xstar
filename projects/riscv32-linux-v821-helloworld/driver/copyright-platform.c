@@ -1,4 +1,4 @@
-#include <linux/linux.h>
+#include <xstar.h>
 
 static char * strim(char * s)
 {
@@ -16,7 +16,7 @@ static char * strim(char * s)
 	return s;
 }
 
-char * copyright_uniqueid(void)
+static const char * platform_uniqueid(void)
 {
 	static char uniqueid[32 + 1] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
 	FILE * fp = fopen("/sys/class/sunxi_info/sys_info", "r");
@@ -50,7 +50,24 @@ char * copyright_uniqueid(void)
 	return uniqueid;
 }
 
-int copyright_verify(void)
+static int platform_verify(void)
 {
 	return 1;
 }
+
+static int platform_keygen(const char * msg, void * key, int maxlen)
+{
+	return 0;
+}
+
+static struct copyright_t copyright_platform = {
+	.uniqueid	= platform_uniqueid,
+	.keygen		= platform_keygen,
+	.verify		= platform_verify,
+};
+
+static void copyright_platform_init(void)
+{
+	register_copyright(&copyright_platform);
+}
+core_initcall(copyright_platform_init);

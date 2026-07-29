@@ -47,7 +47,7 @@ static int do_uniqueid(int argc, char ** argv)
 	if(p0)
 		invert = (xos_strtoul(p0, NULL, 0) != 0) ? 1 : 0;
 
-	char * id = copyright_uniqueid();
+	const char * id = copyright_uniqueid();
 	shell_printf("ID: %s\r\n", id);
 
 	char * s = qrcgen_tostring(id, invert);

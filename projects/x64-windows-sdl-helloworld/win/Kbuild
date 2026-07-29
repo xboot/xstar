@@ -1,5 +1,4 @@
 obj-y += win.o
-obj-y += win-copyright.o
 obj-y += win-dirtylist.o
 obj-y += win-dma.o
 obj-y += win-event-sdl.o

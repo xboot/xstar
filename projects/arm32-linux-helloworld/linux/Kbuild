@@ -1,7 +1,6 @@
 obj-y += arm32-coroutine.o
 obj-y += linux-audio.o
 obj-y += linux-cam.o
-obj-y += linux-copyright.o
 obj-y += linux-dirtylist.o
 obj-y += linux-dma.o
 obj-y += linux-event.o

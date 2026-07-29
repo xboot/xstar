@@ -1,4 +1,5 @@
 obj-y += ce-armv7-timer.o
+obj-y += copyright-platform.o
 obj-y += cs-armv7-timer.o
 obj-y += gpio-rk3506.o
 obj-y += irq-gic400.o

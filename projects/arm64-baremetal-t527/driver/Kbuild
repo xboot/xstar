@@ -1,3 +1,4 @@
+obj-y += copyright-platform.o
 obj-y += cs-armv8-timer.o
 obj-y += gpio-t527.o
 obj-y += reset-t527.o

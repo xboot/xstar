@@ -7,6 +7,7 @@ obj-y += clk-rv1103-gate.o
 obj-y += clk-rv1103-mux.o
 obj-y += clk-rv1103-pll.o
 obj-y += clk-rv1103-ratio.o
+obj-y += copyright-platform.o
 obj-y += cs-armv7-timer.o
 obj-y += gpio-rv1103.o
 obj-y += i2c-rv1103.o
