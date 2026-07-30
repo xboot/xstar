@@ -239,6 +239,25 @@ int xfs_remove(struct xfs_context_t * ctx, const char * name)
 	return ret;
 }
 
+void * xfs_map(struct xfs_context_t * ctx, const char * name, int64_t * length)
+{
+	struct xfs_path_t * pos, * n;
+	char * path;
+	void * addr = NULL;
+
+	if(ctx && (path = normal_path(name)))
+	{
+		list_for_each_entry_safe_reverse(pos, n, &ctx->mounts.list, list)
+		{
+			addr = pos->archiver->map(pos->mhandle, path, length);
+			if(addr)
+				break;
+		}
+		xos_mem_free(path);
+	}
+	return addr;
+}
+
 struct xfs_file_t * xfs_open_read(struct xfs_context_t * ctx, const char * name)
 {
 	struct xfs_path_t * pos, * n;

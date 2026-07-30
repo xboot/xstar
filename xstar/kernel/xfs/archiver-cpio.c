@@ -326,6 +326,21 @@ static int cpio_remove(void * m, const char * name)
 	return FALSE;
 }
 
+static void * cpio_map(void * m, const char * name, int64_t * length)
+{
+	struct mhandle_cpio_t * mh = (struct mhandle_cpio_t *)m;
+	struct fhandle_cpio_t * fh = search_fhandle(mh, name);
+	uint64_t address = block_address(mh->blk);
+
+	if(!fh || fh->isdir)
+		return NULL;
+	if(address == 0)
+		return NULL;
+	if(length)
+		*length = fh->size;
+	return (void *)(io_addr_t)(address + fh->start);
+}
+
 static void * cpio_open(void * m, const char * name, int mode)
 {
 	struct mhandle_cpio_t * mh = (struct mhandle_cpio_t *)m;
@@ -400,6 +415,7 @@ static struct xfs_archiver_t archiver_cpio = {
 	.mode		= cpio_mode,
 	.mkdir		= cpio_mkdir,
 	.remove		= cpio_remove,
+	.map		= cpio_map,
 	.open		= cpio_open,
 	.read		= cpio_read,
 	.write		= cpio_write,

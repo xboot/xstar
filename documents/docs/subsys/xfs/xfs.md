@@ -1,6 +1,6 @@
 # 文件系统 (xfs)
 
-XSTAR 虚拟文件系统，通过可插拔的归档器（archiver）后端统一访问不同存储介质，支持 CPIO 归档、真实目录和 KOBJ 虚拟文件系统，提供挂载、文件读写和目录遍历等标准文件操作。
+XSTAR 虚拟文件系统，通过可插拔的归档器（archiver）后端统一访问不同存储介质，支持 CPIO 归档、真实目录和 KOBJ 虚拟文件系统，提供挂载、文件读写、目录遍历和内存映射等标准文件操作。
 
 ## 数据结构
 
@@ -39,15 +39,15 @@ struct xfs_file_t {
 
 ### 归档器架构
 
-XFS 通过归档器接口（`struct xfs_archiver_t`）抽象不同存储后端，每个归档器实现一组统一的操作函数（mount/umount/walk/open/read/write 等）。归档器通过 `register_archiver()` 注册到全局链表，`mount_archiver()` 按注册顺序依次尝试挂载，第一个成功的归档器接管该路径。
+XFS 通过归档器接口（`struct xfs_archiver_t`）抽象不同存储后端，每个归档器实现一组统一的操作函数（mount/umount/walk/map/open/read/write 等）。归档器通过 `register_archiver()` 注册到全局链表，`mount_archiver()` 按注册顺序依次尝试挂载，第一个成功的归档器接管该路径。
 
 ### 存储后端
 
-| 归档器 | 说明 | 可写 |
-|--------|------|------|
-| cpio | CPIO newc 格式归档，从块设备读取，用于 romdisk | 否 |
-| dir | 宿主机真实文件系统目录，通过 XOS 文件接口访问 | 是 |
-| sys | KOBJ 虚拟文件系统，挂载路径为 `"sys"`，访问系统内核对象 | 是 |
+| 归档器 | 说明 | 可写 | 内存映射 |
+|--------|------|------|----------|
+| cpio | CPIO newc 格式归档，从块设备读取，用于 romdisk | 否 | 是（仅内存映射块设备） |
+| dir | 宿主机真实文件系统目录，通过 XOS 文件接口访问 | 是 | 否 |
+| sys | KOBJ 虚拟文件系统，挂载路径为 `"sys"`，访问系统内核对象 | 是 | 否 |
 
 ### 自动挂载
 
@@ -98,6 +98,12 @@ XFS 通过归档器接口（`struct xfs_archiver_t`）抽象不同存储后端�
 | `xfs_mode(ctx, name)` | 获取文件模式 |
 | `xfs_mkdir(ctx, name)` | 创建目录（仅可写挂载点） |
 | `xfs_remove(ctx, name)` | 删除文件或目录（仅可写挂载点） |
+
+### 内存映射
+
+| 函数 | 说明 |
+|------|------|
+| `xfs_map(ctx, name, length)` | 将文件映射到内存，返回文件数据的直接指针；`length` 非 NULL 时写入文件长度。文件不存在、为目录或后端不支持时返回 `NULL` |
 
 ### 文件操作
 
@@ -189,11 +195,28 @@ if(file)
 xfs_free(ctx);
 ```
 
+### 内存映射访问文件
+
+```c
+#include <kernel/xfs/xfs.h>
+
+struct xfs_context_t * ctx = xfs_alloc();
+int64_t len = 0;
+void * addr = xfs_map(ctx, "dtree/default.json", &len);
+if(addr)
+{
+    /* 直接读取内存中的文件数据，无需 open/read/close，指针无需释放 */
+    LOG("content: %.*s\n", (int)len, (char *)addr);
+}
+xfs_free(ctx);
+```
+
 ## 说明
 
 - 每个需要文件访问的模块应通过 `xfs_alloc()` 创建独立上下文，使用完毕后调用 `xfs_free()` 释放
 - romdisk（`blk-romdisk.0`）为只读，写入操作会自动跳过该挂载点
 - 路径分隔符为 `/`，不支持 `.` 和 `..` 路径分量
-- 归档器通过 `pure_initcall()` 在系统启动早期初始化
+- 归档器通过 `core_initcall()` 在系统启动早期初始化
 - `mount_archiver()` 按注册顺序尝试挂载，cpio 先于 dir 先于 sys
+- `xfs_map()` 仅在底层块设备为内存映射（如 romdisk）时返回有效指针，否则返回 `NULL`，此时应改用 `xfs_open_read()`/`xfs_read()` 读取
 - KOBJ 虚拟文件系统（sys）提供对系统内核对象（设备、驱动等）的只读/读写访问

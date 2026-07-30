@@ -15,8 +15,7 @@ enum {
 	XFS_OPEN_MODE_APPEND	= 2,
 };
 
-struct xfs_archiver_t
-{
+struct xfs_archiver_t {
 	char * name;
 	struct list_head_t list;
 
@@ -28,6 +27,7 @@ struct xfs_archiver_t
 	int (*mode)(void * m, const char * name);
 	int (*mkdir)(void * m, const char * name);
 	int (*remove)(void * m, const char * name);
+	void * (*map)(void * m, const char * name, int64_t * length);
 	void * (*open)(void * m, const char * name, int mode);
 	int64_t (*read)(void * f, void * buf, int64_t size);
 	int64_t (*write)(void * f, void * buf, int64_t size);

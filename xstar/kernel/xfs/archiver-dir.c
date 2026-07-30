@@ -140,6 +140,11 @@ static int dir_remove(void * m, const char * name)
 	return ret;
 }
 
+static void * dir_map(void * m, const char * name, int64_t * length)
+{
+	return NULL;
+}
+
 static void * dir_open(void * m, const char * name, int mode)
 {
 	struct mhandle_dir_t * mh = (struct mhandle_dir_t *)m;
@@ -233,6 +238,7 @@ static struct xfs_archiver_t archiver_dir = {
 	.mode		= dir_mode,
 	.mkdir		= dir_mkdir,
 	.remove		= dir_remove,
+	.map		= dir_map,
 	.open		= dir_open,
 	.read		= dir_read,
 	.write		= dir_write,

@@ -34,6 +34,7 @@ int xfs_isfile(struct xfs_context_t * ctx, const char * name);
 int xfs_mode(struct xfs_context_t * ctx, const char * name);
 int xfs_mkdir(struct xfs_context_t * ctx, const char * name);
 int xfs_remove(struct xfs_context_t * ctx, const char * name);
+void * xfs_map(struct xfs_context_t * ctx, const char * name, int64_t * length);
 struct xfs_file_t * xfs_open_read(struct xfs_context_t * ctx, const char * name);
 struct xfs_file_t * xfs_open_write(struct xfs_context_t * ctx, const char * name);
 struct xfs_file_t * xfs_open_append(struct xfs_context_t * ctx, const char * name);

@@ -162,6 +162,11 @@ static int sys_remove(void * m, const char * name)
 	return FALSE;
 }
 
+static void * sys_map(void * m, const char * name, int64_t * length)
+{
+	return NULL;
+}
+
 static void * sys_open(void * m, const char * name, int mode)
 {
 	struct mhandle_sys_t * mh = (struct mhandle_sys_t *)m;
@@ -259,6 +264,7 @@ static struct xfs_archiver_t archiver_sys = {
 	.mode		= sys_mode,
 	.mkdir		= sys_mkdir,
 	.remove		= sys_remove,
+	.map		= sys_map,
 	.open		= sys_open,
 	.read		= sys_read,
 	.write		= sys_write,

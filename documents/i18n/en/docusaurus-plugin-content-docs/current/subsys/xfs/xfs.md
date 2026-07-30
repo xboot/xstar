@@ -1,6 +1,6 @@
 # File System (xfs)
 
-XSTAR's virtual file system that unifies access to different storage media through pluggable archiver backends, supporting CPIO archives, real directories, and the KOBJ virtual file system, with standard file operations including mounting, file read/write, and directory traversal.
+XSTAR's virtual file system that unifies access to different storage media through pluggable archiver backends, supporting CPIO archives, real directories, and the KOBJ virtual file system, with standard file operations including mounting, file read/write, directory traversal, and memory mapping.
 
 ## Data Structures
 
@@ -39,15 +39,15 @@ struct xfs_file_t {
 
 ### Archiver Architecture
 
-XFS abstracts different storage backends through the archiver interface (`struct xfs_archiver_t`). Each archiver implements a unified set of operations (mount/umount/walk/open/read/write etc.). Archivers are registered to a global list via `register_archiver()`. `mount_archiver()` tries each archiver in registration order; the first one that successfully mounts takes over the path.
+XFS abstracts different storage backends through the archiver interface (`struct xfs_archiver_t`). Each archiver implements a unified set of operations (mount/umount/walk/map/open/read/write etc.). Archivers are registered to a global list via `register_archiver()`. `mount_archiver()` tries each archiver in registration order; the first one that successfully mounts takes over the path.
 
 ### Storage Backends
 
-| Archiver | Description | Writable |
-|----------|-------------|----------|
-| cpio | CPIO newc format archive, read from block devices, used for romdisk | No |
-| dir | Host filesystem directory, accessed via XOS file interface | Yes |
-| sys | KOBJ virtual file system, mounted at `"sys"`, accesses kernel objects | Yes |
+| Archiver | Description | Writable | Memory Mapping |
+|----------|-------------|----------|----------------|
+| cpio | CPIO newc format archive, read from block devices, used for romdisk | No | Yes (memory-mapped block devices only) |
+| dir | Host filesystem directory, accessed via XOS file interface | Yes | No |
+| sys | KOBJ virtual file system, mounted at `"sys"`, accesses kernel objects | Yes | No |
 
 ### Auto-Mount
 
@@ -98,6 +98,12 @@ All paths are processed through `normal_path()` before operations:
 | `xfs_mode(ctx, name)` | Get the file mode |
 | `xfs_mkdir(ctx, name)` | Create a directory (writable mount points only) |
 | `xfs_remove(ctx, name)` | Remove a file or directory (writable mount points only) |
+
+### Memory Mapping
+
+| Function | Description |
+|----------|-------------|
+| `xfs_map(ctx, name, length)` | Map a file into memory, returning a direct pointer to the file data; writes the file length to `length` when non-NULL. Returns `NULL` if the file is missing, is a directory, or the backend does not support mapping |
 
 ### File Operations
 
@@ -189,11 +195,28 @@ if(file)
 xfs_free(ctx);
 ```
 
+### Memory-Mapped File Access
+
+```c
+#include <kernel/xfs/xfs.h>
+
+struct xfs_context_t * ctx = xfs_alloc();
+int64_t len = 0;
+void * addr = xfs_map(ctx, "dtree/default.json", &len);
+if(addr)
+{
+    /* Read file data directly from memory; no open/read/close needed, and the pointer does not need to be freed */
+    LOG("content: %.*s\n", (int)len, (char *)addr);
+}
+xfs_free(ctx);
+```
+
 ## Notes
 
 - Each module that needs file access should create its own context via `xfs_alloc()` and call `xfs_free()` when done
 - The romdisk (`blk-romdisk.0`) is read-only; write operations automatically skip this mount point
 - The path separator is `/`; `.` and `..` path components are not supported
-- Archivers are initialized early during system startup via `pure_initcall()`
+- Archivers are initialized early during system startup via `core_initcall()`
 - `mount_archiver()` tries mounting in registration order: cpio before dir before sys
+- `xfs_map()` returns a valid pointer only when the underlying block device is memory-mapped (e.g. romdisk); otherwise it returns `NULL`, in which case fall back to `xfs_open_read()`/`xfs_read()`
 - The KOBJ virtual file system (sys) provides read/write access to system kernel objects (devices, drivers, etc.)
