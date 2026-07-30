@@ -30,10 +30,24 @@ struct sub_block_pdata_t {
 	struct block_t * pblk;
 };
 
+static ssize_t block_read_address(struct kobj_t * kobj, void * buf, size_t size)
+{
+	struct block_t * blk = (struct block_t *)kobj->priv;
+	return xos_sprintf(buf, "0x%Lx", block_address(blk));
+}
+
 static ssize_t block_read_capacity(struct kobj_t * kobj, void * buf, size_t size)
 {
 	struct block_t * blk = (struct block_t *)kobj->priv;
-	return xos_sprintf(buf, "%Ld", block_capacity(blk));
+	return xos_sprintf(buf, "%Lu", block_capacity(blk));
+}
+
+static uint64_t sub_block_address(struct block_t * blk)
+{
+	struct sub_block_pdata_t * pdat = (struct sub_block_pdata_t *)(blk->priv);
+	struct block_t * pblk = pdat->pblk;
+	uint64_t address = pblk->address ? pblk->address(pblk) : 0;
+	return (address > 0) ? address + pdat->offset : 0;
 }
 
 static uint64_t sub_block_capacity(struct block_t * blk)
@@ -92,6 +106,7 @@ struct device_t * register_block(struct block_t * blk, struct driver_t * drv)
 	dev->driver = drv;
 	dev->priv = blk;
 	dev->kobj = kobj_alloc_directory(dev->name);
+	kobj_add_regular(dev->kobj, "address", block_read_address, NULL, blk);
 	kobj_add_regular(dev->kobj, "capacity", block_read_capacity, NULL, blk);
 
 	if(!register_device(dev))
@@ -153,6 +168,7 @@ struct device_t * register_sub_block(struct block_t * pblk, uint64_t offset, uin
 	pdat->pblk = pblk;
 
 	blk->name = xos_strdup(buffer);
+	blk->address = sub_block_address;
 	blk->capacity = sub_block_capacity;
 	blk->read = sub_block_read;
 	blk->write = sub_block_write;
@@ -193,6 +209,13 @@ void unregister_sub_block(struct block_t * pblk)
 			}
 		}
 	}
+}
+
+uint64_t block_address(struct block_t * blk)
+{
+	if(blk && blk->address)
+		return blk->address(blk);
+	return 0;
 }
 
 uint64_t block_capacity(struct block_t * blk)

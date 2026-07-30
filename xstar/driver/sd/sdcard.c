@@ -29,8 +29,7 @@
 #include <driver/sd/sdhci.h>
 #include <driver/sd/sdcard.h>
 
-struct sdcard_t
-{
+struct sdcard_t {
 	uint32_t version;
 	uint32_t ocr;
 	uint32_t rca;
@@ -46,8 +45,7 @@ struct sdcard_t
 	uint64_t capacity;
 };
 
-struct sdcard_pdata_t
-{
+struct sdcard_pdata_t {
 	struct block_t blk;
 	struct sdcard_t card;
 	struct timer_t timer;
@@ -710,6 +708,11 @@ static uint64_t __sdcard_blk_write(struct block_t * blk, uint8_t * buf, uint64_t
 	return blkcnt;
 }
 
+static uint64_t sdcard_blk_address(struct block_t * blk)
+{
+	return 0;
+}
+
 static uint64_t sdcard_blk_capacity(struct block_t * blk)
 {
 	struct sdcard_pdata_t * pdat = (struct sdcard_pdata_t *)(blk->priv);
@@ -824,6 +827,7 @@ static void sdcard_scan(struct sdcard_pdata_t * pdat)
 			{
 				xos_snprintf(buf, sizeof(buf), "%s.sdcard", pdat->hci->name);
 				pdat->blk.name = xos_strdup(buf);
+				pdat->blk.address = sdcard_blk_address;
 				pdat->blk.capacity = sdcard_blk_capacity;
 				pdat->blk.read = sdcard_blk_read;
 				pdat->blk.write = sdcard_blk_write;

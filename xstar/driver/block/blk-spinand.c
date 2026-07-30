@@ -312,6 +312,11 @@ static int blk_spinand_detect(struct spi_device_t * dev, struct spinand_info_t *
 	return FALSE;
 }
 
+static uint64_t blk_spinand_address(struct block_t * blk)
+{
+	return 0;
+}
+
 static uint64_t blk_spinand_capacity(struct block_t * blk)
 {
 	struct blk_spinand_pdata_t * pdat = (struct blk_spinand_pdata_t *)blk->priv;
@@ -460,6 +465,7 @@ static struct device_t * blk_spinand_probe(struct driver_t * drv, struct dtnode_
 	xos_memcpy(&pdat->info, &info, sizeof(struct spinand_info_t));
 
 	blk->name = alloc_device_name(dt_read_name(n), dt_read_id(n));
+	blk->address = blk_spinand_address;
 	blk->capacity = blk_spinand_capacity;
 	blk->read = blk_spinand_read;
 	blk->write = blk_spinand_write;

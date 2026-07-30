@@ -690,6 +690,11 @@ static uint64_t __blk_spinor_write(struct block_t * blk, uint8_t * buf, uint64_t
 	return blkcnt;
 }
 
+static uint64_t blk_spinor_address(struct block_t * blk)
+{
+	return 0;
+}
+
 static uint64_t blk_spinor_capacity(struct block_t * blk)
 {
 	struct blk_spinor_pdata_t * pdat = (struct blk_spinor_pdata_t *)blk->priv;
@@ -834,6 +839,7 @@ static struct device_t * blk_spinor_probe(struct driver_t * drv, struct dtnode_t
 	xos_memcpy(&pdat->info, &info, sizeof(struct spinor_info_t));
 
 	blk->name = alloc_device_name(dt_read_name(n), dt_read_id(n));
+	blk->address = blk_spinor_address;
 	blk->capacity = blk_spinor_capacity;
 	blk->read = blk_spinor_read;
 	blk->write = blk_spinor_write;

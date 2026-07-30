@@ -24,11 +24,16 @@
 
 #include <driver/block/block.h>
 
-struct blk_romdisk_pdata_t
-{
+struct blk_romdisk_pdata_t {
 	uint64_t addr;
 	uint64_t size;
 };
+
+static uint64_t blk_romdisk_address(struct block_t * blk)
+{
+	struct blk_romdisk_pdata_t * pdat = (struct blk_romdisk_pdata_t *)(blk->priv);
+	return pdat->addr;
+}
 
 static uint64_t blk_romdisk_capacity(struct block_t * blk)
 {
@@ -78,6 +83,7 @@ static struct device_t * blk_romdisk_probe(struct driver_t * drv, struct dtnode_
 	pdat->size = size;
 
 	blk->name = alloc_device_name(dt_read_name(n), dt_read_id(n));
+	blk->address = blk_romdisk_address;
 	blk->capacity = blk_romdisk_capacity;
 	blk->read = blk_romdisk_read;
 	blk->write = blk_romdisk_write;
