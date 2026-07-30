@@ -54,7 +54,7 @@ font.json → font_install_from_xfs() → 哈希表(按风格分组)
 void font_install_from_xfs(const char * family, enum font_style_t style, struct xfs_context_t * xfs, const char * path);
 ```
 
-从 XFS 虚拟文件系统安装字体。若该族+风格已存在则跳过。
+从 XFS 虚拟文件系统安装字体。若该族+风格已存在则跳过。优先通过 `xfs_map()` 零拷贝映射字体数据（仅内存映射块设备支持，如 romdisk），映射不可用时回退到 `xfs_open_read()`/`xfs_read()` 拷贝方式。
 
 ```c
 void font_install_from_buf(const char * family, enum font_style_t style, const void * buf, int len);

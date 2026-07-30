@@ -336,6 +336,8 @@ static void * cpio_map(void * m, const char * name, int64_t * length)
 		return NULL;
 	if(address == 0)
 		return NULL;
+	if(fh->size <= 0)
+		return NULL;
 	if(length)
 		*length = fh->size;
 	return (void *)(io_addr_t)(address + fh->start);

@@ -103,7 +103,7 @@ All paths are processed through `normal_path()` before operations:
 
 | Function | Description |
 |----------|-------------|
-| `xfs_map(ctx, name, length)` | Map a file into memory, returning a direct pointer to the file data; writes the file length to `length` when non-NULL. Returns `NULL` if the file is missing, is a directory, or the backend does not support mapping |
+| `xfs_map(ctx, name, length)` | Map a file into memory, returning a direct pointer to the file data; writes the file length to `length` when non-NULL. Returns `NULL` if the file is missing, is a directory, is empty (zero length), or the backend does not support mapping |
 
 ### File Operations
 

@@ -112,36 +112,54 @@ void font_install_from_xfs(const char * family, enum font_style_t style, struct 
 
 	if(family && !hmap_search(ctx->map[style], family) && xfs && path)
 	{
-		struct xfs_file_t * file = xfs_open_read(xfs, path);
-		if(file)
+		void * addr = xfs_map(xfs, path, NULL);
+		if(addr)
 		{
-			int64_t len = xfs_length(file);
-			if(len > 0)
+			struct font_t * font = xos_mem_malloc(sizeof(struct font_t));
+			if(font)
 			{
-				void * buf = xos_mem_malloc(len);
-				if(buf)
+				if(truetype_init(&font->info, (unsigned char *)addr, 0))
 				{
-					int64_t n = xfs_read(file, buf, len);
-					if(n > 0)
+					font->priv = NULL;
+					hmap_add(ctx->map[style], family, font);
+				}
+				else
+					xos_mem_free(font);
+			}
+		}
+		else
+		{
+			struct xfs_file_t * file = xfs_open_read(xfs, path);
+			if(file)
+			{
+				int64_t len = xfs_length(file);
+				if(len > 0)
+				{
+					void * buf = xos_mem_malloc(len);
+					if(buf)
 					{
-						struct font_t * font = xos_mem_malloc(sizeof(struct font_t));
-						if(font)
+						int64_t n = xfs_read(file, buf, len);
+						if(n > 0)
 						{
-							if(truetype_init(&font->info, (unsigned char *)buf, 0))
+							struct font_t * font = xos_mem_malloc(sizeof(struct font_t));
+							if(font)
 							{
-								font->priv = buf;
-								hmap_add(ctx->map[style], family, font);
-							}
-							else
-							{
-								xos_mem_free(font);
-								xos_mem_free(buf);
+								if(truetype_init(&font->info, (unsigned char *)buf, 0))
+								{
+									font->priv = buf;
+									hmap_add(ctx->map[style], family, font);
+								}
+								else
+								{
+									xos_mem_free(font);
+									xos_mem_free(buf);
+								}
 							}
 						}
 					}
 				}
+				xfs_close(file);
 			}
-			xfs_close(file);
 		}
 	}
 }

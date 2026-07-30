@@ -54,7 +54,7 @@ Fonts are configured via `/romdisk/assets/fonts/font.json`, loaded by `do_init_f
 void font_install_from_xfs(const char * family, enum font_style_t style, struct xfs_context_t * xfs, const char * path);
 ```
 
-Install a font from the XFS virtual file system. Skips if the family+style already exists.
+Install a font from the XFS virtual file system. Skips if the family+style already exists. Prefers zero-copy mapping of the font data via `xfs_map()` (memory-mapped block devices only, e.g. romdisk), falling back to `xfs_open_read()`/`xfs_read()` copy when mapping is unavailable.
 
 ```c
 void font_install_from_buf(const char * family, enum font_style_t style, const void * buf, int len);
