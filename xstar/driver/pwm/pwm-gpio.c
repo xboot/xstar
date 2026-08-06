@@ -26,8 +26,7 @@
 #include <driver/gpio/gpio.h>
 #include <driver/pwm/pwm.h>
 
-struct pwm_gpio_pdata_t
-{
+struct pwm_gpio_pdata_t {
 	struct timer_t timer;
 	int gpio;
 	int gpiocfg;
