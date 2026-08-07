@@ -11,6 +11,7 @@ obj-y += costab.o
 obj-y += crc16.o
 obj-y += crc32.o
 obj-y += crc8.o
+obj-y += cron.o
 obj-y += db.o
 obj-y += div.o
 obj-y += ds.o

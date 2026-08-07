@@ -54,6 +54,7 @@ const sidebars = {
     'libx/complex-number',
     'libx/arctangent-lookup-table',
     'libx/cosine-lookup-table',
+    'libx/cron',
     'libx/crc8',
     'libx/crc16',
     'libx/crc32',
