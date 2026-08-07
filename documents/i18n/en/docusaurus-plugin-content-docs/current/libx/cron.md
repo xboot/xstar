@@ -48,7 +48,6 @@ Each field accepts:
 | Syntax | Description |
 | --- | --- |
 | `*` | Any value |
-| `?` | Any value (same as `*`, marks the field as unrestricted) |
 | `n` | A single value |
 | `a-b` | Range |
 | `a-b/s` | Range with step `s` |
@@ -68,7 +67,7 @@ In the day-of-week field, `7` is an alias for `0` (Sunday). Thus `0-7`, `0,7`, a
 
 Follows Vixie cron semantics:
 
-- When both **day of month** and **day of week** are explicitly specified (neither is `*`/`?`), a match on either wins (**OR**)
+- When both **day of month** and **day of week** are explicitly specified (neither is `*`), a match on either wins (**OR**)
 - Otherwise both must match (**AND**)
 
 For example, `30 4 1,15 * 5` runs at 4:30 on the 1st and 15th of each month, or every Friday.

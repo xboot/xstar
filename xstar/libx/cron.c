@@ -80,7 +80,7 @@ static int cron_parse_field(const char * field, int min, int max, const char ** 
 			p++;
 		if(*p == '\0')
 			break;
-		if((*p == '*') || (*p == '?'))
+		if(*p == '*')
 		{
 			low = min;
 			high = max;
@@ -189,9 +189,9 @@ int cron_parse(struct cron_t * cron, const char * expr)
 			tmp &= ~((uint64_t)0x1 << 7);
 			cron->week = (uint8_t)tmp;
 			cron->restricted = 0;
-			if((xos_strcmp(f[2], "*") != 0) && (xos_strcmp(f[2], "?") != 0))
+			if(xos_strcmp(f[2], "*") != 0)
 				cron->restricted |= (0x1 << 0);
-			if((xos_strcmp(f[4], "*") != 0) && (xos_strcmp(f[4], "?") != 0))
+			if(xos_strcmp(f[4], "*") != 0)
 				cron->restricted |= (0x1 << 1);
 			xos_mem_free(dup);
 			return 1;

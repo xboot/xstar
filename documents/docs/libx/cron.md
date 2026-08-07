@@ -48,7 +48,6 @@ int cron_match(struct cron_t * cron, int minute, int hour, int day, int month, i
 | 写法 | 说明 |
 | --- | --- |
 | `*` | 任意值 |
-| `?` | 任意值（等同于 `*`，表示该字段不限制）|
 | `n` | 单个值 |
 | `a-b` | 范围 |
 | `a-b/s` | 范围内按步进 `s` 取值 |
@@ -68,7 +67,7 @@ int cron_match(struct cron_t * cron, int minute, int hour, int day, int month, i
 
 遵循 Vixie cron 语义：
 
-- 当**日**和**星期**都被显式指定（均非 `*`/`?`）时，命中其中任一即匹配（**或**）
+- 当**日**和**星期**都被显式指定（均非 `*`）时，命中其中任一即匹配（**或**）
 - 否则两者需同时匹配（**与**）
 
 例如 `30 4 1,15 * 5` 表示每月 1 号、15 号或每周五 4:30 执行。
