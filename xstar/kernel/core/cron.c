@@ -249,7 +249,8 @@ struct cron_job_t {
 	struct list_head_t entry;
 	struct cron_expr_t expr;
 	char * name;
-	void (*func)(void *);
+	void (*exec)(void *);
+	void (*destroy)(void *);
 	void * data;
 	int oneshot;
 	int refcount;
@@ -287,8 +288,8 @@ static void cron_tick(struct cron_t * cron, struct wallclock_time_t * tm)
 
 				for(int i = 0; i < h; i++)
 				{
-					if(hits[i]->func)
-						hits[i]->func(hits[i]->data);
+					if(hits[i]->exec)
+						hits[i]->exec(hits[i]->data);
 					xos_mutex_lock(&cron->lock);
 					int drop = --hits[i]->refcount;
 					if(hits[i]->oneshot && !hits[i]->removed)
@@ -303,6 +304,8 @@ static void cron_tick(struct cron_t * cron, struct wallclock_time_t * tm)
 					{
 						if(hits[i]->name)
 							xos_mem_free(hits[i]->name);
+						if(hits[i]->destroy)
+							hits[i]->destroy(hits[i]->data);
 						xos_mem_free(hits[i]);
 					}
 				}
@@ -373,6 +376,8 @@ void cron_free(struct cron_t * cron)
 				list_del(&pos->entry);
 				if(pos->name)
 					xos_mem_free(pos->name);
+				if(pos->destroy)
+					pos->destroy(pos->data);
 				xos_mem_free(pos);
 			}
 		}
@@ -385,9 +390,9 @@ void cron_free(struct cron_t * cron)
 	}
 }
 
-int cron_add(struct cron_t * cron, const char * name, const char * expr, int oneshot, void (*func)(void *), void * data)
+int cron_add(struct cron_t * cron, const char * name, const char * expr, int oneshot, void (*exec)(void *), void (*destroy)(void *), void * data)
 {
-	if(cron && name && expr && func)
+	if(cron && name && expr && exec)
 	{
 		struct cron_job_t * job = xos_mem_malloc(sizeof(struct cron_job_t));
 		if(job)
@@ -405,7 +410,8 @@ int cron_add(struct cron_t * cron, const char * name, const char * expr, int one
 				xos_mem_free(job);
 				return 0;
 			}
-			job->func = func;
+			job->exec = exec;
+			job->destroy = destroy;
 			job->data = data;
 			job->oneshot = oneshot ? 1 : 0;
 			job->refcount = 1;
@@ -459,6 +465,8 @@ int cron_remove(struct cron_t * cron, const char * name)
 				if(drop == 0)
 				{
 					xos_mem_free(job->name);
+					if(job->destroy)
+						job->destroy(job->data);
 					xos_mem_free(job);
 				}
 				return 1;

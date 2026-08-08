@@ -37,7 +37,7 @@ Each job records the "minute stamp" of its last firing (packed from year/month/d
 
 ### Reference Counting
 
-The reference count is incremented when a job is matched and decremented after its callback; both `cron_remove()` and one-shot auto-removal set the `removed` flag first, then decrement, and free the memory only when the count reaches zero. Therefore it is safe to call `cron_remove()` from within a job callback to remove itself or another job.
+The reference count is incremented when a job is matched and decremented after its callback; both `cron_remove()` and one-shot auto-removal set the `removed` flag first, then decrement, and invoke `destroy(data)` to reclaim `data` and free the job memory only when the count reaches zero. Therefore it is safe to call `cron_remove()` from within a job callback to remove itself or another job.
 
 ## API
 
@@ -45,7 +45,7 @@ The reference count is incremented when a job is matched and decremented after i
 |----------|-------------|
 | `cron_alloc(tz)` | Create a scheduler and start the background thread, `tz` is the timezone string, may be `NULL` |
 | `cron_free(cron)` | Stop the thread and free the scheduler along with all jobs |
-| `cron_add(cron, name, expr, oneshot, func, data)` | Add a job, `name` must be unique, non-zero `oneshot` means fire only once |
+| `cron_add(cron, name, expr, oneshot, exec, destroy, data)` | Add a job, `name` must be unique, non-zero `oneshot` means fire only once; `exec` is the callback fired when due, `destroy` reclaims `data` when the job is destroyed, may be `NULL` |
 | `cron_remove(cron, name)` | Remove a job by name |
 | `cron_foreach(cron, cb, data)` | Iterate over non-removed jobs, calling `cb(name, oneshot, data)` for each |
 
@@ -117,7 +117,7 @@ static void tick(void * data)
 void demo(void)
 {
     struct cron_t * cron = cron_alloc(NULL);                 /* default timezone */
-    cron_add(cron, "every-5min", "*/5 * * * *", 0, tick, NULL);
+    cron_add(cron, "every-5min", "*/5 * * * *", 0, tick, NULL, NULL);
     /* ... runs and schedules continuously ... */
     cron_free(cron);
 }
@@ -127,7 +127,7 @@ void demo(void)
 
 ```c
 /* Fires once at the next 3:30, then is automatically removed from the list */
-cron_add(cron, "once", "30 3 * * *", 1, tick, NULL);
+cron_add(cron, "once", "30 3 * * *", 1, tick, NULL, NULL);
 ```
 
 ### Removing a Job from Within a Callback
@@ -141,7 +141,31 @@ static void job(void * data)
 
 void setup(struct cron_t * cron)
 {
-    cron_add(cron, "self", "*/1 * * * *", 0, job, cron);
+    cron_add(cron, "self", "*/1 * * * *", 0, job, NULL, cron);
+}
+```
+
+### Job with Data Ownership
+
+`data` is typically a heap-allocated context prepared for the callback. On `cron_add` success its ownership transfers to the job, and `destroy` reclaims it when the job is destroyed; on failure it remains owned by the caller.
+
+```c
+static void exec_msg(void * data)
+{
+    LOG("cron: %s\n", (const char *)data);
+}
+
+static void free_msg(void * data)
+{
+    if(data)
+        xos_mem_free(data);
+}
+
+void demo(struct cron_t * cron)
+{
+    char * msg = xos_strdup("hello");
+    if(!cron_add(cron, "msg", "*/1 * * * *", 0, exec_msg, free_msg, msg))
+        xos_mem_free(msg);   /* add failed, caller frees */
 }
 ```
 
@@ -175,6 +199,8 @@ cron_foreach(cron, list_cb, NULL);
 
 - The scheduler depends on the thread system; ensure the platform supports threads (`xstar_feature_thread()`) before use, otherwise `cron_alloc()` returns `NULL`
 - Job `name` must be unique; adding a duplicate name fails
+- On `cron_add` success, ownership of `data` transfers to the job: `destroy(data)` is called when the job is destroyed (one-shot auto-removal, `cron_remove`, or `cron_free`); when `destroy` is `NULL` cron leaves `data` untouched and the caller manages its lifetime
+- On `cron_add` failure, ownership is not transferred and `data` is still freed by the caller
 - The time source is the wall clock `wallclock_gettime()`, with `tz` forwarded as-is; `wallclock_time_t.week` is defined as `(days since 1970-01-01 + 4) % 7`, i.e. `0 = Sunday`, matching the cron standard
 - Scheduling precision is at the minute level, checked once per minute boundary; if a minute is skipped (e.g. the system is busy), jobs for that minute are not retroactively fired
 - `cron_add`/`cron_remove`/`cron_foreach` may be called from any thread, including from within a job callback

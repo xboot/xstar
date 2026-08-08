@@ -60,6 +60,12 @@ static void cron_exec_cb(void * data)
 		shell_system((const char *)data);
 }
 
+static void cron_destroy_cb(void * data)
+{
+	if(data)
+		xos_mem_free(data);
+}
+
 static int do_cron(int argc, char ** argv)
 {
 	struct sarg_t sarg;
@@ -100,7 +106,7 @@ static int do_cron(int argc, char ** argv)
 			usage();
 			return -1;
 		}
-		if(!cron_add(cron_get(), name, expr, oneshot, cron_exec_cb, cmd))
+		if(!cron_add(cron_get(), name, expr, oneshot, cron_exec_cb, cron_destroy_cb, cmd))
 		{
 			shell_printf("cron: failed to add job '%s'\r\n", name);
 			xos_mem_free(cmd);

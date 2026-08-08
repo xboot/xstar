@@ -37,7 +37,7 @@ struct cron_t {
 
 ### 引用计数
 
-任务命中时引用计数自增，回调执行完毕自减；`cron_remove()` 与 oneshot 自动移除都会先置 `removed` 标志再自减，仅当计数归零时释放内存。因此在任务回调内部调用 `cron_remove()` 移除自身或其它任务是安全的。
+任务命中时引用计数自增，回调执行完毕自减；`cron_remove()` 与 oneshot 自动移除都会先置 `removed` 标志再自减，仅当计数归零时调用 `destroy(data)` 回收 `data` 并释放任务内存。因此在任务回调内部调用 `cron_remove()` 移除自身或其它任务是安全的。
 
 ## API
 
@@ -45,7 +45,7 @@ struct cron_t {
 |------|------|
 | `cron_alloc(tz)` | 创建调度器并启动后台线程，`tz` 为时区字符串，可为 `NULL` |
 | `cron_free(cron)` | 停止线程并释放调度器及所有任务 |
-| `cron_add(cron, name, expr, oneshot, func, data)` | 添加任务，`name` 需唯一，`oneshot` 非 0 表示仅触发一次 |
+| `cron_add(cron, name, expr, oneshot, exec, destroy, data)` | 添加任务，`name` 需唯一，`oneshot` 非 0 表示仅触发一次；`exec` 为到期回调，`destroy` 为任务销毁时回收 `data` 的回调，可为 `NULL` |
 | `cron_remove(cron, name)` | 按名称移除任务 |
 | `cron_foreach(cron, cb, data)` | 遍历当前未删除的任务，对每个调用 `cb(name, oneshot, data)` |
 
@@ -117,7 +117,7 @@ static void tick(void * data)
 void demo(void)
 {
     struct cron_t * cron = cron_alloc(NULL);                 /* 默认时区 */
-    cron_add(cron, "every-5min", "*/5 * * * *", 0, tick, NULL);
+    cron_add(cron, "every-5min", "*/5 * * * *", 0, tick, NULL, NULL);
     /* ... 运行期间持续调度 ... */
     cron_free(cron);
 }
@@ -127,7 +127,7 @@ void demo(void)
 
 ```c
 /* 下次 3:30 触发一次后自动从链表移除 */
-cron_add(cron, "once", "30 3 * * *", 1, tick, NULL);
+cron_add(cron, "once", "30 3 * * *", 1, tick, NULL, NULL);
 ```
 
 ### 在回调中移除任务
@@ -141,7 +141,31 @@ static void job(void * data)
 
 void setup(struct cron_t * cron)
 {
-    cron_add(cron, "self", "*/1 * * * *", 0, job, cron);
+    cron_add(cron, "self", "*/1 * * * *", 0, job, NULL, cron);
+}
+```
+
+### 带数据所有权的任务
+
+`data` 通常是为回调准备的堆分配上下文。`cron_add` 成功后其所有权转移给任务，任务销毁时由 `destroy` 回收；添加失败则仍由调用者释放。
+
+```c
+static void exec_msg(void * data)
+{
+    LOG("cron: %s\n", (const char *)data);
+}
+
+static void free_msg(void * data)
+{
+    if(data)
+        xos_mem_free(data);
+}
+
+void demo(struct cron_t * cron)
+{
+    char * msg = xos_strdup("hello");
+    if(!cron_add(cron, "msg", "*/1 * * * *", 0, exec_msg, free_msg, msg))
+        xos_mem_free(msg);   /* 添加失败，调用者自行释放 */
 }
 ```
 
@@ -175,6 +199,8 @@ cron_foreach(cron, list_cb, NULL);
 
 - 调度器依赖线程系统，使用前需确保平台支持线程（`xstar_feature_thread()`），否则 `cron_alloc()` 返回 `NULL`
 - 任务 `name` 必须唯一，重名添加会失败
+- `cron_add` 成功后 `data` 的所有权转移给任务：任务销毁时（oneshot 触发后自动移除、`cron_remove` 或 `cron_free`）调用 `destroy(data)` 回收；`destroy` 为 `NULL` 时 cron 不触碰 `data`，由调用者自行管理其生命周期
+- `cron_add` 失败时所有权未转移，`data` 仍由调用者释放
 - 时间源为墙钟 `wallclock_gettime()`，`tz` 直接透传；`wallclock_time_t.week` 定义为 `(自 1970-01-01 起的天数 + 4) % 7`，`0 = 周日`，与 cron 标准一致
 - 调度精度为分钟级，每分钟边界检查一次；若某分钟被跳过（如系统繁忙），该分钟的任务不会补触发
 - `cron_add`/`cron_remove`/`cron_foreach` 可在任意线程调用，包括任务回调内部
