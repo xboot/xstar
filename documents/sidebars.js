@@ -13,6 +13,7 @@ const sidebars = {
     'command/cd',
     'command/clear',
     'command/clk',
+    'command/cron',
     'command/date',
     'command/dcp',
     'command/delay',

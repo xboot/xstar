@@ -6,6 +6,7 @@ obj-$(CONFIG_CMD_CAT) += cmd-cat.o
 obj-$(CONFIG_CMD_CD) += cmd-cd.o
 obj-$(CONFIG_CMD_CLEAR) += cmd-clear.o
 obj-$(CONFIG_CMD_CLK) += cmd-clk.o
+obj-$(CONFIG_CMD_CRON) += cmd-cron.o
 obj-$(CONFIG_CMD_DATE) += cmd-date.o
 obj-$(CONFIG_CMD_DCP) += cmd-dcp.o
 obj-$(CONFIG_CMD_DELAY) += cmd-delay.o

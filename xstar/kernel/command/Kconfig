@@ -30,6 +30,11 @@ config CMD_CLK
 	bool
 	default y
 
+config CMD_CRON
+	prompt "Enable cron command"
+	bool
+	default y
+
 config CMD_DATE
 	prompt "Enable date command"
 	bool
