@@ -58,4 +58,4 @@ struct surface_t {
 | `surface_get_cg_surface(s)` | 获取关联的 `cg_surface_t`（惰性创建） |
 | `surface_get_cg_ctx(s)` | 获取关联的 `cg_ctx_t`（惰性创建） |
 
-通过 cg 上下文可进行矢量绘图（路径、填充、描边、渐变等），详见[矢量绘图](../cg/cg)文档。`surface_blit()` 和 `surface_fill()` 在 G2D 硬件加速不可用时自动回退到 cg 渲染。
+通过 cg 上下文可进行矢量绘图（路径、填充、描边、渐变等），详见[矢量绘图](../cg)文档。`surface_blit()` 和 `surface_fill()` 在 G2D 硬件加速不可用时自动回退到 cg 渲染。
