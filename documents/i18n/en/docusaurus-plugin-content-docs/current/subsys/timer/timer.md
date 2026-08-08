@@ -13,7 +13,7 @@ struct timer_t {
     enum timer_state_t state;                     /* Timer state */
     ktime_t expires;                              /* Expiration time */
     void * data;                                  /* User data */
-    int (*function)(struct timer_t *, void *);    /* Callback function, non-zero return means restart */
+    int (*func)(struct timer_t *, void *);    /* Callback function, non-zero return means restart */
 };
 ```
 
@@ -63,7 +63,7 @@ All red-black tree operations are protected by a mutex (`base->lock`), supportin
 
 | Function | Description |
 |----------|-------------|
-| `timer_init(timer, function, data)` | Initialize the timer, set the callback function and user data |
+| `timer_init(timer, func, data)` | Initialize the timer, set the callback function and user data |
 | `timer_start(timer, interval)` | Start the timer, `interval` is a relative time interval (`ktime_t`), callback fires when expired |
 | `timer_forward(timer, interval)` | Update the timer's expiration time, only used in callbacks to set the next expiration |
 | `timer_cancel(timer)` | Cancel the timer, remove it from the red-black tree |

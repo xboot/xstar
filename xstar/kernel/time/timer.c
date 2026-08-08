@@ -82,7 +82,7 @@ static inline int del_timer(struct timer_base_t * base, struct timer_t * timer)
 	return ret;
 }
 
-void timer_init(struct timer_t * timer, int (*function)(struct timer_t *, void *), void * data)
+void timer_init(struct timer_t * timer, int (*func)(struct timer_t *, void *), void * data)
 {
 	if(timer)
 	{
@@ -91,7 +91,7 @@ void timer_init(struct timer_t * timer, int (*function)(struct timer_t *, void *
 		timer->base = &__timer_base;
 		timer->state = TIMER_STATE_INACTIVE;
 		timer->data = data;
-		timer->function = function;
+		timer->func = func;
 	}
 }
 
@@ -155,7 +155,7 @@ static void timer_event_handler(struct clockevent_t * ce, void * data)
 			break;
 		del_timer(base, timer);
 		timer->state = TIMER_STATE_CALLBACK;
-		restart = timer->function(timer, timer->data);
+		restart = timer->func(timer, timer->data);
 		timer->state = TIMER_STATE_INACTIVE;
 		if(restart)
 			add_timer(base, timer);

@@ -30,10 +30,10 @@ struct timer_t {
 	enum timer_state_t state;
 	ktime_t expires;
 	void * data;
-	int (*function)(struct timer_t *, void *);
+	int (*func)(struct timer_t *, void *);
 };
 
-void timer_init(struct timer_t * timer, int (*function)(struct timer_t *, void *), void * data);
+void timer_init(struct timer_t * timer, int (*func)(struct timer_t *, void *), void * data);
 void timer_start(struct timer_t * timer, ktime_t interval);
 void timer_forward(struct timer_t * timer, ktime_t interval);
 void timer_cancel(struct timer_t * timer);

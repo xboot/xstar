@@ -13,7 +13,7 @@ struct timer_t {
     enum timer_state_t state;                     /* 定时器状态 */
     ktime_t expires;                              /* 过期时间 */
     void * data;                                  /* 用户数据 */
-    int (*function)(struct timer_t *, void *);    /* 回调函数，返回非 0 表示重新启动 */
+    int (*func)(struct timer_t *, void *);    /* 回调函数，返回非 0 表示重新启动 */
 };
 ```
 
@@ -63,7 +63,7 @@ enum timer_state_t {
 
 | 函数 | 说明 |
 |------|------|
-| `timer_init(timer, function, data)` | 初始化定时器，设置回调函数和用户数据 |
+| `timer_init(timer, func, data)` | 初始化定时器，设置回调函数和用户数据 |
 | `timer_start(timer, interval)` | 启动定时器，`interval` 为相对时间间隔（`ktime_t`），到期后触发回调 |
 | `timer_forward(timer, interval)` | 更新定时器过期时间，仅在回调中用于重新设定下次过期时间 |
 | `timer_cancel(timer)` | 取消定时器，从红黑树中移除 |
