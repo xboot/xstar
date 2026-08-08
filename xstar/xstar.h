@@ -17,6 +17,7 @@ extern "C" {
 #include <kernel/core/cochannel.h>
 #include <kernel/core/copyright.h>
 #include <kernel/core/coroutine.h>
+#include <kernel/core/cron.h>
 #include <kernel/core/logger.h>
 #include <kernel/core/profiler.h>
 #include <kernel/core/psub.h>

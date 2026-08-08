@@ -21,7 +21,6 @@ extern "C" {
 #include <libx/crc16.h>
 #include <libx/crc32.h>
 #include <libx/crc8.h>
-#include <libx/cron.h>
 #include <libx/db.h>
 #include <libx/div.h>
 #include <libx/ds.h>
