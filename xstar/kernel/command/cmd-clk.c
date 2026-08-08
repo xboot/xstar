@@ -69,8 +69,6 @@ static int do_clk(int argc, char ** argv)
 		usage();
 		return -1;
 	}
-	uint64_t rate;
-	char * name;
 
 	if(sarg_at(&sarg, 0) == NULL)
 	{
@@ -79,11 +77,12 @@ static int do_clk(int argc, char ** argv)
 	else
 	{
 		sarg_iter_reset(&sarg);
+		char * name;
 		while((name = (char *)sarg_iter_next(&sarg)) != NULL)
 		{
 			if(search_clk(name))
 			{
-				rate = clk_get_rate(name);
+				uint64_t rate = clk_get_rate(name);
 				shell_printf("%*s %6Ld.%06LdMHZ %4d\r\n", -(64 - 0 * 4), name, rate / (uint64_t)(1000 * 1000), rate % (uint64_t)(1000 * 1000), clk_status(name) ? 1 : 0);
 				clk_dump(name, 1);
 			}
