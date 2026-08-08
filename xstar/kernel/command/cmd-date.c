@@ -22,6 +22,7 @@
  * SOFTWARE.
  */
 
+#include <kernel/core/setting.h>
 #include <kernel/shell/context.h>
 #include <kernel/time/wallclock.h>
 #include <kernel/command/command.h>
@@ -45,7 +46,7 @@ static int do_date(int argc, char ** argv)
 	struct wallclock_time_t tm;
 	const char * tz = sarg_at(&sarg, 0);
 	if(!tz)
-		tz = "Asia/Shanghai";
+		tz = setting_get("timezone", "Asia/Shanghai");
 	wallclock_gettime(&tm, tz);
 	shell_printf("%04u-%02u-%02u %02u:%02u:%02u %01u\r\n", (uint32_t)tm.year, (uint32_t)tm.month, (uint32_t)tm.day, (uint32_t)tm.hour, (uint32_t)tm.minute, (uint32_t)tm.second, (uint32_t)tm.week);
 

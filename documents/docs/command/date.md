@@ -10,7 +10,7 @@ date [FORMAT]
 
 ## 说明
 
-- 默认时区为 `Asia/Shanghai`
+- 默认时区从全局设置 `timezone` 读取，未设置时默认 `Asia/Shanghai`
 - 可选参数指定时区字符串（如 `America/New_York`）
 - 输出格式：`YYYY-MM-DD HH:MM:SS W`（W=星期，0=星期日）
 
