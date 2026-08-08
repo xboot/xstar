@@ -70,6 +70,11 @@ static int do_cron(int argc, char ** argv)
 		usage();
 		return -1;
 	}
+	if(!cron_get())
+	{
+		shell_printf("cron: failed to initialize cron subsystem\r\n");
+		return -1;
+	}
 
 	const char * sub = sarg_at(&sarg, 0);
 	if(!sub || (xos_strcmp(sub, "list") == 0))
