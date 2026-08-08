@@ -100,9 +100,16 @@ subdirs-y += subdirectory          # Include subdirectories
 ```
 
 ### Compiler Flags
-C files compiled with: `-g -ggdb -Wall $(CONFIG_OPTIMIZE_LEVEL) -std=gnu99`
-C++ files compiled with: `-g -ggdb -Wall $(CONFIG_OPTIMIZE_LEVEL)`
-The optimization level defaults to `-O3` and is configurable via `CONFIG_OPTIMIZE_LEVEL` (Kconfig). No linting/formatting tools configured in build system.
+C files compiled with: `$(if $(CONFIG_DEBUG_SYMBOL),-g -ggdb) $(CONFIG_OPTIMIZE_LEVEL) -Wall -std=gnu99`
+C++ files compiled with: `$(if $(CONFIG_DEBUG_SYMBOL),-g -ggdb) $(CONFIG_OPTIMIZE_LEVEL) -Wall`
+Debug symbols (`-g -ggdb`) are conditional on `CONFIG_DEBUG_SYMBOL` (Kconfig). The optimization level defaults to `-O3` and is configurable via `CONFIG_OPTIMIZE_LEVEL` (Kconfig). No linting/formatting tools configured in build system.
+
+### Testing Shell Commands
+Shell commands (registered via `command_initcall`) can be tested non-interactively by piping a command sequence into the xstar binary:
+```bash
+printf 'cmd1\ncmd2\n' | ./projects/x64-linux-sdl-helloworld/output/xstar 2>&1 | grep -iE "pattern"
+```
+Use `timeout` to bound execution. This is useful for quick smoke-testing new or modified shell commands without a full interactive session.
 
 ### Project Structure
 - `xstar/driver/` - Device drivers (51 device types)
