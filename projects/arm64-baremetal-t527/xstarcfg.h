@@ -26,15 +26,15 @@ extern "C" {
 typedef unsigned long long io_addr_t;
 
 struct thread_t {
-	volatile int thread;
+	volatile void * thread;
 };
 
 struct mutex_t {
-	volatile int mutex;
+	volatile void * mutex;
 };
 
 struct semaphore_t {
-	volatile int sem;
+	volatile void * sem;
 };
 
 #ifdef __cplusplus
