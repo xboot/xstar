@@ -88,15 +88,15 @@ $(XSTAR) : $(OBJS)
 
 $(SOBJS) : $(OBJDIR)/%.o : %.S
 	@echo [AS] $<
-	@$(AS) $(ASFLAGS) -MD -MP -MF $@.d $(INCDIRS) -c $< -o $@
+	@$(AS) $(ASFLAGS) $(MCFLAGS) -MD -MP -MF $@.d $(INCDIRS) -c $< -o $@
 
 $(COBJS) : $(OBJDIR)/%.o : %.c
 	@echo [CC] $<
-	@$(CC) $(CFLAGS) -MD -MP -MF $@.d $(INCDIRS) -c $< -o $@
+	@$(CC) $(CFLAGS) $(MCFLAGS) -MD -MP -MF $@.d $(INCDIRS) -c $< -o $@
 
 $(CPPOBJS) : $(OBJDIR)/%.o : %.cpp
 	@echo [CXX] $<
-	@$(CXX) $(CXXFLAGS) -MD -MP -MF $@.d $(INCDIRS) -c $< -o $@
+	@$(CXX) $(CXXFLAGS) $(MCFLAGS) -MD -MP -MF $@.d $(INCDIRS) -c $< -o $@
 
 $(OBJDIR)/romdisk.o : romdisk
 
