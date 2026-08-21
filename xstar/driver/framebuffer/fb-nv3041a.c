@@ -56,6 +56,7 @@ struct fb_nv3041a_pdata_t {
 	int height;
 	int pwidth;
 	int pheight;
+	uint8_t * txbuf;
 
 	struct led_t * backlight;
 	int brightness;
@@ -322,14 +323,13 @@ static void fb_destroy(struct framebuffer_t * fb, struct surface_t * s)
 static void fb_present(struct framebuffer_t * fb, struct surface_t * s, struct dirtylist_t * l)
 {
 	struct fb_nv3041a_pdata_t * pdat = (struct fb_nv3041a_pdata_t *)fb->priv;
-	uint8_t txbuf[pdat->width * pdat->height * 2];
 
 	if(l && (l->count > 0))
 	{
 		for(int i = 0; i < l->count; i++)
 		{
 			struct region_t * r = &l->items[i].region;
-			uint8_t * q = txbuf;
+			uint8_t * q = pdat->txbuf;
 			for(int y = 0; y < r->h; y++)
 			{
 				uint32_t * p = s->pixels + (r->y + y) * s->stride + (r->x << 2);
@@ -343,14 +343,14 @@ static void fb_present(struct framebuffer_t * fb, struct surface_t * s, struct d
 			nv3041a_set_window(pdat, r->x, r->y, r->w, r->h);
 			nv3041a_write_command(pdat, 0x2c);
 			spi_device_select(pdat->dev);
-			spi_device_write_then_read(pdat->dev, txbuf, r->w * r->h * 2, 0, 0);
+			spi_device_write_then_read(pdat->dev, pdat->txbuf, r->w * r->h * 2, 0, 0);
 			spi_device_deselect(pdat->dev);
 		}
 	}
 	else
 	{
 		uint32_t * p = s->pixels;
-		uint8_t * q = txbuf;
+		uint8_t * q = pdat->txbuf;
 		for(int y = 0; y < pdat->height; y++)
 		{
 			for(int x = 0; x < pdat->width; x++)
@@ -363,7 +363,7 @@ static void fb_present(struct framebuffer_t * fb, struct surface_t * s, struct d
 		nv3041a_set_window(pdat, 0, 0, pdat->width, pdat->height);
 		nv3041a_write_command(pdat, 0x2c);
 		spi_device_select(pdat->dev);
-		spi_device_write_then_read(pdat->dev, txbuf, pdat->width * pdat->height * 2, 0, 0);
+		spi_device_write_then_read(pdat->dev, pdat->txbuf, pdat->width * pdat->height * 2, 0, 0);
 		spi_device_deselect(pdat->dev);
 	}
 }
@@ -409,6 +409,15 @@ static struct device_t * fb_nv3041a_probe(struct driver_t * drv, struct dtnode_t
 	pdat->pheight = dt_read_int(n, "physical-height", 54);
 	pdat->backlight = search_led(dt_read_string(n, "backlight", NULL));
 
+	pdat->txbuf = xos_mem_malloc(pdat->width * pdat->height * 2);
+	if(!pdat->txbuf)
+	{
+		spi_device_free(spidev);
+		xos_mem_free(pdat);
+		xos_mem_free(fb);
+		return NULL;
+	}
+
 	fb->name = alloc_device_name(dt_read_name(n), dt_read_id(n));
 	fb->width = pdat->width;
 	fb->height = pdat->height;
@@ -443,6 +452,7 @@ static struct device_t * fb_nv3041a_probe(struct driver_t * drv, struct dtnode_t
 	if(!(dev = register_framebuffer(fb, drv)))
 	{
 		spi_device_free(pdat->dev);
+		xos_mem_free(pdat->txbuf);
 		free_device_name(fb->name);
 		xos_mem_free(fb->priv);
 		xos_mem_free(fb);
@@ -460,6 +470,7 @@ static void fb_nv3041a_remove(struct device_t * dev)
 	{
 		unregister_framebuffer(fb);
 		spi_device_free(pdat->dev);
+		xos_mem_free(pdat->txbuf);
 		free_device_name(fb->name);
 		xos_mem_free(fb->priv);
 		xos_mem_free(fb);
