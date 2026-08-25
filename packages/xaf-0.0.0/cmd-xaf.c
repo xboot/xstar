@@ -37,7 +37,7 @@ struct xaf_context_t {
 	struct surface_t * surface;
 	struct matrix2d_t matrix;
 	struct xaf_t * xaf;
-	uint8_t * data;
+	void * data;
 	uint32_t size;
 	int quit;
 };
@@ -178,19 +178,29 @@ static int do_xaf(int argc, char ** argv)
 	struct xaf_context_t * ctx = xaf_context_alloc(fb, input);
 	if(ctx)
 	{
-		struct xfs_file_t * file = xfs_open_read(shell_getxfs(), fpath);
-		if(file)
+		int64_t length;
+		void * addr = xfs_map(shell_getxfs(), fpath, &length);
+		if(addr)
 		{
-			ctx->size = xfs_length(file);
-			ctx->data = xos_mem_malloc(ctx->size);
-			if(ctx->data)
-			{
-				xfs_read(file, ctx->data, ctx->size);
-				ctx->xaf = xaf_alloc(ctx->data, ctx->size);
-			}
-			xfs_close(file);
+			ctx->xaf = xaf_alloc((uint8_t *)addr, (uint32_t)length);
+			ctx->data = NULL;
+			ctx->size = 0;
 		}
-
+		else
+		{
+			struct xfs_file_t * file = xfs_open_read(shell_getxfs(), fpath);
+			if(file)
+			{
+				ctx->size = xfs_length(file);
+				ctx->data = xos_mem_malloc(ctx->size);
+				if(ctx->data)
+				{
+					xfs_read(file, ctx->data, ctx->size);
+					ctx->xaf = xaf_alloc(ctx->data, ctx->size);
+				}
+				xfs_close(file);
+			}
+		}
 		if(ctx->xaf)
 		{
 			ctx->surface = surface_alloc(xaf_get_width(ctx->xaf), xaf_get_height(ctx->xaf));
@@ -199,8 +209,8 @@ static int do_xaf(int argc, char ** argv)
 			uint32_t width = xaf_get_width(ctx->xaf);
 			uint32_t height = xaf_get_height(ctx->xaf);
 			uint8_t fps = xaf_get_fps(ctx->xaf);
-			double frame_duration = (fps > 0) ? (1.0 / (double)fps) : (1.0 / 30.0);
-			double timestamp = (double)ktime_to_ns(ktime_get()) / 1000000000.0;
+			uint32_t ms = 1000 / ((fps > 0) ? fps : 30);
+			ktime_t timestamp = ktime_get();
 
 			while(!ctx->quit)
 			{
@@ -233,12 +243,9 @@ static int do_xaf(int argc, char ** argv)
 					}
 				}
 
-				double now = (double)ktime_to_ns(ktime_get()) / 1000000000.0;
-				double elapsed = now - timestamp;
-
-				if(elapsed >= frame_duration)
+				if(ktime_after(ktime_get(), ktime_add_ms(timestamp, ms)))
 				{
-					timestamp = now;
+					timestamp = ktime_get();
 					uint32_t * frame = xaf_next(ctx->xaf);
 					if(frame)
 					{
@@ -261,7 +268,7 @@ static int do_xaf(int argc, char ** argv)
 							if(!hide)
 							{
 								int w = window_get_width(ctx->window) - 20;
-								int p = XCLAMP((int)(w * ((double)(xaf_get_findex(ctx->xaf) + 1) / (double)xaf_get_nframes(ctx->xaf))), 1, w);
+								int p = XCLAMP((int)(w * (xaf_get_findex(ctx->xaf) + 1) / xaf_get_nframes(ctx->xaf)), 1, w);
 								surface_clear(window_get_surface(ctx->window), &(struct color_t){0xf5, 0xf5, 0xf5, 0xff}, 10, window_get_height(ctx->window) - 10, p, 2);
 								if(w > p)
 									surface_clear(window_get_surface(ctx->window), &(struct color_t){0x85, 0x85, 0x85, 0xff}, 10 + p, window_get_height(ctx->window) - 10, w - p, 2);
@@ -286,7 +293,7 @@ static int do_xaf(int argc, char ** argv)
 
 static struct command_t cmd_xaf = {
 	.name	= "xaf",
-	.desc	= "video player for xaf (x animation format) file",
+	.desc	= "video player for xaf(x animation format) file",
 	.usage	= usage,
 	.exec	= do_xaf,
 };
