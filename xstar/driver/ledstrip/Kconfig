@@ -5,8 +5,8 @@ config DRV_LEDSTRIP_SK9822
 	bool
 	default n
 
-config DRV_LEDSTRIP_WS2812
-	prompt "Enable WS2812 LED strip driver"
+config DRV_LEDSTRIP_WS2812B
+	prompt "Enable WS2812B LED strip driver"
 	bool
 	default n
 
