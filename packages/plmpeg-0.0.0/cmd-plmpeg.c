@@ -133,7 +133,12 @@ static int plmpeg_reload(struct plmpeg_context_t * ctx, const char * filename)
 			plm_destroy(ctx->plm);
 			ctx->plm = NULL;
 		}
-		ctx->plm = plm_create_with_xfs_filename(shell_getxfs(), filename);
+		int64_t length;
+		void * addr = xfs_map(shell_getxfs(), filename, &length);
+		if(addr)
+			ctx->plm = plm_create_with_memory((uint8_t *)addr, (size_t)length, 0);
+		else
+			ctx->plm = plm_create_with_xfs_filename(shell_getxfs(), filename);
 		if(ctx->plm)
 		{
 			ctx->surface = surface_alloc(plm_get_width(ctx->plm), plm_get_height(ctx->plm));
