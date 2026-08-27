@@ -5,6 +5,11 @@ config DRV_FRAMEBUFFER_GC9107
 	bool
 	default n
 
+config DRV_FRAMEBUFFER_GC9A01
+	prompt "Enable GC9A01 framebuffer driver"
+	bool
+	default n
+
 config DRV_FRAMEBUFFER_GC9B72
 	prompt "Enable GC9B72 framebuffer driver"
 	bool

@@ -1,6 +1,7 @@
 obj-y += framebuffer.o
 
 obj-$(CONFIG_DRV_FRAMEBUFFER_GC9107) += fb-gc9107.o
+obj-$(CONFIG_DRV_FRAMEBUFFER_GC9A01) += fb-gc9a01.o
 obj-$(CONFIG_DRV_FRAMEBUFFER_GC9B72) += fb-gc9b72.o
 obj-$(CONFIG_DRV_FRAMEBUFFER_GC9D01) += fb-gc9d01.o
 obj-$(CONFIG_DRV_FRAMEBUFFER_NV3031B) += fb-nv3031b.o
