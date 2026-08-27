@@ -6,18 +6,19 @@
 
 ```
 cron                             - 列出所有任务
-cron add <name> <expr> <cmd>     - 添加周期性任务
-cron oneshot <name> <expr> <cmd> - 添加一次性任务
+cron add <name> <spec> <cmd>     - 添加周期性任务
+cron oneshot <name> <spec> <cmd> - 添加一次性任务
 cron remove <name>               - 移除任务
 ```
 
 ## 说明
 
-- `expr` 为标准 5 段 cron 表达式，含空格需用双引号包裹：`"<minute> <hour> <day> <month> <week>"`
+- `spec` 为标准 5 段 cron 表达式，含空格需用双引号包裹：`"<minute> <hour> <day> <month> <week>"`
 - `cmd` 为到点执行的 shell 命令，含空格需用双引号包裹
 - 时区从全局设置 `timezone` 读取，未设置时默认 `Asia/Shanghai`
 - `add` 添加的任务（periodic）每次匹配都会执行；`oneshot` 任务执行一次后自动移除
 - 任务 `name` 需唯一，重名添加或表达式非法都会失败
+- 不带参数执行 `cron` 会列出所有任务，每行显示 `name`、`spec` 与类型（`periodic`/`oneshot`）
 - 表达式语法详见 [Cron 定时任务调度器](../subsys/cron/cron.md)
 
 ### 表达式字段

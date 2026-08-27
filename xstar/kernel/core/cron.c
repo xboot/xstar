@@ -35,7 +35,7 @@
  *   │    └───────────────── hour (0 - 23)
  *   └────────────────────── minute (0 - 59)
  */
-struct cron_expr_t {
+struct cron_rule_t {
 	uint64_t minute;
 	uint32_t hour;
 	uint32_t day;
@@ -52,7 +52,7 @@ static const char * week_names[] = {
 	"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
 };
 
-static int cron_expr_parse_value(const char ** pp, const char ** names, int name_count, int name_offset, int * out)
+static int cron_rule_parse_value(const char ** pp, const char ** names, int name_count, int name_offset, int * out)
 {
 	const char * p = *pp;
 
@@ -85,7 +85,7 @@ static int cron_expr_parse_value(const char ** pp, const char ** names, int name
 	return 0;
 }
 
-static int cron_expr_parse_field(const char * field, int min, int max, const char ** names, int name_count, int name_offset, uint64_t * out)
+static int cron_rule_parse_field(const char * field, int min, int max, const char ** names, int name_count, int name_offset, uint64_t * out)
 {
 	const char * p = field;
 	uint64_t bits = 0;
@@ -108,21 +108,21 @@ static int cron_expr_parse_field(const char * field, int min, int max, const cha
 		}
 		else
 		{
-			if(!cron_expr_parse_value(&p, names, name_count, name_offset, &low))
+			if(!cron_rule_parse_value(&p, names, name_count, name_offset, &low))
 				return 0;
 			high = low;
 		}
 		if(*p == '-')
 		{
 			p++;
-			if(!cron_expr_parse_value(&p, names, name_count, name_offset, &high))
+			if(!cron_rule_parse_value(&p, names, name_count, name_offset, &high))
 				return 0;
 			has_high = 1;
 		}
 		if(*p == '/')
 		{
 			p++;
-			if(!cron_expr_parse_value(&p, NULL, 0, 0, &step))
+			if(!cron_rule_parse_value(&p, NULL, 0, 0, &step))
 				return 0;
 			if(step <= 0)
 				return 0;
@@ -150,11 +150,11 @@ static int cron_expr_parse_field(const char * field, int min, int max, const cha
 	return 1;
 }
 
-static int cron_expr_parse(struct cron_expr_t * expr, const char * s)
+static int cron_rule_parse(struct cron_rule_t * rule, const char * spec)
 {
-	if(expr && s)
+	if(rule && spec)
 	{
-		char * dup = xos_strdup(s);
+		char * dup = xos_strdup(spec);
 		if(dup)
 		{
 			char * f[5];
@@ -174,31 +174,31 @@ static int cron_expr_parse(struct cron_expr_t * expr, const char * s)
 				xos_mem_free(dup);
 				return 0;
 			}
-			if(!cron_expr_parse_field(f[0], 0, 59, NULL, 0, 0, &tmp))
+			if(!cron_rule_parse_field(f[0], 0, 59, NULL, 0, 0, &tmp))
 			{
 				xos_mem_free(dup);
 				return 0;
 			}
-			expr->minute = tmp;
-			if(!cron_expr_parse_field(f[1], 0, 23, NULL, 0, 0, &tmp))
+			rule->minute = tmp;
+			if(!cron_rule_parse_field(f[1], 0, 23, NULL, 0, 0, &tmp))
 			{
 				xos_mem_free(dup);
 				return 0;
 			}
-			expr->hour = (uint32_t)tmp;
-			if(!cron_expr_parse_field(f[2], 1, 31, NULL, 0, 0, &tmp))
+			rule->hour = (uint32_t)tmp;
+			if(!cron_rule_parse_field(f[2], 1, 31, NULL, 0, 0, &tmp))
 			{
 				xos_mem_free(dup);
 				return 0;
 			}
-			expr->day = (uint32_t)tmp;
-			if(!cron_expr_parse_field(f[3], 1, 12, month_names, 12, 1, &tmp))
+			rule->day = (uint32_t)tmp;
+			if(!cron_rule_parse_field(f[3], 1, 12, month_names, 12, 1, &tmp))
 			{
 				xos_mem_free(dup);
 				return 0;
 			}
-			expr->month = (uint16_t)tmp;
-			if(!cron_expr_parse_field(f[4], 0, 7, week_names, 7, 0, &tmp))
+			rule->month = (uint16_t)tmp;
+			if(!cron_rule_parse_field(f[4], 0, 7, week_names, 7, 0, &tmp))
 			{
 				xos_mem_free(dup);
 				return 0;
@@ -206,12 +206,12 @@ static int cron_expr_parse(struct cron_expr_t * expr, const char * s)
 			if(tmp & ((uint64_t)0x1 << 7))
 				tmp |= 0x1;
 			tmp &= ~((uint64_t)0x1 << 7);
-			expr->week = (uint8_t)tmp;
-			expr->restricted = 0;
+			rule->week = (uint8_t)tmp;
+			rule->restricted = 0;
 			if(xos_strcmp(f[2], "*") != 0)
-				expr->restricted |= (0x1 << 0);
+				rule->restricted |= (0x1 << 0);
 			if(xos_strcmp(f[4], "*") != 0)
-				expr->restricted |= (0x1 << 1);
+				rule->restricted |= (0x1 << 1);
 			xos_mem_free(dup);
 			return 1;
 		}
@@ -219,9 +219,9 @@ static int cron_expr_parse(struct cron_expr_t * expr, const char * s)
 	return 0;
 }
 
-static int cron_expr_match(struct cron_expr_t * expr, int minute, int hour, int day, int month, int week)
+static int cron_rule_match(struct cron_rule_t * rule, int minute, int hour, int day, int month, int week)
 {
-	if(!expr)
+	if(!rule)
 		return 0;
 	if((minute < 0) || (minute > 59))
 		return 0;
@@ -233,22 +233,23 @@ static int cron_expr_match(struct cron_expr_t * expr, int minute, int hour, int 
 		return 0;
 	if((week < 0) || (week > 6))
 		return 0;
-	if(!((expr->minute >> minute) & 0x1))
+	if(!((rule->minute >> minute) & 0x1))
 		return 0;
-	if(!((expr->hour >> hour) & 0x1))
+	if(!((rule->hour >> hour) & 0x1))
 		return 0;
-	if(!((expr->month >> month) & 0x1))
+	if(!((rule->month >> month) & 0x1))
 		return 0;
-	if((expr->restricted & 0x3) == 0x3)
-		return (((expr->day >> day) & 0x1) || ((expr->week >> week) & 0x1)) ? 1 : 0;
+	if((rule->restricted & 0x3) == 0x3)
+		return (((rule->day >> day) & 0x1) || ((rule->week >> week) & 0x1)) ? 1 : 0;
 	else
-		return (((expr->day >> day) & 0x1) && ((expr->week >> week) & 0x1)) ? 1 : 0;
+		return (((rule->day >> day) & 0x1) && ((rule->week >> week) & 0x1)) ? 1 : 0;
 }
 
 struct cron_job_t {
 	struct list_head_t entry;
-	struct cron_expr_t expr;
+	struct cron_rule_t rule;
 	char * name;
+	char * spec;
 	void (*exec)(void *);
 	void (*destroy)(void *);
 	void * data;
@@ -277,7 +278,7 @@ static void cron_tick(struct cron_t * cron, struct wallclock_time_t * tm)
 				{
 					if(pos->removed)
 						continue;
-					if((pos->last != now) && cron_expr_match(&pos->expr, tm->minute, tm->hour, tm->day, tm->month, tm->week))
+					if((pos->last != now) && cron_rule_match(&pos->rule, tm->minute, tm->hour, tm->day, tm->month, tm->week))
 					{
 						pos->last = now;
 						pos->refcount++;
@@ -390,23 +391,29 @@ void cron_free(struct cron_t * cron)
 	}
 }
 
-int cron_add(struct cron_t * cron, const char * name, const char * expr, int oneshot, void (*exec)(void *), void (*destroy)(void *), void * data)
+int cron_add(struct cron_t * cron, const char * name, const char * spec, int oneshot, void (*exec)(void *), void (*destroy)(void *), void * data)
 {
-	if(cron && name && expr && exec)
+	if(cron && name && spec && exec)
 	{
 		struct cron_job_t * job = xos_mem_malloc(sizeof(struct cron_job_t));
 		if(job)
 		{
 			init_list_head(&job->entry);
 			job->name = xos_strdup(name);
-			if(!job->name)
+			job->spec = xos_strdup(spec);
+			if(!job->name || !job->spec)
 			{
+				if(job->name)
+					xos_mem_free(job->name);
+				if(job->spec)
+					xos_mem_free(job->spec);
 				xos_mem_free(job);
 				return 0;
 			}
-			if(!cron_expr_parse(&job->expr, expr))
+			if(!cron_rule_parse(&job->rule, spec))
 			{
 				xos_mem_free(job->name);
+				xos_mem_free(job->spec);
 				xos_mem_free(job);
 				return 0;
 			}
@@ -427,6 +434,7 @@ int cron_add(struct cron_t * cron, const char * name, const char * expr, int one
 					{
 						xos_mutex_unlock(&cron->lock);
 						xos_mem_free(job->name);
+						xos_mem_free(job->spec);
 						xos_mem_free(job);
 						return 0;
 					}
@@ -465,6 +473,7 @@ int cron_remove(struct cron_t * cron, const char * name)
 				if(drop == 0)
 				{
 					xos_mem_free(job->name);
+					xos_mem_free(job->spec);
 					if(job->destroy)
 						job->destroy(job->data);
 					xos_mem_free(job);
@@ -477,7 +486,7 @@ int cron_remove(struct cron_t * cron, const char * name)
 	return 0;
 }
 
-void cron_foreach(struct cron_t * cron, void (*cb)(char * name, int oneshot, void * data), void * data)
+void cron_foreach(struct cron_t * cron, void (*cb)(char * name, char * spec, int oneshot, void * data), void * data)
 {
 	if(cron && cb)
 	{
@@ -487,7 +496,7 @@ void cron_foreach(struct cron_t * cron, void (*cb)(char * name, int oneshot, voi
 			list_for_each_entry_safe(pos, n, &cron->head, entry)
 			{
 				if(!pos->removed)
-					cb(pos->name, pos->oneshot, data);
+					cb(pos->name, pos->spec, pos->oneshot, data);
 			}
 		}
 		xos_mutex_unlock(&cron->lock);

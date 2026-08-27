@@ -15,7 +15,7 @@ struct cron_t {
 };
 ```
 
-任务节点 `cron_job_t` 与解析后的表达式 `cron_expr_t` 为内部实现，不对外暴露。
+任务节点 `cron_job_t` 与解析后的规则 `cron_rule_t` 为内部实现，不对外暴露；`cron_job_t` 额外保存原始表达式字符串 `spec`，用于列出任务时回显。
 
 ## 工作原理
 
@@ -45,9 +45,9 @@ struct cron_t {
 |------|------|
 | `cron_alloc(tz)` | 创建调度器并启动后台线程，`tz` 为时区字符串，可为 `NULL` |
 | `cron_free(cron)` | 停止线程并释放调度器及所有任务 |
-| `cron_add(cron, name, expr, oneshot, exec, destroy, data)` | 添加任务，`name` 需唯一，`oneshot` 非 0 表示仅触发一次；`exec` 为到期回调，`destroy` 为任务销毁时回收 `data` 的回调，可为 `NULL` |
+| `cron_add(cron, name, spec, oneshot, exec, destroy, data)` | 添加任务，`name` 需唯一，`spec` 为标准 5 段 cron 表达式；`oneshot` 非 0 表示仅触发一次；`exec` 为到期回调，`destroy` 为任务销毁时回收 `data` 的回调，可为 `NULL` |
 | `cron_remove(cron, name)` | 按名称移除任务 |
-| `cron_foreach(cron, cb, data)` | 遍历当前未删除的任务，对每个调用 `cb(name, oneshot, data)` |
+| `cron_foreach(cron, cb, data)` | 遍历当前未删除的任务，对每个调用 `cb(name, spec, oneshot, data)` |
 
 返回值：`cron_alloc` 成功返回指针，失败返回 `NULL`；`cron_add`/`cron_remove` 成功返回 `1`，失败返回 `0`。
 
@@ -172,9 +172,9 @@ void demo(struct cron_t * cron)
 ### 遍历任务
 
 ```c
-static void list_cb(char * name, int oneshot, void * data)
+static void list_cb(char * name, char * spec, int oneshot, void * data)
 {
-    LOG("job: %s, oneshot=%d\n", name, oneshot);
+    LOG("job: %s, spec: %s, oneshot=%d\n", name, spec, oneshot);
 }
 
 cron_foreach(cron, list_cb, NULL);

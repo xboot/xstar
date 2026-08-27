@@ -33,8 +33,8 @@ static void usage(void)
 	shell_printf("usage:\r\n");
 	shell_printf("    5-field cron: \"<minute> <hour> <day> <month> <week>\"\r\n");
 	shell_printf("    cron                             list all cron jobs\r\n");
-	shell_printf("    cron add <name> <expr> <cmd>     add a periodic cron job\r\n");
-	shell_printf("    cron oneshot <name> <expr> <cmd> add a oneshot cron job\r\n");
+	shell_printf("    cron add <name> <spec> <cmd>     add a periodic cron job\r\n");
+	shell_printf("    cron oneshot <name> <spec> <cmd> add a oneshot cron job\r\n");
 	shell_printf("    cron remove <name>               remove a cron job\r\n");
 }
 
@@ -46,10 +46,10 @@ static struct cron_t * cron_get(void)
 	return cron;
 }
 
-static void cron_list_cb(char * name, int oneshot, void * data)
+static void cron_list_cb(char * name, char * spec, int oneshot, void * data)
 {
 	int * count = (int *)data;
-	shell_printf("    %-16s %s\r\n", name, oneshot ? "oneshot" : "periodic");
+	shell_printf("  %-16s %-16s %s\r\n", name, spec, oneshot ? "oneshot" : "periodic");
 	if(count)
 		(*count)++;
 }
@@ -94,8 +94,8 @@ static int do_cron(int argc, char ** argv)
 	{
 		int oneshot = (xos_strcmp(sub, "oneshot") == 0) ? 1 : 0;
 		const char * name = sarg_at(&sarg, 1);
-		const char * expr = sarg_at(&sarg, 2);
-		if(!name || !expr)
+		const char * spec = sarg_at(&sarg, 2);
+		if(!name || !spec)
 		{
 			usage();
 			return -1;
@@ -106,7 +106,7 @@ static int do_cron(int argc, char ** argv)
 			usage();
 			return -1;
 		}
-		if(!cron_add(cron_get(), name, expr, oneshot, cron_exec_cb, cron_destroy_cb, cmd))
+		if(!cron_add(cron_get(), name, spec, oneshot, cron_exec_cb, cron_destroy_cb, cmd))
 		{
 			shell_printf("cron: failed to add job '%s'\r\n", name);
 			xos_mem_free(cmd);

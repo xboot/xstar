@@ -15,7 +15,7 @@ struct cron_t {
 };
 ```
 
-The job node `cron_job_t` and the parsed expression `cron_expr_t` are internal and not exposed.
+The job node `cron_job_t` and the parsed rule `cron_rule_t` are internal and not exposed; `cron_job_t` additionally stores the original spec string `spec` for echoing when listing jobs.
 
 ## How It Works
 
@@ -45,9 +45,9 @@ The reference count is incremented when a job is matched and decremented after i
 |----------|-------------|
 | `cron_alloc(tz)` | Create a scheduler and start the background thread, `tz` is the timezone string, may be `NULL` |
 | `cron_free(cron)` | Stop the thread and free the scheduler along with all jobs |
-| `cron_add(cron, name, expr, oneshot, exec, destroy, data)` | Add a job, `name` must be unique, non-zero `oneshot` means fire only once; `exec` is the callback fired when due, `destroy` reclaims `data` when the job is destroyed, may be `NULL` |
+| `cron_add(cron, name, spec, oneshot, exec, destroy, data)` | Add a job, `name` must be unique, `spec` is a standard 5-field cron expression; non-zero `oneshot` means fire only once; `exec` is the callback fired when due, `destroy` reclaims `data` when the job is destroyed, may be `NULL` |
 | `cron_remove(cron, name)` | Remove a job by name |
-| `cron_foreach(cron, cb, data)` | Iterate over non-removed jobs, calling `cb(name, oneshot, data)` for each |
+| `cron_foreach(cron, cb, data)` | Iterate over non-removed jobs, calling `cb(name, spec, oneshot, data)` for each |
 
 Return values: `cron_alloc` returns a pointer on success, `NULL` on failure; `cron_add`/`cron_remove` return `1` on success, `0` on failure.
 
@@ -172,9 +172,9 @@ void demo(struct cron_t * cron)
 ### Iterating Jobs
 
 ```c
-static void list_cb(char * name, int oneshot, void * data)
+static void list_cb(char * name, char * spec, int oneshot, void * data)
 {
-    LOG("job: %s, oneshot=%d\n", name, oneshot);
+    LOG("job: %s, spec: %s, oneshot=%d\n", name, spec, oneshot);
 }
 
 cron_foreach(cron, list_cb, NULL);
