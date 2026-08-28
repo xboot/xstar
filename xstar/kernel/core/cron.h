@@ -20,6 +20,7 @@ struct cron_t * cron_alloc(const char * tz);
 void cron_free(struct cron_t * cron);
 int cron_add(struct cron_t * cron, const char * name, const char * spec, int oneshot, void (*exec)(void *), void (*destroy)(void *), void * data);
 int cron_remove(struct cron_t * cron, const char * name);
+void cron_clear(struct cron_t * cron);
 void cron_foreach(struct cron_t * cron, void (*cb)(char * name, char * spec, int oneshot, void * data), void * data);
 
 #ifdef __cplusplus

@@ -36,6 +36,7 @@ static void usage(void)
 	shell_printf("    cron add <name> <spec> <cmd>     add a periodic cron job\r\n");
 	shell_printf("    cron oneshot <name> <spec> <cmd> add a oneshot cron job\r\n");
 	shell_printf("    cron remove <name>               remove a cron job\r\n");
+	shell_printf("    cron clear                       remove all cron jobs\r\n");
 }
 
 static struct cron_t * cron_get(void)
@@ -129,6 +130,12 @@ static int do_cron(int argc, char ** argv)
 			return -1;
 		}
 		shell_printf("cron: job '%s' removed\r\n", name);
+		return 0;
+	}
+	else if(xos_strcmp(sub, "clear") == 0)
+	{
+		cron_clear(cron_get());
+		shell_printf("cron: all jobs removed\r\n");
 		return 0;
 	}
 	usage();

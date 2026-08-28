@@ -47,6 +47,7 @@ The reference count is incremented when a job is matched and decremented after i
 | `cron_free(cron)` | Stop the thread and free the scheduler along with all jobs |
 | `cron_add(cron, name, spec, oneshot, exec, destroy, data)` | Add a job, `name` must be unique, `spec` is a standard 5-field cron expression; non-zero `oneshot` means fire only once; `exec` is the callback fired when due, `destroy` reclaims `data` when the job is destroyed, may be `NULL` |
 | `cron_remove(cron, name)` | Remove a job by name |
+| `cron_clear(cron)` | Remove all jobs |
 | `cron_foreach(cron, cb, data)` | Iterate over non-removed jobs, calling `cb(name, spec, oneshot, data)` for each |
 
 Return values: `cron_alloc` returns a pointer on success, `NULL` on failure; `cron_add`/`cron_remove` return `1` on success, `0` on failure.
@@ -203,5 +204,5 @@ cron_foreach(cron, list_cb, NULL);
 - On `cron_add` failure, ownership is not transferred and `data` is still freed by the caller
 - The time source is the wall clock `wallclock_gettime()`, with `tz` forwarded as-is; `wallclock_time_t.week` is defined as `(days since 1970-01-01 + 4) % 7`, i.e. `0 = Sunday`, matching the cron standard
 - Scheduling precision is at the minute level, checked once per minute boundary; if a minute is skipped (e.g. the system is busy), jobs for that minute are not retroactively fired
-- `cron_add`/`cron_remove`/`cron_foreach` may be called from any thread, including from within a job callback
+- `cron_add`/`cron_remove`/`cron_clear`/`cron_foreach` may be called from any thread, including from within a job callback
 - `cron_free` wakes and waits for the scheduler thread to exit before freeing all jobs; the handle must not be used afterward

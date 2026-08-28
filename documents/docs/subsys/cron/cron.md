@@ -47,6 +47,7 @@ struct cron_t {
 | `cron_free(cron)` | 停止线程并释放调度器及所有任务 |
 | `cron_add(cron, name, spec, oneshot, exec, destroy, data)` | 添加任务，`name` 需唯一，`spec` 为标准 5 段 cron 表达式；`oneshot` 非 0 表示仅触发一次；`exec` 为到期回调，`destroy` 为任务销毁时回收 `data` 的回调，可为 `NULL` |
 | `cron_remove(cron, name)` | 按名称移除任务 |
+| `cron_clear(cron)` | 移除所有任务 |
 | `cron_foreach(cron, cb, data)` | 遍历当前未删除的任务，对每个调用 `cb(name, spec, oneshot, data)` |
 
 返回值：`cron_alloc` 成功返回指针，失败返回 `NULL`；`cron_add`/`cron_remove` 成功返回 `1`，失败返回 `0`。
@@ -203,5 +204,5 @@ cron_foreach(cron, list_cb, NULL);
 - `cron_add` 失败时所有权未转移，`data` 仍由调用者释放
 - 时间源为墙钟 `wallclock_gettime()`，`tz` 直接透传；`wallclock_time_t.week` 定义为 `(自 1970-01-01 起的天数 + 4) % 7`，`0 = 周日`，与 cron 标准一致
 - 调度精度为分钟级，每分钟边界检查一次；若某分钟被跳过（如系统繁忙），该分钟的任务不会补触发
-- `cron_add`/`cron_remove`/`cron_foreach` 可在任意线程调用，包括任务回调内部
+- `cron_add`/`cron_remove`/`cron_clear`/`cron_foreach` 可在任意线程调用，包括任务回调内部
 - `cron_free` 会唤醒并等待调度线程退出后再释放所有任务，调用后不可再使用该句柄

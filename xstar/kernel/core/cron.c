@@ -489,6 +489,32 @@ int cron_remove(struct cron_t * cron, const char * name)
 	return 0;
 }
 
+void cron_clear(struct cron_t * cron)
+{
+	if(cron)
+	{
+		xos_mutex_lock(&cron->lock);
+		{
+			struct cron_job_t * pos, * n;
+			list_for_each_entry_safe(pos, n, &cron->head, entry)
+			{
+				list_del(&pos->entry);
+				pos->removed = 1;
+				int drop = --pos->refcount;
+				if(drop == 0)
+				{
+					xos_mem_free(pos->name);
+					xos_mem_free(pos->spec);
+					if(pos->destroy)
+						pos->destroy(pos->data);
+					xos_mem_free(pos);
+				}
+			}
+		}
+		xos_mutex_unlock(&cron->lock);
+	}
+}
+
 void cron_foreach(struct cron_t * cron, void (*cb)(char * name, char * spec, int oneshot, void * data), void * data)
 {
 	if(cron && cb)
