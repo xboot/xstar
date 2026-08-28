@@ -37,7 +37,7 @@ static void usage(void)
 
 static void cb(const char * key, const char * value)
 {
-	shell_printf("%s = %s\r\n", key, value);
+	shell_printf("%s=%s\r\n", key, value);
 }
 
 static int do_setting(int argc, char ** argv)
@@ -81,7 +81,7 @@ static int do_setting(int argc, char ** argv)
 			return -1;
 		}
 		while((key = sarg_at(&sarg, i++)) != NULL)
-			shell_printf("%s = %s\r\n", key, setting_get(key, NULL));
+			shell_printf("%s=%s\r\n", key, setting_get(key, NULL));
 	}
 	else if(!xos_strcmp(cmd, "clear"))
 	{

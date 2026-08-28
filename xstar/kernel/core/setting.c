@@ -199,7 +199,7 @@ static int setting_timer_function(struct timer_t * timer, void * data)
 						break;
 					if(l + xos_strlen(e->key) + xos_strlen(e->value) + 3 > size)
 						break;
-					l += xos_sprintf((char *)(s + l), "%s:%s|", e->key, (char *)e->value);
+					l += xos_sprintf((char *)(s + l), "%s\x1f%s\x1e", e->key, (char *)e->value);
 				}
 				s[l++] = '\0';
 				s[8] = ((l - 12) >>  0) & 0xff;
@@ -393,12 +393,12 @@ void do_init_setting(void)
 					{
 						char * p = (char * )s;
 						char * r, * k, * v;
-						while((r = xos_strsep(&p, "|")) != NULL)
+						while((r = xos_strsep(&p, "\x1e")) != NULL)
 						{
-							if(xos_strchr(r, ':'))
+							if(xos_strchr(r, '\x1f'))
 							{
-								k = xos_strim(xos_strsep(&r, ":"));
-								v = xos_strim(r);
+								k = xos_strsep(&r, "\x1f");
+								v = r;
 								k = (k && (*k != '\0')) ? k : NULL;
 								v = (v && (*v != '\0')) ? v : NULL;
 								if(k && v)
