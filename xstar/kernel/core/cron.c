@@ -326,8 +326,11 @@ static void cron_thread(void * data)
 	while(cron->running)
 	{
 		wallclock_gettime(&tm, cron->tz);
-		cron_tick(cron, &tm);
 		xos_semaphore_wait(&cron->sem, (60 - tm.second) * 1000);
+		if(!cron->running)
+			break;
+		wallclock_gettime(&tm, cron->tz);
+		cron_tick(cron, &tm);
 	}
 }
 
