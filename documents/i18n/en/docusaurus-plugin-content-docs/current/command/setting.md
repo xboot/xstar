@@ -16,6 +16,8 @@ setting clear               - Clear all settings
 - Manages a global key-value store for system configuration persistence
 - `set` without a value clears the key
 - `clear` resets all settings
+- Output format is `key=value`
+- Keys and values may contain any visible characters (including `:` and `|`)
 
 ## Examples
 

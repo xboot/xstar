@@ -39,8 +39,10 @@ Offset  Size    Content
 0       4       Magic "STAR"
 4       4       CRC32 checksum (covers offset 8 to end)
 8       4       Data length (little-endian, in bytes)
-12      N       Key-value data, format: key:value|key:value|...
+12      N       Key-value data, format: key<US>value<RS>key<US>value<RS>...
 ```
+
+Where `<US>` is the Unit Separator (0x1F) and `<RS>` is the Record Separator (0x1E). Keys and values must not contain these two control characters; apart from that, values may contain any visible characters (including `:` and `|`).
 
 Key-value pairs are written in sorted hash map order. The CRC32 covers the length field and data content. If verification fails on load, the data is discarded.
 
@@ -99,7 +101,7 @@ const char * sid = setting_get("volatile.session_id", NULL);
 ```c
 static void print_setting(const char * key, const char * value)
 {
-    shell_printf("%s = %s\r\n", key, value);
+    shell_printf("%s=%s\r\n", key, value);
 }
 
 void list_settings(void)

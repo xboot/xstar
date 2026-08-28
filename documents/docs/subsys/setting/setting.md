@@ -39,8 +39,10 @@ struct setting_t {
 0     4      魔数 "STAR"
 4     4      CRC32 校验值（覆盖偏移 8 到末尾）
 8     4      数据长度（小端序，字节数）
-12    N      键值对数据，格式为 key:value|key:value|...
+12    N      键值对数据，格式为 key<US>value<RS>key<US>value<RS>...
 ```
+
+其中 `<US>` 为单元分隔符（0x1F），`<RS>` 为记录分隔符（0x1E）。键和值不能包含这两个控制字符，除此之外值可以包含任意可见字符（包括 `:` 和 `|` 等）。
 
 键值对按哈希表排序后写入，CRC32 校验覆盖长度字段和数据内容，加载时校验不通过则丢弃数据。
 
@@ -99,7 +101,7 @@ const char * sid = setting_get("volatile.session_id", NULL);
 ```c
 static void print_setting(const char * key, const char * value)
 {
-    shell_printf("%s = %s\r\n", key, value);
+    shell_printf("%s=%s\r\n", key, value);
 }
 
 void list_settings(void)
