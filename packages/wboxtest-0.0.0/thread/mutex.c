@@ -73,6 +73,7 @@ static void mutex_run(struct wboxtest_t * wbt, void * data)
 	if(pdat)
 	{
 	    struct thread_t * threads[5];
+		pdat->counter = 0;
 		for(int i = 0; i < 5; i++)
 			threads[i] = xos_thread_create(NULL, mutex_thread, pdat, 0);
 		for(int i = 0; i < 5; i++)
