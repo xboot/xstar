@@ -1,4 +1,5 @@
 obj-y += channel.o
+obj-y += mailbox.o
 obj-y += mutex.o
 obj-y += semaphore.o
 obj-y += thread.o

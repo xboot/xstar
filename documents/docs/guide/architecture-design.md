@@ -302,7 +302,7 @@ XSTAR 内核包含以下子系统，各子系统的详细 API 文档见[子系�
 Core 子系统下的各工具独立文档：
 
 - 协程：[协程](../subsys/coroutine)、[CoChannel](../subsys/coroutine/cochannel)
-- 线程：[ThChannel](../subsys/thread/thchannel)、[ThWorker](../subsys/thread/thworker)
+- 线程：[ThChannel](../subsys/thread/thchannel)、[ThMailbox](../subsys/thread/thmailbox)、[ThWorker](../subsys/thread/thworker)
 - 调试：[Logger](../subsys/debug/logger)、[Profiler](../subsys/debug/profiler)
 - 持久化：[Setting](../subsys/setting)
 - 发布订阅：[PSub](../subsys/psub)

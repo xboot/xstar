@@ -302,7 +302,7 @@ The XSTAR kernel contains the following subsystems. For detailed API documentati
 Independent docs for each tool under the Core subsystem:
 
 - Coroutine: [Coroutine](../subsys/coroutine), [CoChannel](../subsys/coroutine/cochannel)
-- Thread: [ThChannel](../subsys/thread/thchannel), [ThWorker](../subsys/thread/thworker)
+- Thread: [ThChannel](../subsys/thread/thchannel), [ThMailbox](../subsys/thread/thmailbox), [ThWorker](../subsys/thread/thworker)
 - Debug: [Logger](../subsys/debug/logger), [Profiler](../subsys/debug/profiler)
 - Persistence: [Setting](../subsys/setting)
 - Publish-Subscribe: [PSub](../subsys/psub)

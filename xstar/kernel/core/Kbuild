@@ -7,4 +7,5 @@ obj-y += profiler.o
 obj-y += psub.o
 obj-y += setting.o
 obj-y += thchannel.o
+obj-y += thmailbox.o
 obj-y += thworker.o

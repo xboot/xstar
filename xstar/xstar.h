@@ -23,6 +23,7 @@ extern "C" {
 #include <kernel/core/psub.h>
 #include <kernel/core/setting.h>
 #include <kernel/core/thchannel.h>
+#include <kernel/core/thmailbox.h>
 #include <kernel/core/thworker.h>
 #include <kernel/font/font.h>
 #include <kernel/font/truetype.h>

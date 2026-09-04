@@ -123,6 +123,7 @@ const sidebars = {
       label: '线程',
       items: [
         'subsys/thread/thchannel',
+        'subsys/thread/thmailbox',
         'subsys/thread/thworker',
       ],
     },
