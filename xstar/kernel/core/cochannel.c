@@ -36,6 +36,8 @@ struct cochannel_t * cochannel_alloc(unsigned int size)
 
 	if(size < 16)
 		size = 16;
+	else if(size > (1U << 31))
+		size = (1U << 31);
 	if(size & (size - 1))
 		size = roundup_pow_of_two(size);
 
