@@ -25,8 +25,8 @@ int thchannel_isfull(struct thchannel_t * c);
 unsigned int thchannel_size(struct thchannel_t * c);
 unsigned int thchannel_length(struct thchannel_t * c);
 unsigned int thchannel_available(struct thchannel_t * c);
-unsigned int thchannel_send(struct thchannel_t * c, unsigned char * buf, unsigned int len, unsigned int timeout);
-unsigned int thchannel_recv(struct thchannel_t * c, unsigned char * buf, unsigned int len, unsigned int timeout);
+unsigned int thchannel_send(struct thchannel_t * c, unsigned char * buf, unsigned int len, int timeout);
+unsigned int thchannel_recv(struct thchannel_t * c, unsigned char * buf, unsigned int len, int timeout);
 
 #ifdef __cplusplus
 }

@@ -317,7 +317,7 @@ static void __xos_semaphore_exit(struct semaphore_t * sem)
 {
 }
 
-static int __xos_semaphore_wait(struct semaphore_t * sem, uint32_t timeout)
+static int __xos_semaphore_wait(struct semaphore_t * sem, int timeout)
 {
 	return 1;
 }

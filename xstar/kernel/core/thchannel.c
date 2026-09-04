@@ -188,7 +188,7 @@ static inline unsigned int thchannel_get(struct thchannel_t * c, unsigned char *
 	return len;
 }
 
-unsigned int thchannel_send(struct thchannel_t * c, unsigned char * buf, unsigned int len, unsigned int timeout)
+unsigned int thchannel_send(struct thchannel_t * c, unsigned char * buf, unsigned int len, int timeout)
 {
 	unsigned int cnt = 0;
 
@@ -208,7 +208,7 @@ unsigned int thchannel_send(struct thchannel_t * c, unsigned char * buf, unsigne
 	return cnt;
 }
 
-unsigned int thchannel_recv(struct thchannel_t * c, unsigned char * buf, unsigned int len, unsigned int timeout)
+unsigned int thchannel_recv(struct thchannel_t * c, unsigned char * buf, unsigned int len, int timeout)
 {
 	unsigned int cnt = 0;
 

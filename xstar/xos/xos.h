@@ -156,7 +156,7 @@ struct xos_environ_t {
 	struct {
 		void (*init)(struct semaphore_t * sem, uint32_t count);
 		void (*exit)(struct semaphore_t * sem);
-		int (*wait)(struct semaphore_t * sem, uint32_t timeout);
+		int (*wait)(struct semaphore_t * sem, int timeout);
 		int (*post)(struct semaphore_t * sem);
 	} semaphore;
 
@@ -604,7 +604,7 @@ static inline void xos_semaphore_exit(struct semaphore_t * sem)
 	__xos_environ.semaphore.exit(sem);
 }
 
-static inline int xos_semaphore_wait(struct semaphore_t * sem, uint32_t timeout)
+static inline int xos_semaphore_wait(struct semaphore_t * sem, int timeout)
 {
 	#undef wait
 	return __xos_environ.semaphore.wait(sem, timeout);

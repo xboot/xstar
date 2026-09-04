@@ -37,7 +37,7 @@ static void thwoker_thread(void * data)
 
 	while(w->running)
 	{
-		if(xos_semaphore_wait(&w->sem, 0))
+		if(xos_semaphore_wait(&w->sem, -1))
 		{
 			xos_mutex_lock(&w->lock);
 			struct thworker_task_t * task = (struct thworker_task_t *)list_first_entry_or_null(&w->head, struct thworker_task_t, entry);

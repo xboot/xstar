@@ -12,24 +12,24 @@ void win_semaphore_exit(struct semaphore_t * sem)
 		sem_destroy(&sem->sem);
 }
 
-int win_semaphore_wait(struct semaphore_t * sem, uint32_t timeout)
+int win_semaphore_wait(struct semaphore_t * sem, int timeout)
 {
 	if(sem)
 	{
-		if(timeout > 0)
+		if(timeout < 0)
+			return (sem_wait(&sem->sem) == 0) ? 1 : 0;
+		if(timeout == 0)
+			return (sem_trywait(&sem->sem) == 0) ? 1 : 0;
+		struct timespec ts = { 0, 0 };
+		clock_gettime(CLOCK_REALTIME, &ts);
+		ts.tv_sec += timeout / 1000;
+		ts.tv_nsec += ((timeout % 1000) * 1000000);
+		if(ts.tv_nsec >= 1000000000ULL)
 		{
-			struct timespec ts = { 0, 0 };
-			clock_gettime(CLOCK_REALTIME, &ts);
-			ts.tv_sec += timeout / 1000;
-			ts.tv_nsec += ((timeout % 1000) * 1000000);
-			if(ts.tv_nsec >= 1000000000ULL)
-			{
-				ts.tv_sec += ts.tv_nsec / 1000000000ULL;
-				ts.tv_nsec = ts.tv_nsec % 1000000000ULL;
-			}
-			return (sem_timedwait(&sem->sem, &ts) == 0) ? 1 : 0;
+			ts.tv_sec += ts.tv_nsec / 1000000000ULL;
+			ts.tv_nsec = ts.tv_nsec % 1000000000ULL;
 		}
-		return (sem_wait(&sem->sem) == 0) ? 1 : 0;
+		return (sem_timedwait(&sem->sem, &ts) == 0) ? 1 : 0;
 	}
 	return 0;
 }

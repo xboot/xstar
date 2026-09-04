@@ -65,7 +65,7 @@ static void th_recv(void * data)
 
 	while(cnt--)
 	{
-		thchannel_recv(pdat->ch, (unsigned char *)&c, sizeof(c), 0);
+		thchannel_recv(pdat->ch, (unsigned char *)&c, sizeof(c), -1);
 		assert_equal(c, cnt);
 	}
 }
@@ -77,7 +77,7 @@ static void th_send(void * data)
 
 	while(cnt--)
 	{
-		thchannel_send(pdat->ch, (unsigned char *)&cnt, sizeof(cnt), 0);
+		thchannel_send(pdat->ch, (unsigned char *)&cnt, sizeof(cnt), -1);
 	}
 }
 

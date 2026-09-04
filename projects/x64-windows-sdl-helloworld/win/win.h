@@ -254,7 +254,7 @@ void win_pm_standby(void);
  */
 void win_semaphore_init(struct semaphore_t * sem, uint32_t count);
 void win_semaphore_exit(struct semaphore_t * sem);
-int win_semaphore_wait(struct semaphore_t * sem, uint32_t timeout);
+int win_semaphore_wait(struct semaphore_t * sem, int timeout);
 int win_semaphore_post(struct semaphore_t * sem);
 
 /*

@@ -39,6 +39,7 @@ struct thchannel_t {
 
 `thchannel_send()` 和 `thchannel_recv()` 支持超时参数：
 
+- `timeout < 0`：永久阻塞，直到完成全部数据的读写
 - `timeout = 0`：非阻塞模式，无数据可读写时立即返回
 - `timeout > 0`：阻塞等待指定毫秒数，超时后返回已传输的数据量
 - 返回值为实际发送/接收的字节数

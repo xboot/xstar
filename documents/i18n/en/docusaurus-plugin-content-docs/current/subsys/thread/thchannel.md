@@ -39,6 +39,7 @@ Unlike the cochannel, the thread channel uses mutexes and semaphores for true mu
 
 `thchannel_send()` and `thchannel_recv()` support a timeout parameter:
 
+- `timeout < 0`: Blocks forever until all data has been read or written
 - `timeout = 0`: Non-blocking mode, returns immediately when no data can be read or written
 - `timeout > 0`: Blocks for the specified milliseconds, returns the amount of data transferred after timeout
 - Return value is the actual number of bytes sent/received

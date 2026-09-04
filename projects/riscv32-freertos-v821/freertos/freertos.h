@@ -46,7 +46,7 @@ void freertos_pm_standby(void);
 
 void freertos_semaphore_init(struct semaphore_t * sem, uint32_t count);
 void freertos_semaphore_exit(struct semaphore_t * sem);
-int freertos_semaphore_wait(struct semaphore_t * sem, uint32_t timeout);
+int freertos_semaphore_wait(struct semaphore_t * sem, int timeout);
 int freertos_semaphore_post(struct semaphore_t * sem);
 
 struct thread_t * freertos_thread_create(const char * name, void (*func)(void *), void * data, int stksz);
