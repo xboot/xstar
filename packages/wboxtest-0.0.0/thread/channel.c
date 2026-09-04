@@ -24,8 +24,7 @@
 
 #include <wboxtest.h>
 
-struct wbt_channel_pdata_t
-{
+struct wbt_channel_pdata_t {
 	struct thchannel_t * ch;
 };
 
@@ -81,18 +80,82 @@ static void th_send(void * data)
 	}
 }
 
+static void th_recv_big(void * data)
+{
+	struct wbt_channel_pdata_t * pdat = (struct wbt_channel_pdata_t *)data;
+	unsigned char buf[64];
+	int i, j;
+
+	for(i = 0; i < 8; i++)
+	{
+		assert_equal(thchannel_recv(pdat->ch, buf, sizeof(buf), -1), sizeof(buf));
+		for(j = 0; j < (int)sizeof(buf); j++)
+			assert_equal(buf[j], (unsigned char)(i + j));
+	}
+}
+
+static void th_send_big(void * data)
+{
+	struct wbt_channel_pdata_t * pdat = (struct wbt_channel_pdata_t *)data;
+	unsigned char buf[64];
+	int i, j;
+
+	for(i = 0; i < 8; i++)
+	{
+		for(j = 0; j < (int)sizeof(buf); j++)
+			buf[j] = (unsigned char)(i + j);
+		assert_equal(thchannel_send(pdat->ch, buf, sizeof(buf), -1), sizeof(buf));
+	}
+}
+
+static void channel_run_threads(struct wbt_channel_pdata_t * pdat, void (*fn_recv)(void *), void (*fn_send)(void *))
+{
+	struct thread_t * rthread = xos_thread_create(NULL, fn_recv, pdat, 0);
+	struct thread_t * sthread = xos_thread_create(NULL, fn_send, pdat, 0);
+	xos_thread_wait(rthread);
+	xos_thread_destroy(rthread);
+	xos_thread_wait(sthread);
+	xos_thread_destroy(sthread);
+}
+
+static void channel_run_state(struct wbt_channel_pdata_t * pdat)
+{
+	unsigned char buf[4] = { 0, 1, 2, 3 };
+
+	assert_true(thchannel_isempty(pdat->ch));
+	assert_equal(thchannel_length(pdat->ch), 0);
+	assert_equal(thchannel_available(pdat->ch), 16);
+	assert_equal(thchannel_recv(pdat->ch, buf, sizeof(buf), 10), 0);
+
+	assert_equal(thchannel_send(pdat->ch, buf, sizeof(buf), 10), sizeof(buf));
+	assert_false(thchannel_isempty(pdat->ch));
+	assert_equal(thchannel_length(pdat->ch), 4);
+	assert_equal(thchannel_send(pdat->ch, buf, sizeof(buf), 10), sizeof(buf));
+	assert_equal(thchannel_send(pdat->ch, buf, sizeof(buf), 10), sizeof(buf));
+	assert_equal(thchannel_send(pdat->ch, buf, sizeof(buf), 10), sizeof(buf));
+	assert_true(thchannel_isfull(pdat->ch));
+	assert_equal(thchannel_available(pdat->ch), 0);
+	assert_equal(thchannel_size(pdat->ch), 16);
+	assert_equal(thchannel_send(pdat->ch, buf, sizeof(buf), 10), 0);
+
+	thchannel_reset(pdat->ch);
+	assert_true(thchannel_isempty(pdat->ch));
+	assert_equal(thchannel_length(pdat->ch), 0);
+	assert_equal(thchannel_available(pdat->ch), 16);
+	assert_equal(thchannel_recv(pdat->ch, buf, sizeof(buf), 10), 0);
+}
+
 static void channel_run(struct wboxtest_t * wbt, void * data)
 {
 	struct wbt_channel_pdata_t * pdat = (struct wbt_channel_pdata_t *)data;
 
 	if(pdat)
 	{
-		struct thread_t * rthread = xos_thread_create(NULL, th_recv, pdat, 0);
-		struct thread_t * sthread = xos_thread_create(NULL, th_send, pdat, 0);
-		xos_thread_wait(rthread);
-		xos_thread_destroy(rthread);
-		xos_thread_wait(sthread);
-		xos_thread_destroy(sthread);
+		channel_run_threads(pdat, th_recv, th_send);
+		thchannel_reset(pdat->ch);
+		channel_run_threads(pdat, th_recv_big, th_send_big);
+		thchannel_reset(pdat->ch);
+		channel_run_state(pdat);
 	}
 }
 

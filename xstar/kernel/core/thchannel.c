@@ -36,6 +36,8 @@ struct thchannel_t * thchannel_alloc(unsigned int size)
 
 	if(size < 16)
 		size = 16;
+	else if(size > (1U << 31))
+		size = (1U << 31);
 	if(size & (size - 1))
 		size = roundup_pow_of_two(size);
 
@@ -76,6 +78,8 @@ void thchannel_reset(struct thchannel_t * c)
 			c->in = c->out = 0;
 		}
 		xos_mutex_unlock(&c->lock);
+		while(xos_semaphore_wait(&c->ssem, 0));
+		while(xos_semaphore_wait(&c->rsem, 0));
 	}
 }
 
@@ -194,14 +198,16 @@ unsigned int thchannel_send(struct thchannel_t * c, unsigned char * buf, unsigne
 
 	if(c && buf)
 	{
+		ktime_t deadline = ktime_add_ms(ktime_get(), (timeout > 0) ? (uint64_t)timeout : 0);
 		while(len > 0)
 		{
 			unsigned int l = thchannel_put(c, buf, len);
 			buf += l;
 			len -= l;
 			cnt += l;
-			xos_semaphore_post(&c->rsem);
-			if((l == 0) && !xos_semaphore_wait(&c->ssem, timeout))
+			if(l > 0)
+				xos_semaphore_post(&c->rsem);
+			else if(!xos_semaphore_wait(&c->ssem, (timeout > 0) ? XMAX((int)ktime_ms_delta(deadline, ktime_get()), 0) : timeout))
 				break;
 		}
 	}
@@ -214,14 +220,16 @@ unsigned int thchannel_recv(struct thchannel_t * c, unsigned char * buf, unsigne
 
 	if(c && buf)
 	{
+		ktime_t deadline = ktime_add_ms(ktime_get(), (timeout > 0) ? (uint64_t)timeout : 0);
 		while(len > 0)
 		{
 			unsigned int l = thchannel_get(c, buf, len);
 			buf += l;
 			len -= l;
 			cnt += l;
-			xos_semaphore_post(&c->ssem);
-			if((l == 0) && !xos_semaphore_wait(&c->rsem, timeout))
+			if(l > 0)
+				xos_semaphore_post(&c->ssem);
+			else if(!xos_semaphore_wait(&c->rsem, (timeout > 0) ? XMAX((int)ktime_ms_delta(deadline, ktime_get()), 0) : timeout))
 				break;
 		}
 	}
