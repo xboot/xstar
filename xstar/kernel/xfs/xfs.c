@@ -269,17 +269,20 @@ struct xfs_file_t * xfs_open_read(struct xfs_context_t * ctx, const char * name)
 	{
 		list_for_each_entry_safe_reverse(pos, n, &ctx->mounts.list, list)
 		{
-			f = pos->archiver->open(pos->mhandle, path, XFS_OPEN_MODE_READ);
-			if(f)
+			if(pos->archiver->isfile(pos->mhandle, path))
 			{
-				file = xos_mem_malloc(sizeof(struct xfs_file_t));
-				if(file)
+				f = pos->archiver->open(pos->mhandle, path, XFS_OPEN_MODE_READ);
+				if(f)
 				{
-					file->ctx = ctx;
-					file->path = pos;
-					file->fhandle = f;
+					file = xos_mem_malloc(sizeof(struct xfs_file_t));
+					if(file)
+					{
+						file->ctx = ctx;
+						file->path = pos;
+						file->fhandle = f;
+					}
+					break;
 				}
-				break;
 			}
 		}
 		xos_mem_free(path);
@@ -293,24 +296,54 @@ struct xfs_file_t * xfs_open_write(struct xfs_context_t * ctx, const char * name
 	struct xfs_file_t * file = NULL;
 	char * path;
 	void * f;
+	int found = 0;
 
 	if(ctx && (path = normal_path(name)))
 	{
 		list_for_each_entry_safe_reverse(pos, n, &ctx->mounts.list, list)
 		{
-			if(pos->writable)
+			if(pos->archiver->isfile(pos->mhandle, path))
 			{
-				f = pos->archiver->open(pos->mhandle, path, XFS_OPEN_MODE_WRITE);
-				if(f)
+				found = 1;
+				if(pos->writable)
 				{
-					file = xos_mem_malloc(sizeof(struct xfs_file_t));
-					if(file)
+					f = pos->archiver->open(pos->mhandle, path, XFS_OPEN_MODE_WRITE);
+					if(f)
 					{
-						file->ctx = ctx;
-						file->path = pos;
-						file->fhandle = f;
+						file = xos_mem_malloc(sizeof(struct xfs_file_t));
+						if(file)
+						{
+							file->ctx = ctx;
+							file->path = pos;
+							file->fhandle = f;
+						}
+						break;
 					}
-					break;
+				}
+			}
+			else if(pos->archiver->isdir(pos->mhandle, path))
+			{
+				found = 1;
+			}
+		}
+		if(!found)
+		{
+			list_for_each_entry_safe_reverse(pos, n, &ctx->mounts.list, list)
+			{
+				if(pos->writable)
+				{
+					f = pos->archiver->open(pos->mhandle, path, XFS_OPEN_MODE_WRITE);
+					if(f)
+					{
+						file = xos_mem_malloc(sizeof(struct xfs_file_t));
+						if(file)
+						{
+							file->ctx = ctx;
+							file->path = pos;
+							file->fhandle = f;
+						}
+						break;
+					}
 				}
 			}
 		}
@@ -325,24 +358,54 @@ struct xfs_file_t * xfs_open_append(struct xfs_context_t * ctx, const char * nam
 	struct xfs_file_t * file = NULL;
 	char * path;
 	void * f;
+	int found = 0;
 
 	if(ctx && (path = normal_path(name)))
 	{
 		list_for_each_entry_safe_reverse(pos, n, &ctx->mounts.list, list)
 		{
-			if(pos->writable)
+			if(pos->archiver->isfile(pos->mhandle, path))
 			{
-				f = pos->archiver->open(pos->mhandle, path, XFS_OPEN_MODE_APPEND);
-				if(f)
+				found = 1;
+				if(pos->writable)
 				{
-					file = xos_mem_malloc(sizeof(struct xfs_file_t));
-					if(file)
+					f = pos->archiver->open(pos->mhandle, path, XFS_OPEN_MODE_APPEND);
+					if(f)
 					{
-						file->ctx = ctx;
-						file->path = pos;
-						file->fhandle = f;
+						file = xos_mem_malloc(sizeof(struct xfs_file_t));
+						if(file)
+						{
+							file->ctx = ctx;
+							file->path = pos;
+							file->fhandle = f;
+						}
+						break;
 					}
-					break;
+				}
+			}
+			else if(pos->archiver->isdir(pos->mhandle, path))
+			{
+				found = 1;
+			}
+		}
+		if(!found)
+		{
+			list_for_each_entry_safe_reverse(pos, n, &ctx->mounts.list, list)
+			{
+				if(pos->writable)
+				{
+					f = pos->archiver->open(pos->mhandle, path, XFS_OPEN_MODE_APPEND);
+					if(f)
+					{
+						file = xos_mem_malloc(sizeof(struct xfs_file_t));
+						if(file)
+						{
+							file->ctx = ctx;
+							file->path = pos;
+							file->fhandle = f;
+						}
+						break;
+					}
 				}
 			}
 		}
