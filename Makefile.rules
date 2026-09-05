@@ -13,7 +13,7 @@ CUR_OBJ_DIR := $(addsuffix $(subst $(TOPDIR),,$(dir))/, $(OBJDIR))
 .PHONY: all clean $(call prepend-dir,subdirs-y)
 
 all: $(call prepend-dir,subdirs-y) $(call prepend-objs,obj-y) $(call prepend-objs,extra-y)
-	$(Q)echo $(call prepend-objs,obj-y) >> $(OUTDIR)/.objects.lst
+	$(Q)echo $(call prepend-objs,obj-y) > $(CUR_OBJ_DIR).objects
 
 clean: $(call prepend-dir,subdirs-y)
 	$(Q)$(RM) $(call prepend-objs,obj-y) $(call prepend-objs,dep) $(call prepend-objs,extra-y)

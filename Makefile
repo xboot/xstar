@@ -1,4 +1,5 @@
 export
+export LC_ALL := C
 sinclude $(wildcard .config)
 
 CROSS_COMPILE	?= $(CONFIG_CROSS_COMPILE:"%"=%)
@@ -83,6 +84,8 @@ $(XSTAR): begin
 	$(Q)echo [ROMDISK] Packing romdisk
 	$(Q)$(CD) $(PRJDIR) && $(FIND) romdisk | $(CPIO) > $(OBJDIR)/romdisk.cpio && $(CD) $(TOPDIR)
 	$(Q)$(MAKE) --no-print-directory -f Makefile.rules dir=$(TOPDIR) all
+	$(Q)$(FIND) $(OBJDIR) -name .objects -path "*/startup/*" | sort | xargs cat > $(OUTDIR)/.objects.lst
+	$(Q)$(FIND) $(OBJDIR) -name .objects -not -path "*/startup/*" | sort | xargs cat >> $(OUTDIR)/.objects.lst
 	$(Q)echo [LD] Linking $(subst $(OUTDIR)/,,$@)
 	$(Q)$(CC) $(LDFLAGS) $(LIBDIRS) -Wl,--cref,-Map=$@.map -o $@ @$(OUTDIR)/.objects.lst $(LIBS)
 	$(Q)echo [SZ] Sizing $(subst $(OUTDIR)/,,$@)
