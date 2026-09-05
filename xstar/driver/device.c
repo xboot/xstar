@@ -115,6 +115,9 @@ static struct kobj_t * search_device_kobj(struct device_t * dev)
 	case DEVICE_TYPE_GYROSCOPE:
 		name = "gyroscope";
 		break;
+	case DEVICE_TYPE_HWSPINLOCK:
+		name = "hwspinlock";
+		break;
 	case DEVICE_TYPE_HYGROMETER:
 		name = "hygrometer";
 		break;

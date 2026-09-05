@@ -19,6 +19,7 @@ subdirs-y += gmeter
 subdirs-y += gnss
 subdirs-y += gpio
 subdirs-y += gyroscope
+subdirs-y += hwspinlock
 subdirs-y += hygrometer
 subdirs-y += i2c
 subdirs-y += input

@@ -285,6 +285,7 @@ const sidebars = {
     'driver/gnss',
     'driver/gpio',
     'driver/gyroscope',
+    'driver/hwspinlock',
     'driver/hygrometer',
     'driver/i2c',
     'driver/input',

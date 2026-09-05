@@ -89,6 +89,7 @@ extern "C" {
 #include <driver/gnss/gnss.h>
 #include <driver/gpio/gpio.h>
 #include <driver/gyroscope/gyroscope.h>
+#include <driver/hwspinlock/hwspinlock.h>
 #include <driver/hygrometer/hygrometer.h>
 #include <driver/i2c/i2c.h>
 #include <driver/input/input.h>
