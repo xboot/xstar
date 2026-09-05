@@ -1,6 +1,5 @@
 subdirs-y += adc
 subdirs-y += atnet
-subdirs-y += atomic
 subdirs-y += audio
 subdirs-y += battery
 subdirs-y += block

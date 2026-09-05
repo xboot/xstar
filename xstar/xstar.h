@@ -67,7 +67,6 @@ extern "C" {
 #include <driver/driver.h>
 #include <driver/adc/adc.h>
 #include <driver/atnet/atnet.h>
-#include <driver/atomic/atomic.h>
 #include <driver/audio/audio.h>
 #include <driver/audio/capture.h>
 #include <driver/audio/playback.h>

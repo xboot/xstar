@@ -55,9 +55,6 @@ static struct kobj_t * search_device_kobj(struct device_t * dev)
 	case DEVICE_TYPE_ATNET:
 		name = "atnet";
 		break;
-	case DEVICE_TYPE_ATOMIC:
-		name = "atomic";
-		break;
 	case DEVICE_TYPE_AUDIOCAPTURE:
 		name = "audiocapture";
 		break;

@@ -265,7 +265,6 @@ const sidebars = {
   driver: [
     'driver/adc',
     'driver/atnet',
-    'driver/atomic',
     'driver/audiocapture',
     'driver/audioplayback',
     'driver/battery',

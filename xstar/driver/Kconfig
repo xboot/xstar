@@ -2,7 +2,6 @@ menu "Device Drivers"
 
 source "xstar/driver/adc/Kconfig"
 source "xstar/driver/atnet/Kconfig"
-source "xstar/driver/atomic/Kconfig"
 source "xstar/driver/audio/Kconfig"
 source "xstar/driver/battery/Kconfig"
 source "xstar/driver/block/Kconfig"
