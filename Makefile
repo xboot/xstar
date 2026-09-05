@@ -83,6 +83,7 @@ $(XSTAR): begin
 	$(Q)$(FIND) $(OUTDIR) -name romdisk.o -delete
 	$(Q)echo [ROMDISK] Packing romdisk
 	$(Q)$(CD) $(PRJDIR) && $(FIND) romdisk | $(CPIO) > $(OBJDIR)/romdisk.cpio && $(CD) $(TOPDIR)
+	$(Q)$(FIND) $(OBJDIR) -name .objects -delete
 	$(Q)$(MAKE) --no-print-directory -f Makefile.rules dir=$(TOPDIR) all
 	$(Q)$(FIND) $(OBJDIR) -name .objects -path "*/startup/*" | sort | xargs cat > $(OUTDIR)/.objects.lst
 	$(Q)$(FIND) $(OBJDIR) -name .objects -not -path "*/startup/*" | sort | xargs cat >> $(OUTDIR)/.objects.lst
