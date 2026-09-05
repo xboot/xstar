@@ -1,6 +1,6 @@
 # 通用宏定义 (xdef)
 
-`libx/xdef.h` 提供了 XSTAR 全局通用的基础宏定义和工具函数，包括常用尺寸常量、布尔/空指针定义、容器与偏移计算、分支预测提示、静态断言、数学辅助宏，以及位扫描内联函数。该头文件不依赖具体平台，所有源码均可包含。
+`libx/xdef.h` 提供了 XSTAR 全局通用的基础宏定义和工具函数，包括常用尺寸常量、布尔/空指针定义、容器与偏移计算、分支预测提示、静态断言、数学辅助宏，以及位扫描与原子操作内联函数。该头文件不依赖具体平台，所有源码均可包含。
 
 ## 尺寸常量
 
@@ -207,6 +207,72 @@ int order = xfls(size - 1);   /* 求最小 2^order >= size */
 ```c
 unsigned long bit = __xffs(mask);   /* 取出最低有效位下标 */
 mask &= ~(1UL << bit);              /* 清除该位 */
+```
+
+## 原子操作内联函数
+
+基于 GCC `__atomic` 系列编译器内建实现的 32 位整数原子操作。所有函数使用 `always_inline` 强制内联，即使在 `-O0` 优化级别下也没有函数调用开销；目标架构存在原生指令时直接编译为单条指令（x86 `lock` 前缀、ARMv7 `ldrex/strex`、AArch64 `ldxr/stxr`、RISC-V `amo`/`lr.w/sc.w`），不依赖任何运行时库。
+
+操作对象必须是 4 字节自然对齐的 `int`。不提供 64 位或子字（8/16 位）宽度——这类宽度在 RV32 等平台上会退化为 libatomic 库调用，违背零依赖原则。
+
+### `int xatomic_load(const volatile int * p)`
+
+原子读取 `*p`。参数带 `const`，`const volatile int *` 与普通 `volatile int *` 对象均可传入。
+
+### `void xatomic_store(volatile int * p, int v)`
+
+原子写入 `v` 到 `*p`。
+
+### `int xatomic_add(volatile int * p, int v)`
+
+原子加法 `*p += v`，返回**加之前**的旧值。适用于多线程计数器、引用计数。
+
+### `int xatomic_sub(volatile int * p, int v)`
+
+原子减法 `*p -= v`，返回减之前的旧值。与 `xatomic_add` 对称。
+
+### `int xatomic_cas(volatile int * p, int o, int n)`
+
+比较并交换：当 `*p == o` 时写入 `n` 并返回 1，否则返回 0。失败时**不重试**，需要循环的场景由调用方自行驱动。
+
+### `int xatomic_xchg(volatile int * p, int n)`
+
+无条件交换：写入 `n` 并返回旧值。在有原生指令的架构上映射为单条交换指令（x86 `lock xchg`、RISC-V `amoswap`），适合"抢锁/占用"模式。
+
+### 内存序
+
+全部操作固定使用 `seq_cst`（顺序一致性）语义——最难用错的默认档位。`xatomic_cas` 的失败路径按 C11 约束使用 `relaxed`（失败序不得强于成功序）。不暴露内存序参数；性能敏感的锁实现如需精确的 acquire/release，应在实现层直调 `__atomic` 内建，而不是扩展本 API。
+
+### 注意事项
+
+- 参数上的 `volatile` 修饰只是为了同时兼容 `volatile int` 与普通 `int` 两种声明方式，**不提供任何同步语义**；原子性与排序完全由编译器内建承担。
+- 原子操作仅适用于共享计数器、标志位、锁字等单一变量场景；涉及多变量的复合状态请使用 XOS 互斥锁（`xos_mutex_lock` 等）。
+- `xatomic_t` 之类的独立类型已刻意省去，直接操作 `volatile int`，与既有的 `volatile int lock` 风格字段天然兼容。
+
+### 使用示例
+
+```c
+static volatile int counter;
+
+xatomic_add(&counter, 1);          /* 多线程安全递增 */
+int cur = xatomic_load(&counter);  /* 原子读取快照 */
+```
+
+用 CAS 循环无锁地维护最大值：
+
+```c
+static volatile int max_val;
+
+void update_max(int v)
+{
+    int o = xatomic_load(&max_val);
+    while(v > o)
+    {
+        if(xatomic_cas(&max_val, o, v))
+            break;
+        o = xatomic_load(&max_val);    /* 竞争失败，取最新值重试 */
+    }
+}
 ```
 
 ## 使用建议

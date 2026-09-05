@@ -1,6 +1,6 @@
 # Common Macros (xdef)
 
-`libx/xdef.h` provides the global, foundational macro definitions and helper utilities used throughout XSTAR, including common size constants, boolean/null pointer definitions, container and offset calculations, branch prediction hints, static assertions, math helpers, and bit-scanning inline functions. The header is platform-independent and may be included by any source file.
+`libx/xdef.h` provides the global, foundational macro definitions and helper utilities used throughout XSTAR, including common size constants, boolean/null pointer definitions, container and offset calculations, branch prediction hints, static assertions, math helpers, and bit-scanning and atomic inline functions. The header is platform-independent and may be included by any source file.
 
 ## Size Constants
 
@@ -207,6 +207,72 @@ Returns the index (0-based) of the highest set bit in `x`, equivalent to `(sizeo
 ```c
 unsigned long bit = __xffs(mask);   /* lowest set bit index */
 mask &= ~(1UL << bit);              /* clear that bit */
+```
+
+## Atomic Inline Functions
+
+32-bit integer atomic operations built on the GCC `__atomic` compiler built-ins. Every function is declared `always_inline`, so there is no function-call overhead even at `-O0`; when the target architecture provides a native instruction, each operation compiles down to a single instruction (x86 `lock` prefix, ARMv7 `ldrex/strex`, AArch64 `ldxr/stxr`, RISC-V `amo`/`lr.w/sc.w`). No runtime library is involved.
+
+The operand must be a 4-byte naturally aligned `int`. No 64-bit or sub-word (8/16-bit) widths are provided — on platforms such as RV32 those would degrade into libatomic library calls, breaking the zero-dependency rule.
+
+### `int xatomic_load(const volatile int * p)`
+
+Atomically reads `*p`. The parameter is `const`-qualified, so both `const volatile int *` and plain `volatile int *` objects are accepted.
+
+### `void xatomic_store(volatile int * p, int v)`
+
+Atomically writes `v` to `*p`.
+
+### `int xatomic_add(volatile int * p, int v)`
+
+Atomic add `*p += v`, returning the value **before** the addition. Suitable for multi-threaded counters and reference counting.
+
+### `int xatomic_sub(volatile int * p, int v)`
+
+Atomic subtract `*p -= v`, returning the previous value. Symmetric with `xatomic_add`.
+
+### `int xatomic_cas(volatile int * p, int o, int n)`
+
+Compare-and-swap: writes `n` and returns 1 when `*p == o`, otherwise returns 0. It does **not** retry on failure; callers drive the retry loop themselves when needed.
+
+### `int xatomic_xchg(volatile int * p, int n)`
+
+Unconditional exchange: writes `n` and returns the old value. Maps to a single swap instruction where available (x86 `lock xchg`, RISC-V `amoswap`), well suited to "claim/steal" patterns.
+
+### Memory Ordering
+
+All operations use fixed `seq_cst` (sequential consistency) semantics — the hardest ordering to misuse. The failure path of `xatomic_cas` uses `relaxed` as required by C11 (the failure ordering must not be stronger than the success ordering). The memory ordering parameter is deliberately not exposed; performance-sensitive lock implementations that need precise acquire/release semantics should call the `__atomic` built-ins directly instead of extending this API.
+
+### Caveats
+
+- The `volatile` qualifier on the parameters only exists so that both `volatile int` and plain `int` declarations are accepted without diagnostics; it provides **no synchronization semantics**. Atomicity and ordering come entirely from the compiler built-ins.
+- Use these only for single-variable scenarios such as shared counters, flags, and lock words; for multi-variable composite state, use the XOS mutex (`xos_mutex_lock` and friends).
+- A dedicated `xatomic_t` type is deliberately omitted — operating directly on `volatile int` stays compatible with existing `volatile int lock` style fields.
+
+### Examples
+
+```c
+static volatile int counter;
+
+xatomic_add(&counter, 1);          /* thread-safe increment */
+int cur = xatomic_load(&counter);  /* atomic snapshot read */
+```
+
+Lock-free maximum tracking with a CAS loop:
+
+```c
+static volatile int max_val;
+
+void update_max(int v)
+{
+    int o = xatomic_load(&max_val);
+    while(v > o)
+    {
+        if(xatomic_cas(&max_val, o, v))
+            break;
+        o = xatomic_load(&max_val);    /* lost the race, retry with the latest */
+    }
+}
 ```
 
 ## Usage Guidelines

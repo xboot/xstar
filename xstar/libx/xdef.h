@@ -110,4 +110,34 @@ static inline __attribute__((always_inline)) unsigned long __xfls(unsigned long 
 	return (sizeof(x) * 8) - 1 - __builtin_clzl(x);
 }
 
+static inline __attribute__((always_inline)) int xatomic_load(const volatile int * p)
+{
+	return __atomic_load_n(p, __ATOMIC_SEQ_CST);
+}
+
+static inline __attribute__((always_inline)) void xatomic_store(volatile int * p, int v)
+{
+	__atomic_store_n(p, v, __ATOMIC_SEQ_CST);
+}
+
+static inline __attribute__((always_inline)) int xatomic_add(volatile int * p, int v)
+{
+	return __atomic_fetch_add(p, v, __ATOMIC_SEQ_CST);
+}
+
+static inline __attribute__((always_inline)) int xatomic_sub(volatile int * p, int v)
+{
+	return __atomic_fetch_sub(p, v, __ATOMIC_SEQ_CST);
+}
+
+static inline __attribute__((always_inline)) int xatomic_cas(volatile int * p, int o, int n)
+{
+	return __atomic_compare_exchange_n(p, &o, n, 0, __ATOMIC_SEQ_CST, __ATOMIC_RELAXED);
+}
+
+static inline __attribute__((always_inline)) int xatomic_xchg(volatile int * p, int n)
+{
+	return __atomic_exchange_n(p, n, __ATOMIC_SEQ_CST);
+}
+
 #endif /* __XSTAR_LIBX_XDEF_H__ */
