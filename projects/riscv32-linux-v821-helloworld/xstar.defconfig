@@ -80,11 +80,6 @@ CONFIG_DRV_ATNET_ML307=y
 # end of ATNET Support
 
 #
-# Atomic Support
-#
-# end of Atomic Support
-
-#
 # Audio Support
 #
 CONFIG_DRV_AUDIO_PLAYBACK_PWM=y
@@ -377,11 +372,6 @@ CONFIG_DRV_SERVO_PWM=y
 #
 CONFIG_DRV_SPI_GPIO=y
 # end of SPI Support
-
-#
-# Spinlock Support
-#
-# end of Spinlock Support
 
 #
 # Stepper Support

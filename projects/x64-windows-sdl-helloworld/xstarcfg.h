@@ -33,6 +33,10 @@ extern "C" {
 
 typedef unsigned long long io_addr_t;
 
+struct spinlock_t {
+	volatile int lock;
+};
+
 struct thread_t {
 	pthread_t thread;
 	void (*func)(void *);

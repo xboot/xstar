@@ -22,33 +22,51 @@
  * SOFTWARE.
  */
 
-#include <driver/spinlock/spinlock.h>
 #include <driver/clocksource/clocksource.h>
 #include <kernel/core/logger.h>
 
-static struct logger_ctx_t {
+struct logger_ctx_t {
 	char buffer[CONFIG_XSTAR_LOGGER_SIZE];
 	int head;
 	int tail;
-	int disabled;
+	int enable;
 	struct spinlock_t lock;
-} __logger_ctx = { .head = 0, .tail = 0, .disabled = 0, .lock = { 0 } };
+};
+
+static struct logger_ctx_t * logger_ctx_get(void)
+{
+	static struct logger_ctx_t * ctx = NULL;
+
+	if(!ctx)
+	{
+		struct logger_ctx_t * c = xos_mem_malloc(sizeof(struct logger_ctx_t));
+		if(c)
+		{
+			c->head = 0;
+			c->tail = 0;
+			c->enable = 1;
+			xos_spinlock_init(&c->lock);
+			ctx = c;
+		}
+	}
+	return ctx;
+}
 
 static void logger_push(struct logger_ctx_t * ctx, char c)
 {
-	spinlock_lock(&ctx->lock);
+	xos_spinlock_lock(&ctx->lock);
 	{
 		if(((ctx->tail + sizeof(ctx->buffer) - ctx->head) % sizeof(ctx->buffer)) == 1)
 			ctx->tail = (ctx->tail + 1) % sizeof(ctx->buffer);
 		ctx->buffer[ctx->head] = c;
 		ctx->head = (ctx->head + 1) % sizeof(ctx->buffer);
 	}
-	spinlock_unlock(&ctx->lock);
+	xos_spinlock_unlock(&ctx->lock);
 }
 
 static void logger_pop(struct logger_ctx_t * ctx)
 {
-	spinlock_lock(&ctx->lock);
+	xos_spinlock_lock(&ctx->lock);
 	{
 		while(ctx->tail != ctx->head)
 		{
@@ -58,43 +76,52 @@ static void logger_pop(struct logger_ctx_t * ctx)
 			ctx->tail = (ctx->tail + 1) % sizeof(ctx->buffer);
 		}
 	}
-	spinlock_unlock(&ctx->lock);
+	xos_spinlock_unlock(&ctx->lock);
 }
 
 void logger_enable(void)
 {
-	struct logger_ctx_t * ctx = &__logger_ctx;
+	struct logger_ctx_t * ctx = logger_ctx_get();
 
-	spinlock_lock(&ctx->lock);
+	if(ctx)
 	{
-		ctx->disabled = 0;
+		xos_spinlock_lock(&ctx->lock);
+		{
+			ctx->enable = 1;
+		}
+		xos_spinlock_unlock(&ctx->lock);
 	}
-	spinlock_unlock(&ctx->lock);
 }
 
 void logger_disable(void)
 {
-	struct logger_ctx_t * ctx = &__logger_ctx;
+	struct logger_ctx_t * ctx = logger_ctx_get();
 
-	spinlock_lock(&ctx->lock);
+	if(ctx)
 	{
-		ctx->disabled = 1;
+		xos_spinlock_lock(&ctx->lock);
+		{
+			ctx->enable = 0;
+		}
+		xos_spinlock_unlock(&ctx->lock);
 	}
-	spinlock_unlock(&ctx->lock);
 }
 
 int logger_status(void)
 {
-	struct logger_ctx_t * ctx = &__logger_ctx;
-	return ctx->disabled ? 0 : 1;
+	struct logger_ctx_t * ctx = logger_ctx_get();
+
+	if(ctx)
+		return ctx->enable ? 1 : 0;
+	return 0;
 }
 
 int logger(const char * fmt, ...)
 {
-	struct logger_ctx_t * ctx = &__logger_ctx;
+	struct logger_ctx_t * ctx = logger_ctx_get();
 	int len = 0;
 
-	if(ctx && !ctx->disabled)
+	if(ctx && ctx->enable)
 	{
 		char * p1 = NULL;
 		uint64_t us = ktime_to_us(ktime_get());

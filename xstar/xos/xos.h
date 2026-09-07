@@ -139,6 +139,14 @@ struct xos_environ_t {
 	} coroutine;
 
 	struct {
+		void (*init)(struct spinlock_t * lock);
+		void (*exit)(struct spinlock_t * lock);
+		int (*lock)(struct spinlock_t * lock);
+		int (*trylock)(struct spinlock_t * lock);
+		int (*unlock)(struct spinlock_t * lock);
+	} spinlock;
+
+	struct {
 		struct thread_t * (*create)(const char * name, void (*func)(void *), void * data, int stksz);
 		void (*destroy)(struct thread_t * thread);
 		void (*wait)(struct thread_t * thread);
@@ -512,6 +520,39 @@ static inline struct co_transfer_t xos_coroutine_jump(void * fctx, void * priv)
 {
 	#undef jump
 	return __xos_environ.coroutine.jump(fctx, priv);
+}
+
+/*
+ * spinlock
+ */
+static inline void xos_spinlock_init(struct spinlock_t * lock)
+{
+	#undef init
+	__xos_environ.spinlock.init(lock);
+}
+
+static inline void xos_spinlock_exit(struct spinlock_t * lock)
+{
+	#undef exit
+	__xos_environ.spinlock.exit(lock);
+}
+
+static inline int xos_spinlock_lock(struct spinlock_t * lock)
+{
+	#undef lock
+	return __xos_environ.spinlock.lock(lock);
+}
+
+static inline int xos_spinlock_trylock(struct spinlock_t * lock)
+{
+	#undef trylock
+	return __xos_environ.spinlock.trylock(lock);
+}
+
+static inline int xos_spinlock_unlock(struct spinlock_t * lock)
+{
+	#undef unlock
+	return __xos_environ.spinlock.unlock(lock);
 }
 
 /*

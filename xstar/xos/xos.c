@@ -261,6 +261,32 @@ static inline struct co_transfer_t __xos_coroutine_jump(void * fctx, void * priv
 }
 
 /*
+ * spinlock
+ */
+static void __xos_spinlock_init(struct spinlock_t * lock)
+{
+}
+
+static void __xos_spinlock_exit(struct spinlock_t * lock)
+{
+}
+
+static int __xos_spinlock_trylock(struct spinlock_t * lock)
+{
+	return 1;
+}
+
+static int __xos_spinlock_lock(struct spinlock_t * lock)
+{
+	return 1;
+}
+
+static int __xos_spinlock_unlock(struct spinlock_t * lock)
+{
+	return 1;
+}
+
+/*
  * thread
  */
 static struct thread_t * __xos_thread_create(const char * name, void (*func)(void *), void * data, int stksz)
@@ -588,6 +614,14 @@ struct xos_environ_t __xos_environ = {
 		.jump = __xos_coroutine_jump,
 	},
 
+	.spinlock = {
+		.init = __xos_spinlock_init,
+		.exit = __xos_spinlock_exit,
+		.lock = __xos_spinlock_lock,
+		.trylock = __xos_spinlock_trylock,
+		.unlock = __xos_spinlock_unlock,
+	},
+
 	.thread = {
 		.create = __xos_thread_create,
 		.destroy = __xos_thread_destroy,
@@ -745,6 +779,20 @@ void xos_environ_init(struct xos_environ_t * env)
 			__xos_environ.coroutine.make = env->coroutine.make;
 		if(env->coroutine.jump)
 			__xos_environ.coroutine.jump = env->coroutine.jump;
+
+		/*
+		 * spinlock
+		 */
+		if(env->spinlock.init)
+			__xos_environ.spinlock.init = env->spinlock.init;
+		if(env->spinlock.exit)
+			__xos_environ.spinlock.exit = env->spinlock.exit;
+		if(env->spinlock.lock)
+			__xos_environ.spinlock.lock = env->spinlock.lock;
+		if(env->spinlock.trylock)
+			__xos_environ.spinlock.trylock = env->spinlock.trylock;
+		if(env->spinlock.unlock)
+			__xos_environ.spinlock.unlock = env->spinlock.unlock;
 
 		/*
 		 * thread

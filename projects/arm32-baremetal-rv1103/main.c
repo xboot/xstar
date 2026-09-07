@@ -72,6 +72,14 @@ static struct xos_environ_t env = {
 		.jump = arm32_coroutine_jump,
 	},
 
+	.spinlock = {
+		.init = NULL,
+		.exit = NULL,
+		.lock = NULL,
+		.trylock = NULL,
+		.unlock = NULL,
+	},
+
 	.thread = {
 		.create = NULL,
 		.destroy = NULL,

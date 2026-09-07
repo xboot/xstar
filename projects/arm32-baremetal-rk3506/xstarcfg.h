@@ -25,6 +25,10 @@ extern "C" {
 
 typedef unsigned long io_addr_t;
 
+struct spinlock_t {
+	volatile int lock;
+};
+
 struct thread_t {
 	volatile void * thread;
 };

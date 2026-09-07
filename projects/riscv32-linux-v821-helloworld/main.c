@@ -65,6 +65,14 @@ static struct xos_environ_t env = {
 		.jump = riscv32_coroutine_jump,
 	},
 
+	.spinlock = {
+		.init = NULL,
+		.exit = NULL,
+		.lock = NULL,
+		.trylock = NULL,
+		.unlock = NULL,
+	},
+
 	.thread = {
 		.create = linux_thread_create,
 		.destroy = linux_thread_destroy,

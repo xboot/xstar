@@ -114,7 +114,6 @@ extern "C" {
 #include <driver/sd/sdhci.h>
 #include <driver/servo/servo.h>
 #include <driver/spi/spi.h>
-#include <driver/spinlock/spinlock.h>
 #include <driver/stepper/stepper.h>
 #include <driver/thermometer/thermometer.h>
 #include <driver/uart/uart.h>
