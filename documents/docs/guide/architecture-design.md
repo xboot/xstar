@@ -35,7 +35,7 @@ XSTAR 采用分层架构设计，从底层到上层依次为：
 ├──────────────────────────────────────────────────────────────────┤
 │                 平台抽象层 (XOS)                                   │
 │  Memory | DMA | I/O | File | Thread | Mutex | Semaphore          │
-│  Coroutine | PM | Stdio                                          │
+│  Coroutine | Spinlock | PM | Stdio                               │
 ├──────────────────────────────────────────────────────────────────┤
 │                  工具库 (LibX)                                     │
 │  Algorithm | Data Structure | Crypto | JSON | DTREE | Encoding   │
@@ -157,6 +157,7 @@ XOS 通过 `xos_environ_t` 提供平台相关的操作，同时还直接提供�
 | **标准 I/O** | `xos_stdio_read`, `xos_stdio_write` |
 | **文件系统** | `xos_file_open/close/read/write/seek`, `xos_file_mkdir/remove/walk`, `xos_file_isdir/isfile` |
 | **协程** | `xos_coroutine_make`, `xos_coroutine_jump` |
+| **自旋锁** | `xos_spinlock_init/exit/lock/trylock/unlock` |
 | **线程** | `xos_thread_create/destroy/wait/sleep` |
 | **互斥锁** | `xos_mutex_init/exit/lock/unlock/trylock` |
 | **信号量** | `xos_semaphore_init/exit/wait/post` |

@@ -309,7 +309,6 @@ const sidebars = {
     'driver/sd',
     'driver/servo',
     'driver/spi',
-    'driver/spinlock',
     'driver/stepper',
     'driver/thermometer',
     'driver/uart',

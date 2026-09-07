@@ -35,7 +35,7 @@ XSTAR adopts a layered architecture, from bottom to top:
 ├──────────────────────────────────────────────────────────────────┤
 │                 Platform Abstraction Layer (XOS)                 │
 │  Memory | DMA | I/O | File | Thread | Mutex | Semaphore          │
-│  Coroutine | PM | Stdio                                          │
+│  Coroutine | Spinlock | PM | Stdio                               │
 ├──────────────────────────────────────────────────────────────────┤
 │                  Utility Library (LibX)                          │
 │  Algorithm | Data Structure | Crypto | JSON | DTREE | Encoding   │
@@ -157,6 +157,7 @@ XOS provides platform-related operations via `xos_environ_t`, and also directly 
 | **Standard I/O** | `xos_stdio_read`, `xos_stdio_write` |
 | **File System** | `xos_file_open/close/read/write/seek`, `xos_file_mkdir/remove/walk`, `xos_file_isdir/isfile` |
 | **Coroutine** | `xos_coroutine_make`, `xos_coroutine_jump` |
+| **Spinlock** | `xos_spinlock_init/exit/lock/trylock/unlock` |
 | **Thread** | `xos_thread_create/destroy/wait/sleep` |
 | **Mutex** | `xos_mutex_init/exit/lock/unlock/trylock` |
 | **Semaphore** | `xos_semaphore_init/exit/wait/post` |
