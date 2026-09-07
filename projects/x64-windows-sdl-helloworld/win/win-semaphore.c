@@ -1,6 +1,6 @@
 #include <win/win.h>
 
-void win_semaphore_init(struct semaphore_t * sem, uint32_t count)
+void win_semaphore_init(struct semaphore_t * sem, unsigned int count)
 {
 	if(sem)
 		sem_init(&sem->sem, 0, count);

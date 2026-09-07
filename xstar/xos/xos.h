@@ -162,7 +162,7 @@ struct xos_environ_t {
 	} mutex;
 
 	struct {
-		void (*init)(struct semaphore_t * sem, uint32_t count);
+		void (*init)(struct semaphore_t * sem, unsigned int count);
 		void (*exit)(struct semaphore_t * sem);
 		int (*wait)(struct semaphore_t * sem, int timeout);
 		int (*post)(struct semaphore_t * sem);
@@ -633,7 +633,7 @@ static inline int xos_mutex_unlock(struct mutex_t * lock)
 /*
  * semaphore
  */
-static inline void xos_semaphore_init(struct semaphore_t * sem, uint32_t count)
+static inline void xos_semaphore_init(struct semaphore_t * sem, unsigned int count)
 {
 	#undef init
 	__xos_environ.semaphore.init(sem, count);

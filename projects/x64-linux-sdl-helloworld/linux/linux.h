@@ -367,7 +367,7 @@ int linux_rtc_gettime(const char * dev, struct linux_rtc_time_t * time);
 /*
  * Semaphore interface
  */
-void linux_semaphore_init(struct semaphore_t * sem, uint32_t count);
+void linux_semaphore_init(struct semaphore_t * sem, unsigned int count);
 void linux_semaphore_exit(struct semaphore_t * sem);
 int linux_semaphore_wait(struct semaphore_t * sem, int timeout);
 int linux_semaphore_post(struct semaphore_t * sem);

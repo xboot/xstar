@@ -335,7 +335,7 @@ static int __xos_mutex_unlock(struct mutex_t * lock)
 /*
  * semaphore
  */
-static void __xos_semaphore_init(struct semaphore_t * sem, uint32_t count)
+static void __xos_semaphore_init(struct semaphore_t * sem, unsigned int count)
 {
 }
 

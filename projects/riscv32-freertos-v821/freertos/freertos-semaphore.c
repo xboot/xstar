@@ -1,6 +1,6 @@
 #include <freertos/freertos.h>
 
-void freertos_semaphore_init(struct semaphore_t * sem, uint32_t count)
+void freertos_semaphore_init(struct semaphore_t * sem, unsigned int count)
 {
 	if(sem)
 		sem->sem = xSemaphoreCreateCounting(1000, count);
