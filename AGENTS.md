@@ -5,7 +5,7 @@
 ### Build (from root directory)
 ```bash
 make <project-name>/xstar.defconfig  # Apply config (e.g., make x64-linux-sdl-helloworld/xstar.defconfig)
-make                                 # Build the project
+make -j$(nproc)                       # Build the project (parallel, recommended)
 make clean                           # Clean build artifacts (keep config)
 make distclean                       # Clean everything including config
 make menuconfig                      # Interactive configuration menu
@@ -15,7 +15,7 @@ make menuconfig                      # Interactive configuration menu
 ```bash
 cd projects/x64-linux-sdl-helloworld
 make defconfig                       # Apply project-specific defconfig
-make                                 # Build the project
+make -j$(nproc)                      # Build the project (parallel, recommended)
 make clean/distclean/menuconfig      # Same as root directory
 ```
 
