@@ -121,16 +121,14 @@ static struct xos_environ_t env = {
 
 static void task_entry(void * data)
 {
+	xstar_init(&env, NULL);
 	shell_system("shell;");
+	xstar_exit();
 }
 
 void xstar_main(void)
 {
 	freertos_init();
-	{
-		xstar_init(&env, NULL);
-		freertos_run(task_entry);
-		xstar_exit();
-	}
+	freertos_run(task_entry);
 	freertos_exit();
 }
