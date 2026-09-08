@@ -18,7 +18,6 @@ obj-y += rtc-f133.o
 obj-y += sdhci-f133.o
 obj-y += spi-f133.o
 obj-y += ts-f133.o
-obj-y += ts-gt911.o
 obj-y += uart-16550.o
 obj-y += wdg-f133.o
 

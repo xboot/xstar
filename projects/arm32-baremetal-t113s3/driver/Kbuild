@@ -17,7 +17,6 @@ obj-y += reset-t113.o
 obj-y += rtc-t113.o
 obj-y += sdhci-t113.o
 obj-y += spi-t113.o
-obj-y += ts-gt911.o
 obj-y += ts-t113.o
 obj-y += uart-16550.o
 obj-y += wdg-t113.o
