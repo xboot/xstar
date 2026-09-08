@@ -213,6 +213,8 @@ mask &= ~(1UL << bit);              /* clear that bit */
 
 32-bit integer atomic operations built on the GCC `__atomic` compiler built-ins. Every function is declared `always_inline`, so there is no function-call overhead even at `-O0`; when the target architecture provides a native instruction, each operation compiles down to a single instruction (x86 `lock` prefix, ARMv7 `ldrex/strex`, AArch64 `ldxr/stxr`, RISC-V `amo`/`lr.w/sc.w`). No runtime library is involved.
 
+The API comes in two tiers: six defaults that uniformly use sequential-consistency (`seq_cst`) semantics, plus four weak-ordering variants named after their memory order (acquire/release/relaxed), reserved strictly for performance-sensitive hot paths.
+
 The operand must be a 4-byte naturally aligned `int`. No 64-bit or sub-word (8/16-bit) widths are provided — on platforms such as RV32 those would degrade into libatomic library calls, breaking the zero-dependency rule.
 
 ### `int xatomic_load(const volatile int * p)`
@@ -239,9 +241,32 @@ Compare-and-swap: writes `n` and returns 1 when `*p == o`, otherwise returns 0. 
 
 Unconditional exchange: writes `n` and returns the old value. Maps to a single swap instruction where available (x86 `lock xchg`, RISC-V `amoswap`), well suited to "claim/steal" patterns.
 
+### `int xatomic_load_acquire(const volatile int * p)`
+
+Atomic read with acquire semantics: memory accesses after it will not be reordered ahead of it. This is the read half of an acquire/release pair (for example, read a ready flag and then consume the data it publishes); always paired with `xatomic_store_release`. Saves one memory barrier compared to `xatomic_load` on ARM/RISC-V.
+
+### `void xatomic_store_release(volatile int * p, int v)`
+
+Atomic write with release semantics: memory accesses before it will not be reordered after it. This is the write half of an acquire/release pair (for example, store the data and then publish a ready flag); always paired with `xatomic_load_acquire`.
+
+### `int xatomic_add_relaxed(volatile int * p, int v)`
+
+Relaxed atomic add `*p += v`, returning the value **before** the addition. Guarantees atomicity only, with no ordering constraints with respect to surrounding accesses; suitable for pure statistics counters that have no ordering relationship with the code around them.
+
+### `int xatomic_sub_relaxed(volatile int * p, int v)`
+
+Relaxed atomic subtract `*p -= v`, returning the previous value. Symmetric with `xatomic_add_relaxed`.
+
 ### Memory Ordering
 
-All operations use fixed `seq_cst` (sequential consistency) semantics — the hardest ordering to misuse. The failure path of `xatomic_cas` uses `relaxed` as required by C11 (the failure ordering must not be stronger than the success ordering). The memory ordering parameter is deliberately not exposed; performance-sensitive lock implementations that need precise acquire/release semantics should call the `__atomic` built-ins directly instead of extending this API.
+The six defaults (`load` / `store` / `add` / `sub` / `cas` / `xchg`) use fixed `seq_cst` (sequential consistency) semantics — the hardest ordering to misuse. The failure path of `xatomic_cas` uses `relaxed` as required by C11 (the failure ordering must not be stronger than the success ordering).
+
+A generic memory-ordering parameter is deliberately not exposed, to keep misused `relaxed`/`acquire` from introducing hard-to-reproduce concurrency defects. Instead, four semantically named weak-ordering variants serve the hot paths:
+
+- `xatomic_load_acquire` + `xatomic_store_release`: the acquire/release pair, for spinlock critical-section edges, lock-free ring buffers, and other publish/consume patterns;
+- `xatomic_add_relaxed` + `xatomic_sub_relaxed`: pure counting, atomicity only.
+
+Anything finer-grained should still be implemented by invoking the `__atomic` built-ins directly at the implementation layer rather than extending this API further.
 
 ### Caveats
 
@@ -273,6 +298,17 @@ void update_max(int v)
         o = xatomic_load(&max_val);    /* lost the race, retry with the latest */
     }
 }
+```
+
+Acquire/release pairing (publish/consume ordering):
+
+```c
+/* producer: store the payload first, then publish the flag */
+xatomic_store_release(&ready, 1);
+
+/* consumer: once the flag is acquired, the payload is guaranteed visible */
+if(xatomic_load_acquire(&ready))
+    use(payload);
 ```
 
 ## Usage Guidelines

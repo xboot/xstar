@@ -140,4 +140,24 @@ static inline __attribute__((always_inline)) int xatomic_xchg(volatile int * p, 
 	return __atomic_exchange_n(p, n, __ATOMIC_SEQ_CST);
 }
 
+static inline __attribute__((always_inline)) int xatomic_load_acquire(const volatile int * p)
+{
+	return __atomic_load_n(p, __ATOMIC_ACQUIRE);
+}
+
+static inline __attribute__((always_inline)) void xatomic_store_release(volatile int * p, int v)
+{
+	__atomic_store_n(p, v, __ATOMIC_RELEASE);
+}
+
+static inline __attribute__((always_inline)) int xatomic_add_relaxed(volatile int * p, int v)
+{
+	return __atomic_fetch_add(p, v, __ATOMIC_RELAXED);
+}
+
+static inline __attribute__((always_inline)) int xatomic_sub_relaxed(volatile int * p, int v)
+{
+	return __atomic_fetch_sub(p, v, __ATOMIC_RELAXED);
+}
+
 #endif /* __XSTAR_LIBX_XDEF_H__ */

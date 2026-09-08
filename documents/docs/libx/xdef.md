@@ -213,6 +213,8 @@ mask &= ~(1UL << bit);              /* 清除该位 */
 
 基于 GCC `__atomic` 系列编译器内建实现的 32 位整数原子操作。所有函数使用 `always_inline` 强制内联，即使在 `-O0` 优化级别下也没有函数调用开销；目标架构存在原生指令时直接编译为单条指令（x86 `lock` 前缀、ARMv7 `ldrex/strex`、AArch64 `ldxr/stxr`、RISC-V `amo`/`lr.w/sc.w`），不依赖任何运行时库。
 
+API 分为两档：默认 6 个函数统一采用顺序一致性（`seq_cst`）语义；另有 4 个以内存序命名的弱序变体（acquire/release/relaxed），仅供性能敏感的热点路径使用。
+
 操作对象必须是 4 字节自然对齐的 `int`。不提供 64 位或子字（8/16 位）宽度——这类宽度在 RV32 等平台上会退化为 libatomic 库调用，违背零依赖原则。
 
 ### `int xatomic_load(const volatile int * p)`
@@ -239,9 +241,32 @@ mask &= ~(1UL << bit);              /* 清除该位 */
 
 无条件交换：写入 `n` 并返回旧值。在有原生指令的架构上映射为单条交换指令（x86 `lock xchg`、RISC-V `amoswap`），适合"抢锁/占用"模式。
 
+### `int xatomic_load_acquire(const volatile int * p)`
+
+acquire 语义的原子读取：该操作之后的访存不会被重排到它之前。作为 acquire/release 配对中的读端（例如先读到就绪标志、再访问其发布的数据），与 `xatomic_store_release` 成对使用。在 ARM/RISC-V 上比 `xatomic_load` 少一条内存屏障。
+
+### `void xatomic_store_release(volatile int * p, int v)`
+
+release 语义的原子写入：该操作之前的访存不会被重排到它之后。作为 acquire/release 配对中的写端（例如先写好数据、再发布就绪标志），与 `xatomic_load_acquire` 成对使用。
+
+### `int xatomic_add_relaxed(volatile int * p, int v)`
+
+relaxed 原子加法 `*p += v`，返回加之前的旧值。仅保证原子性，不提供与周围访存之间的顺序约束；适用于与前后代码无顺序依赖的纯统计计数。
+
+### `int xatomic_sub_relaxed(volatile int * p, int v)`
+
+relaxed 原子减法 `*p -= v`，返回减之前的旧值。与 `xatomic_add_relaxed` 对称。
+
 ### 内存序
 
-全部操作固定使用 `seq_cst`（顺序一致性）语义——最难用错的默认档位。`xatomic_cas` 的失败路径按 C11 约束使用 `relaxed`（失败序不得强于成功序）。不暴露内存序参数；性能敏感的锁实现如需精确的 acquire/release，应在实现层直调 `__atomic` 内建，而不是扩展本 API。
+默认 6 个函数（`load`/`store`/`add`/`sub`/`cas`/`xchg`）统一使用 `seq_cst`（顺序一致性）语义——最难用错的默认档位。`xatomic_cas` 的失败路径按 C11 约束使用 `relaxed`（失败序不得强于成功序）。
+
+本 API 不暴露通用内存序参数，以避免误用 `relaxed`/`acquire` 引入难以复现的并发缺陷；取而代之的是以语义命名的 4 个弱序变体，专供热点路径：
+
+- `xatomic_load_acquire` + `xatomic_store_release`：acquire/release 配对，用于自旋锁临界区边界、无锁环形缓冲等"发布/消费"场景；
+- `xatomic_add_relaxed` + `xatomic_sub_relaxed`：纯计数，只保证原子性。
+
+更细粒度的内存序组合仍应在实现层直调 `__atomic` 内建，而不是继续扩展本 API。
 
 ### 注意事项
 
@@ -273,6 +298,17 @@ void update_max(int v)
         o = xatomic_load(&max_val);    /* 竞争失败，取最新值重试 */
     }
 }
+```
+
+acquire/release 配对（发布/消费有序性）：
+
+```c
+/* 生产者：先写好数据，再发布就绪标志 */
+xatomic_store_release(&ready, 1);
+
+/* 消费者：acquire 读到标志后，数据必然已可见 */
+if(xatomic_load_acquire(&ready))
+    use(payload);
 ```
 
 ## 使用建议
