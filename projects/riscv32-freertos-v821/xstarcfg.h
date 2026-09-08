@@ -30,7 +30,7 @@ extern "C" {
 typedef unsigned long io_addr_t;
 
 struct spinlock_t {
-	volatile void * lock;
+	volatile unsigned long lock;
 };
 
 struct thread_t {

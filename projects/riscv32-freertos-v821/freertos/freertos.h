@@ -49,6 +49,12 @@ void freertos_semaphore_exit(struct semaphore_t * sem);
 int freertos_semaphore_wait(struct semaphore_t * sem, int timeout);
 int freertos_semaphore_post(struct semaphore_t * sem);
 
+void freertos_spinlock_init(struct spinlock_t * lock);
+void freertos_spinlock_exit(struct spinlock_t * lock);
+int freertos_spinlock_lock(struct spinlock_t * lock);
+int freertos_spinlock_trylock(struct spinlock_t * lock);
+int freertos_spinlock_unlock(struct spinlock_t * lock);
+
 struct thread_t * freertos_thread_create(const char * name, void (*func)(void *), void * data, int stksz);
 void freertos_thread_destroy(struct thread_t * thread);
 void freertos_thread_wait(struct thread_t * thread);

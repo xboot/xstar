@@ -70,11 +70,11 @@ static struct xos_environ_t env = {
 	},
 
 	.spinlock = {
-		.init = NULL,
-		.exit = NULL,
-		.lock = NULL,
-		.trylock = NULL,
-		.unlock = NULL,
+		.init = freertos_spinlock_init,
+		.exit = freertos_spinlock_exit,
+		.lock = freertos_spinlock_lock,
+		.trylock = freertos_spinlock_trylock,
+		.unlock = freertos_spinlock_unlock,
 	},
 
 	.thread = {
