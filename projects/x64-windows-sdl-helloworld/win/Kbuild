@@ -9,6 +9,7 @@ obj-y += win-mem.o
 obj-y += win-mutex.o
 obj-y += win-pm.o
 obj-y += win-semaphore.o
+obj-y += win-spinlock.o
 obj-y += win-stdio.o
 obj-y += win-thread.o
 obj-y += win-timer.o

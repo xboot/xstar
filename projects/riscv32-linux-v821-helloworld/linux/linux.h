@@ -422,6 +422,15 @@ void linux_spi_select(int fd, int cs);
 void linux_spi_deselect(int fd, int cs);
 
 /*
+ * Spinlock interface
+ */
+void linux_spinlock_init(struct spinlock_t * lock);
+void linux_spinlock_exit(struct spinlock_t * lock);
+int linux_spinlock_lock(struct spinlock_t * lock);
+int linux_spinlock_trylock(struct spinlock_t * lock);
+int linux_spinlock_unlock(struct spinlock_t * lock);
+
+/*
  * Stdio interface
  */
 ssize_t linux_stdio_read(void * buf, size_t count);

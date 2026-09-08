@@ -258,6 +258,15 @@ int win_semaphore_wait(struct semaphore_t * sem, int timeout);
 int win_semaphore_post(struct semaphore_t * sem);
 
 /*
+ * Spinlock interface
+ */
+void win_spinlock_init(struct spinlock_t * lock);
+void win_spinlock_exit(struct spinlock_t * lock);
+int win_spinlock_lock(struct spinlock_t * lock);
+int win_spinlock_trylock(struct spinlock_t * lock);
+int win_spinlock_unlock(struct spinlock_t * lock);
+
+/*
  * Stdio interface
  */
 ssize_t win_stdio_read(void * buf, size_t count);

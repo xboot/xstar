@@ -18,6 +18,7 @@ obj-y += linux-semaphore.o
 obj-y += linux-shell.o
 obj-y += linux-socket.o
 obj-y += linux-spi.o
+obj-y += linux-spinlock.o
 obj-y += linux-stdio.o
 obj-y += linux-sysfs.o
 obj-y += linux-thread.o

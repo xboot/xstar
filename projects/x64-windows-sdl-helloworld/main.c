@@ -66,11 +66,11 @@ static struct xos_environ_t env = {
 	},
 
 	.spinlock = {
-		.init = NULL,
-		.exit = NULL,
-		.lock = NULL,
-		.trylock = NULL,
-		.unlock = NULL,
+		.init = win_spinlock_init,
+		.exit = win_spinlock_exit,
+		.lock = win_spinlock_lock,
+		.trylock = win_spinlock_trylock,
+		.unlock = win_spinlock_unlock,
 	},
 
 	.thread = {
