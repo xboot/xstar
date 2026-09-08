@@ -3,3 +3,4 @@ obj-y += baremetal-dma.o
 obj-y += baremetal-io.o
 obj-y += baremetal-malloc.o
 obj-y += baremetal-pm.o
+obj-y += baremetal-spinlock.o

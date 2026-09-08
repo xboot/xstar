@@ -34,6 +34,12 @@ void baremetal_pm_shutdown(void);
 void baremetal_pm_reboot(void);
 void baremetal_pm_standby(void);
 
+void baremetal_spinlock_init(struct spinlock_t * lock);
+void baremetal_spinlock_exit(struct spinlock_t * lock);
+int baremetal_spinlock_lock(struct spinlock_t * lock);
+int baremetal_spinlock_trylock(struct spinlock_t * lock);
+int baremetal_spinlock_unlock(struct spinlock_t * lock);
+
 void * riscv32_coroutine_make(void * stack, size_t size, void (*func)(struct co_transfer_t));
 struct co_transfer_t riscv32_coroutine_jump(void * fctx, void * priv);
 
