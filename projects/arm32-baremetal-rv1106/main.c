@@ -72,6 +72,20 @@ static struct xos_environ_t env = {
 		.jump = arm32_coroutine_jump,
 	},
 
+	.thread = {
+		.create = NULL,
+		.destroy = NULL,
+		.wait = NULL,
+		.sleep = NULL,
+	},
+
+	.semaphore = {
+		.init = NULL,
+		.exit = NULL,
+		.wait = NULL,
+		.post = NULL,
+	},
+
 	.spinlock = {
 		.init = baremetal_spinlock_init,
 		.exit = baremetal_spinlock_exit,
@@ -80,26 +94,12 @@ static struct xos_environ_t env = {
 		.unlock = baremetal_spinlock_unlock,
 	},
 
-	.thread = {
-		.create = NULL,
-		.destroy = NULL,
-		.wait = NULL,
-		.sleep = NULL,
-	},
-
 	.mutex = {
 		.init = baremetal_mutex_init,
 		.exit = baremetal_mutex_exit,
 		.lock = baremetal_mutex_lock,
 		.trylock = baremetal_mutex_trylock,
 		.unlock = baremetal_mutex_unlock,
-	},
-
-	.semaphore = {
-		.init = NULL,
-		.exit = NULL,
-		.wait = NULL,
-		.post = NULL,
 	},
 
 	.other = {

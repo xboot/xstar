@@ -65,6 +65,20 @@ static struct xos_environ_t env = {
 		.jump = x64_coroutine_jump,
 	},
 
+	.thread = {
+		.create = win_thread_create,
+		.destroy = win_thread_destroy,
+		.wait = win_thread_wait,
+		.sleep = win_thread_sleep,
+	},
+
+	.semaphore = {
+		.init = win_semaphore_init,
+		.exit = win_semaphore_exit,
+		.wait = win_semaphore_wait,
+		.post = win_semaphore_post,
+	},
+
 	.spinlock = {
 		.init = win_spinlock_init,
 		.exit = win_spinlock_exit,
@@ -73,26 +87,12 @@ static struct xos_environ_t env = {
 		.unlock = win_spinlock_unlock,
 	},
 
-	.thread = {
-		.create = win_thread_create,
-		.destroy = win_thread_destroy,
-		.wait = win_thread_wait,
-		.sleep = win_thread_sleep,
-	},
-
 	.mutex = {
 		.init = win_mutex_init,
 		.exit = win_mutex_exit,
 		.lock = win_mutex_lock,
 		.trylock = win_mutex_trylock,
 		.unlock = win_mutex_unlock,
-	},
-
-	.semaphore = {
-		.init = win_semaphore_init,
-		.exit = win_semaphore_exit,
-		.wait = win_semaphore_wait,
-		.post = win_semaphore_post,
 	},
 
 	.other = {

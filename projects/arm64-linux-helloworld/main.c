@@ -65,6 +65,20 @@ static struct xos_environ_t env = {
 		.jump = arm64_coroutine_jump,
 	},
 
+	.thread = {
+		.create = linux_thread_create,
+		.destroy = linux_thread_destroy,
+		.wait = linux_thread_wait,
+		.sleep = linux_thread_sleep,
+	},
+
+	.semaphore = {
+		.init = linux_semaphore_init,
+		.exit = linux_semaphore_exit,
+		.wait = linux_semaphore_wait,
+		.post = linux_semaphore_post,
+	},
+
 	.spinlock = {
 		.init = linux_spinlock_init,
 		.exit = linux_spinlock_exit,
@@ -73,26 +87,12 @@ static struct xos_environ_t env = {
 		.unlock = linux_spinlock_unlock,
 	},
 
-	.thread = {
-		.create = linux_thread_create,
-		.destroy = linux_thread_destroy,
-		.wait = linux_thread_wait,
-		.sleep = linux_thread_sleep,
-	},
-
 	.mutex = {
 		.init = linux_mutex_init,
 		.exit = linux_mutex_exit,
 		.lock = linux_mutex_lock,
 		.trylock = linux_mutex_trylock,
 		.unlock = linux_mutex_unlock,
-	},
-
-	.semaphore = {
-		.init = linux_semaphore_init,
-		.exit = linux_semaphore_exit,
-		.wait = linux_semaphore_wait,
-		.post = linux_semaphore_post,
 	},
 
 	.other = {

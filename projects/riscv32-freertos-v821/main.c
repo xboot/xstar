@@ -69,6 +69,20 @@ static struct xos_environ_t env = {
 		.jump = riscv32_coroutine_jump,
 	},
 
+	.thread = {
+		.create = freertos_thread_create,
+		.destroy = freertos_thread_destroy,
+		.wait = freertos_thread_wait,
+		.sleep = freertos_thread_sleep,
+	},
+
+	.semaphore = {
+		.init = freertos_semaphore_init,
+		.exit = freertos_semaphore_exit,
+		.wait = freertos_semaphore_wait,
+		.post = freertos_semaphore_post,
+	},
+
 	.spinlock = {
 		.init = freertos_spinlock_init,
 		.exit = freertos_spinlock_exit,
@@ -77,26 +91,12 @@ static struct xos_environ_t env = {
 		.unlock = freertos_spinlock_unlock,
 	},
 
-	.thread = {
-		.create = freertos_thread_create,
-		.destroy = freertos_thread_destroy,
-		.wait = freertos_thread_wait,
-		.sleep = freertos_thread_sleep,
-	},
-
 	.mutex = {
 		.init = freertos_mutex_init,
 		.exit = freertos_mutex_exit,
 		.lock = freertos_mutex_lock,
 		.trylock = freertos_mutex_trylock,
 		.unlock = freertos_mutex_unlock,
-	},
-
-	.semaphore = {
-		.init = freertos_semaphore_init,
-		.exit = freertos_semaphore_exit,
-		.wait = freertos_semaphore_wait,
-		.post = freertos_semaphore_post,
 	},
 
 	.other = {

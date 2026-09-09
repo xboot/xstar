@@ -56,10 +56,6 @@ extern "C" {
 
 typedef unsigned long io_addr_t;
 
-struct spinlock_t {
-	pthread_spinlock_t lock;
-};
-
 struct thread_t {
 	pthread_t thread;
 	void (*func)(void *);
@@ -69,12 +65,16 @@ struct thread_t {
 	pthread_cond_t cond;
 };
 
-struct mutex_t {
-	pthread_mutex_t mutex;
-};
-
 struct semaphore_t {
 	sem_t sem;
+};
+
+struct spinlock_t {
+	pthread_spinlock_t lock;
+};
+
+struct mutex_t {
+	pthread_mutex_t mutex;
 };
 
 #ifdef __cplusplus

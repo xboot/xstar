@@ -30,10 +30,6 @@ extern "C" {
 
 typedef unsigned long io_addr_t;
 
-struct spinlock_t {
-	struct xatomic_t lock;
-};
-
 struct thread_t {
 	TaskHandle_t handle;
 	void (*func)(void *);
@@ -41,12 +37,16 @@ struct thread_t {
 	SemaphoreHandle_t sem;
 };
 
-struct mutex_t {
-	SemaphoreHandle_t mutex;
-};
-
 struct semaphore_t {
 	SemaphoreHandle_t sem;
+};
+
+struct spinlock_t {
+	struct xatomic_t lock;
+};
+
+struct mutex_t {
+	SemaphoreHandle_t mutex;
 };
 
 #ifdef __cplusplus
