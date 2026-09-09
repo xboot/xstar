@@ -45,8 +45,13 @@ static struct device_t * cs_plmt_timer_probe(struct driver_t * drv, struct dtnod
 	struct device_t * dev;
 	io_addr_t addr = dt_read_address(n);
 	char * clk = dt_read_string(n, "clock-name", NULL);
+	uint64_t rate;
 
 	if(!search_clk(clk))
+		return NULL;
+
+	rate = clk_get_rate(clk);
+	if(rate == 0)
 		return NULL;
 
 	pdat = xos_mem_malloc(sizeof(struct cs_plmt_timer_pdata_t));
@@ -64,9 +69,9 @@ static struct device_t * cs_plmt_timer_probe(struct driver_t * drv, struct dtnod
 	pdat->clk = xos_strdup(clk);
 
 	clk_enable(pdat->clk);
-	clocksource_calc_mult_shift(&cs->mult, &cs->shift, clk_get_rate(pdat->clk), 1000000000ULL, 10);
 	cs->name = alloc_device_name(dt_read_name(n), dt_read_id(n));
 	cs->mask = CLOCKSOURCE_MASK(64);
+	clocksource_calc_mult_shift(&cs->mult, &cs->shift, rate, 1000000000ULL, (uint32_t)XCLAMP(cs->mask / rate, (uint64_t)1, (uint64_t)600));
 	cs->read = cs_plmt_timer_read;
 	cs->priv = pdat;
 

@@ -8,7 +8,7 @@ static void ce_freertos_interrupt(void * data)
 
 static int ce_freertos_next(struct clockevent_t * ce, uint64_t evt)
 {
-	freertos_timer_next(evt & 0x7fffffffffffffff, ce_freertos_interrupt, ce);
+	freertos_timer_next(evt & 0xffffffffffffffffULL, ce_freertos_interrupt, ce);
 	return TRUE;
 }
 
@@ -16,23 +16,19 @@ static struct device_t * ce_freertos_probe(struct driver_t * drv, struct dtnode_
 {
 	struct clockevent_t * ce;
 	struct device_t * dev;
+	uint64_t rate = freertos_timer_frequency();
+
+	if(rate == 0)
+		return NULL;
 
 	ce = xos_mem_malloc(sizeof(struct clockevent_t));
 	if(!ce)
 		return NULL;
 
-	if(freertos_timer_frequency() != 1000000000ULL)
-	{
-		clockevent_calc_mult_shift(ce, freertos_timer_frequency(), 60);
-	}
-	else
-	{
-		ce->mult = 1;
-		ce->shift = 0;
-	}
+	clockevent_calc_mult_shift(ce, rate, (uint32_t)XCLAMP(0xffffffffffffffffULL / rate, (uint64_t)1, (uint64_t)600));
 	ce->name = alloc_device_name(dt_read_name(n), dt_read_id(n));
 	ce->min_delta_ns = clockevent_delta2ns(ce, 0x1);
-	ce->max_delta_ns = clockevent_delta2ns(ce, 0x7fffffffffffffff);
+	ce->max_delta_ns = clockevent_delta2ns(ce, 0xffffffffffffffffULL);
 	ce->next = ce_freertos_next;
 	ce->priv = 0;
 	freertos_timer_init();

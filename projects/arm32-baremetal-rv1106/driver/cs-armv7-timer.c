@@ -52,6 +52,8 @@ static struct device_t * cs_armv7_timer_probe(struct driver_t * drv, struct dtno
 	int64_t rate = (int64_t)dt_read_long(n, "clock-frequency", -1);
 	if(rate <= 0)
 		rate = armv7_timer_frequecy();
+	if(rate == 0)
+		return NULL;
 
 	cs = xos_mem_malloc(sizeof(struct clocksource_t));
 	if(!cs)
@@ -59,9 +61,9 @@ static struct device_t * cs_armv7_timer_probe(struct driver_t * drv, struct dtno
 
 	cs->name = alloc_device_name(dt_read_name(n), dt_read_id(n));
 	cs->mask = CLOCKSOURCE_MASK(64);
+	clocksource_calc_mult_shift(&cs->mult, &cs->shift, (uint64_t)rate, 1000000000ULL, (uint32_t)XCLAMP(cs->mask / (uint64_t)rate, (uint64_t)1, (uint64_t)600));
 	cs->read = cs_armv7_timer_read;
 	cs->priv = NULL;
-	clocksource_calc_mult_shift(&cs->mult, &cs->shift, (uint64_t)rate, 1000000000ULL, 10);
 
 	if(!(dev = register_clocksource(cs, drv)))
 	{

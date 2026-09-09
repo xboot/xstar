@@ -68,9 +68,14 @@ static struct device_t * ce_f133_timer_probe(struct driver_t * drv, struct dtnod
 	io_addr_t addr = dt_read_address(n);
 	char * clk = dt_read_string(n, "clock-name", NULL);
 	int irq = dt_read_int(n, "interrupt", -1);
+	uint64_t rate;
 	uint32_t val;
 
 	if(!search_clk(clk))
+		return NULL;
+
+	rate = clk_get_rate(clk);
+	if(rate == 0)
 		return NULL;
 
 	if(!irq_is_valid(irq))
@@ -92,10 +97,10 @@ static struct device_t * ce_f133_timer_probe(struct driver_t * drv, struct dtnod
 	pdat->irq = irq;
 
 	clk_enable(pdat->clk);
-	clockevent_calc_mult_shift(ce, clk_get_rate(pdat->clk), 10);
+	clockevent_calc_mult_shift(ce, rate, (uint32_t)XCLAMP(0x00000000ffffffffULL / rate, (uint64_t)1, (uint64_t)600));
 	ce->name = alloc_device_name(dt_read_name(n), dt_read_id(n));
 	ce->min_delta_ns = clockevent_delta2ns(ce, 0x1);
-	ce->max_delta_ns = clockevent_delta2ns(ce, 0xffffffff);
+	ce->max_delta_ns = clockevent_delta2ns(ce, 0x00000000ffffffffULL);
 	ce->next = ce_f133_timer_next;
 	ce->priv = pdat;
 

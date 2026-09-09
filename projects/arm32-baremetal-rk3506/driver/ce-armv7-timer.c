@@ -122,6 +122,8 @@ static struct device_t * ce_armv7_timer_probe(struct driver_t * drv, struct dtno
 
 	if(rate <= 0)
 		rate = armv7_timer_frequecy();
+	if(rate == 0)
+		return NULL;
 
 	pdat = xos_mem_malloc(sizeof(struct ce_armv7_timer_pdata_t));
 	if(!pdat)
@@ -136,10 +138,10 @@ static struct device_t * ce_armv7_timer_probe(struct driver_t * drv, struct dtno
 
 	pdat->irq = irq;
 
-	clockevent_calc_mult_shift(ce, rate, 10);
+	clockevent_calc_mult_shift(ce, (uint32_t)rate, (uint32_t)XCLAMP(0x00000000ffffffffULL / (uint64_t)rate, (uint64_t)1, (uint64_t)600));
 	ce->name = alloc_device_name(dt_read_name(n), dt_read_id(n));
 	ce->min_delta_ns = clockevent_delta2ns(ce, 0x1);
-	ce->max_delta_ns = clockevent_delta2ns(ce, 0xffffffff);
+	ce->max_delta_ns = clockevent_delta2ns(ce, 0x00000000ffffffffULL);
 	ce->next = ce_armv7_timer_next;
 	ce->priv = pdat;
 

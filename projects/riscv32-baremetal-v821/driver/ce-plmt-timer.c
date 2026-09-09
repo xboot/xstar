@@ -61,8 +61,13 @@ static struct device_t * ce_plmt_timer_probe(struct driver_t * drv, struct dtnod
 	struct device_t * dev;
 	io_addr_t addr = dt_read_address(n);
 	char * clk = dt_read_string(n, "clock-name", NULL);
+	uint64_t rate;
 
 	if(!search_clk(clk))
+		return NULL;
+
+	rate = clk_get_rate(clk);
+	if(rate == 0)
 		return NULL;
 
 	pdat = xos_mem_malloc(sizeof(struct ce_plmt_timer_pdata_t));
@@ -81,15 +86,15 @@ static struct device_t * ce_plmt_timer_probe(struct driver_t * drv, struct dtnod
 	pdat->cpu = smp_processor_id();
 
 	clk_enable(pdat->clk);
-	clockevent_calc_mult_shift(ce, clk_get_rate(pdat->clk), 10);
+	clockevent_calc_mult_shift(ce, rate, (uint32_t)XCLAMP(0xffffffffffffffffULL / rate, (uint64_t)1, (uint64_t)600));
 	ce->name = alloc_device_name(dt_read_name(n), dt_read_id(n));
 	ce->min_delta_ns = clockevent_delta2ns(ce, 0x1);
-	ce->max_delta_ns = clockevent_delta2ns(ce, 0xffffffffffffffff);
+	ce->max_delta_ns = clockevent_delta2ns(ce, 0xffffffffffffffffULL);
 	ce->next = ce_plmt_timer_next;
 	ce->priv = pdat;
 
 	hook_core_interrupt(7, ce_plmt_timer_interrupt, ce);
-	xos_io_write64(pdat->addr + PLMT_MTIMECMP(pdat->cpu), 0xffffffffffffffff);
+	xos_io_write64(pdat->addr + PLMT_MTIMECMP(pdat->cpu), 0xffffffffffffffffULL);
 	csr_clear(mie, MIE_MTIE);
 	csr_set(mstatus, MSTATUS_MIE);
 
