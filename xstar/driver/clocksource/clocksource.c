@@ -35,10 +35,10 @@ static uint64_t __cs_dummy_read(struct clocksource_t * cs)
 
 static struct clocksource_t __cs_dummy = {
 	.keeper = {
-		.interval = 35184372083832,
+		.interval = 35184372083832ULL,
 		.last = 0,
 		.nsec = 0,
-		.seqlock = { 0 },
+		.seqlock = { { 0 } },
 	},
 	.name = "cs-dummy",
 	.mask = CLOCKSOURCE_MASK(64),
