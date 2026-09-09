@@ -97,7 +97,7 @@ static struct device_t * ce_t113_timer_probe(struct driver_t * drv, struct dtnod
 	pdat->irq = irq;
 
 	clk_enable(pdat->clk);
-	clockevent_calc_mult_shift(ce, rate, (uint32_t)XCLAMP(0x00000000ffffffffULL / rate, (uint64_t)1, (uint64_t)600));
+	clockevent_calc_mult_shift(ce, rate, (uint32_t)XCLAMP((uint64_t)(0x00000000ffffffffULL / rate), (uint64_t)1, (uint64_t)600));
 	ce->name = alloc_device_name(dt_read_name(n), dt_read_id(n));
 	ce->min_delta_ns = clockevent_delta2ns(ce, 0x1);
 	ce->max_delta_ns = clockevent_delta2ns(ce, 0x00000000ffffffffULL);

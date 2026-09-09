@@ -46,7 +46,7 @@ static struct device_t * cs_armv8_timer_probe(struct driver_t * drv, struct dtno
 
 	cs->name = alloc_device_name(dt_read_name(n), dt_read_id(n));
 	cs->mask = CLOCKSOURCE_MASK(64);
-	clocksource_calc_mult_shift(&cs->mult, &cs->shift, (uint64_t)rate, 1000000000ULL, (uint32_t)XCLAMP(cs->mask / (uint64_t)rate, (uint64_t)1, (uint64_t)600));
+	clocksource_calc_mult_shift(&cs->mult, &cs->shift, (uint64_t)rate, 1000000000ULL, (uint32_t)XCLAMP((uint64_t)(cs->mask / (uint64_t)rate), (uint64_t)1, (uint64_t)600));
 	cs->read = cs_armv8_timer_read;
 	cs->priv = NULL;
 	arm64_timer_start();

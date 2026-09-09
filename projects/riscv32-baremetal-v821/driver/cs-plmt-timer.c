@@ -71,7 +71,7 @@ static struct device_t * cs_plmt_timer_probe(struct driver_t * drv, struct dtnod
 	clk_enable(pdat->clk);
 	cs->name = alloc_device_name(dt_read_name(n), dt_read_id(n));
 	cs->mask = CLOCKSOURCE_MASK(64);
-	clocksource_calc_mult_shift(&cs->mult, &cs->shift, rate, 1000000000ULL, (uint32_t)XCLAMP(cs->mask / rate, (uint64_t)1, (uint64_t)600));
+	clocksource_calc_mult_shift(&cs->mult, &cs->shift, rate, 1000000000ULL, (uint32_t)XCLAMP((uint64_t)(cs->mask / rate), (uint64_t)1, (uint64_t)600));
 	cs->read = cs_plmt_timer_read;
 	cs->priv = pdat;
 
