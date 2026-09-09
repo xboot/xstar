@@ -179,7 +179,7 @@ vectors:
 	li x5, -1
 	SREG x5, 36 * REGSZ(x2)
 	move a0, sp
-	jal riscv32_handle_exception
+	/* jal ... */
 	csrr a0, mscratch
 	LREG x1, 1 * REGSZ(a0)
 	LREG x2, 2 * REGSZ(a0)

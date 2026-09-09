@@ -308,16 +308,6 @@
 	"gpio-v821:3@0x42000090": { "gpio-base":  96, "gpio-count": 24, "interrupt-offset": 352 },
 	"gpio-v821:4@0x42000540": { "gpio-base": 128, "gpio-count":  8, "interrupt-offset": 384 },
 
-	"ce-plmt-timer@0x48400000": {
-		"clock-name": "plmt",
-		"status": "disabled"
-	},
-
-	"cs-plmt-timer@0x48400000": {
-		"clock-name": "plmt",
-		"status": "disabled"
-	},
-
 	"ce-freertos:0": {
 		"status": "okay"
 	},
