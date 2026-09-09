@@ -94,56 +94,132 @@ XOS is the core abstraction layer of XSTAR, shielding differences across platfor
 ```c
 struct xos_environ_t {
     /* Memory management */
-    void *(*malloc)(size_t size);
-    void (*free)(void *ptr);
-    void *(*realloc)(void *ptr, size_t size);
+    struct {
+        void * (*malloc)(size_t size);
+        void * (*memalign)(size_t align, size_t size);
+        void * (*realloc)(void * ptr, size_t size);
+        void * (*calloc)(size_t nmemb, size_t size);
+        void (*free)(void * ptr);
+        void (*meminfo)(size_t * mused, size_t * mfree);
+    } mem;
 
     /* DMA operations */
-    int (*dma_alloc)(void *addr, size_t size, uint64_t pa);
-    int (*dma_free)(void *addr, size_t size);
+    struct {
+        void * (*alloc_coherent)(unsigned long size);
+        void (*free_coherent)(void * addr);
+        void * (*alloc_noncoherent)(unsigned long size);
+        void (*free_noncoherent)(void * addr);
+        void (*sync)(void * addr, unsigned long size, int flag);
+    } dma;
 
     /* IO operations */
-    void (*write8)(io_addr_t addr, uint8_t value);
-    void (*write16)(io_addr_t addr, uint16_t value);
-    void (*write32)(io_addr_t addr, uint32_t value);
-    uint8_t (*read8)(io_addr_t addr);
-    uint16_t (*read16)(io_addr_t addr);
-    uint32_t (*read32)(io_addr_t addr);
+    struct {
+        uint8_t (*read8)(io_addr_t addr);
+        void (*write8)(io_addr_t addr, uint8_t value);
+        uint16_t (*read16)(io_addr_t addr);
+        void (*write16)(io_addr_t addr, uint16_t value);
+        uint32_t (*read32)(io_addr_t addr);
+        void (*write32)(io_addr_t addr, uint32_t value);
+        uint64_t (*read64)(io_addr_t addr);
+        void (*write64)(io_addr_t addr, uint64_t value);
+    } io;
 
-    /* File system */
-    void *(*fopen)(const char *path, const char *mode);
-    int (*fclose)(void *file);
-    size_t (*fread)(void *ptr, size_t size, size_t nmemb, void *file);
-    size_t (*fwrite)(const void *ptr, size_t size, size_t nmemb, void *file);
-
-    /* Coroutine */
-    void (*coroutine_make)(void *stack, size_t size, void (*func)(struct co_transfer_t));
-    struct co_transfer_t (*coroutine_jump)(void *fctx, void *priv);
-
-    /* Thread */
-    void *(*thread_create)(const char *name, void (*func)(void *), void *data, int stksz);
-    void (*thread_destroy)(void *thread);
-    void (*thread_wait)(void *thread);
-    void (*thread_sleep)(uint64_t ns);
-
-    /* Mutex */
-    int (*mutex_init)(void *mutex);
-    int (*mutex_lock)(void *mutex);
-    int (*mutex_unlock)(void *mutex);
-    int (*mutex_exit)(void *mutex);
-
-    /* Semaphore */
-    int (*semaphore_init)(void *sem, uint32_t count);
-    int (*semaphore_wait)(void *sem, uint32_t timeout);
-    int (*semaphore_post)(void *sem);
-    int (*semaphore_exit)(void *sem);
+    /* Standard I/O */
+    struct {
+        ssize_t (*read)(void * buf, size_t count);
+        ssize_t (*write)(void * buf, size_t count);
+    } stdio;
 
     /* Power management */
-    void (*shutdown)(void);
-    void (*reboot)(void);
-    void (*standby)(void);
+    struct {
+        void (*shutdown)(void);
+        void (*reboot)(void);
+        void (*standby)(void);
+    } pm;
+
+    /* File system */
+    struct {
+        char * (*cwd)(void);
+        int (*open)(const char * path, const char * mode);
+        int (*close)(int fd);
+        int (*isdir)(const char * path);
+        int (*isfile)(const char * path);
+        int (*mode)(const char * path);
+        int (*mkdir)(const char * path);
+        int (*remove)(const char * path);
+        int (*access)(const char * path, const char * mode);
+        void (*walk)(const char * path, void (*cb)(const char * dir, const char * name, void * data), const char * dir, void * data);
+        ssize_t (*read)(int fd, void * buf, size_t count);
+        ssize_t (*write)(int fd, const void * buf, size_t count);
+        int64_t (*seek)(int fd, int64_t offset);
+        int64_t (*tell)(int fd);
+        int64_t (*length)(int fd);
+        void (*sync)(int fd);
+    } file;
+
+    /* Coroutine */
+    struct {
+        void * (*make)(void * stack, size_t size, void (*func)(struct co_transfer_t));
+        struct co_transfer_t (*jump)(void * fctx, void * priv);
+    } coroutine;
+
+    /* Spinlock */
+    struct {
+        void (*init)(struct spinlock_t * lock);
+        void (*exit)(struct spinlock_t * lock);
+        int (*lock)(struct spinlock_t * lock);
+        int (*trylock)(struct spinlock_t * lock);
+        int (*unlock)(struct spinlock_t * lock);
+    } spinlock;
+
+    /* Thread */
+    struct {
+        struct thread_t * (*create)(const char * name, void (*func)(void *), void * data, int stksz);
+        void (*destroy)(struct thread_t * thread);
+        void (*wait)(struct thread_t * thread);
+        void (*sleep)(uint64_t ns);
+    } thread;
+
+    /* Mutex */
+    struct {
+        void (*init)(struct mutex_t * lock);
+        void (*exit)(struct mutex_t * lock);
+        int (*lock)(struct mutex_t * lock);
+        int (*trylock)(struct mutex_t * lock);
+        int (*unlock)(struct mutex_t * lock);
+    } mutex;
+
+    /* Semaphore */
+    struct {
+        void (*init)(struct semaphore_t * sem, unsigned int count);
+        void (*exit)(struct semaphore_t * sem);
+        int (*wait)(struct semaphore_t * sem, int timeout);
+        int (*post)(struct semaphore_t * sem);
+    } semaphore;
+
+    /* String and memory operations */
+    struct {
+        char * (*strcpy)(char * dest, const char * src);
+        char * (*strncpy)(char * dest, const char * src, size_t n);
+        char * (*strcat)(char * dest, const char * src);
+        char * (*strncat)(char * dest, const char * src, size_t n);
+        size_t (*strlen)(const char * s);
+        size_t (*strnlen)(const char * s, size_t n);
+        int (*strcmp)(const char * s1, const char * s2);
+        int (*strncmp)(const char * s1, const char * s2, size_t n);
+        int (*strcasecmp)(const char * s1, const char * s2);
+        int (*strncasecmp)(const char * s1, const char * s2, size_t n);
+
+        void * (*memset)(void * s, int c, size_t n);
+        void * (*memcpy)(void * dest, const void * src, size_t len);
+        void * (*memmove)(void * dest, const void * src, size_t n);
+        void * (*memchr)(const void * s, int c, size_t n);
+        int (*memcmp)(const void * s1, const void * s2, size_t n);
+    } other;
 };
 ```
+
+The groups are declared in the order `mem` → `dma` → `io` → `stdio` → `pm` → `file` → `coroutine` → `spinlock` → `thread` → `mutex` → `semaphore` → `other`. Platform implementations should use designated initializers written in this order so they can be compared directly against `xstar/xos/xos.h`.
 
 ### API Categories
 
@@ -151,18 +227,18 @@ XOS provides platform-related operations via `xos_environ_t`, and also directly 
 
 | Category | Key Functions |
 |----------|---------------|
-| **Memory Management** | `xos_mem_malloc`, `xos_mem_free`, `xos_mem_realloc`, `xos_mem_calloc`, `xos_mem_memalign`, `xos_mem_meminfo` |
-| **DMA Operations** | `xos_dma_alloc_coherent`, `xos_dma_free_coherent`, `xos_dma_alloc_noncoherent`, `xos_dma_sync` |
-| **Hardware I/O** | `xos_io_read8/16/32/64`, `xos_io_write8/16/32/64`, `xos_io_clrbits/setbits/clrsetbits` |
-| **Standard I/O** | `xos_stdio_read`, `xos_stdio_write` |
-| **File System** | `xos_file_open/close/read/write/seek`, `xos_file_mkdir/remove/walk`, `xos_file_isdir/isfile` |
-| **Coroutine** | `xos_coroutine_make`, `xos_coroutine_jump` |
-| **Spinlock** | `xos_spinlock_init/exit/lock/trylock/unlock` |
-| **Thread** | `xos_thread_create/destroy/wait/sleep` |
-| **Mutex** | `xos_mutex_init/exit/lock/unlock/trylock` |
-| **Semaphore** | `xos_semaphore_init/exit/wait/post` |
-| **Power Management** | `xos_pm_shutdown/reboot/standby` |
-| **String Operations** | `xos_strcmp/strcpy/strcat/strlen/strstr/strdup/strtok`, etc. |
+| **Memory Management** (`mem`) | `xos_mem_malloc`, `xos_mem_memalign`, `xos_mem_realloc`, `xos_mem_calloc`, `xos_mem_free`, `xos_mem_meminfo` |
+| **DMA Operations** (`dma`) | `xos_dma_alloc_coherent`, `xos_dma_free_coherent`, `xos_dma_alloc_noncoherent`, `xos_dma_free_noncoherent`, `xos_dma_sync` |
+| **Hardware I/O** (`io`) | `xos_io_read8/16/32/64`, `xos_io_write8/16/32/64`, `xos_io_clrbits/setbits/clrsetbits` |
+| **Standard I/O** (`stdio`) | `xos_stdio_read`, `xos_stdio_write` |
+| **Power Management** (`pm`) | `xos_pm_shutdown/reboot/standby` |
+| **File System** (`file`) | `xos_file_cwd/open/close/read/write/seek/tell/length/sync`, `xos_file_mkdir/remove/access/walk`, `xos_file_isdir/isfile/mode` |
+| **Coroutine** (`coroutine`) | `xos_coroutine_make`, `xos_coroutine_jump` |
+| **Spinlock** (`spinlock`) | `xos_spinlock_init/exit/lock/trylock/unlock` |
+| **Thread** (`thread`) | `xos_thread_create/destroy/wait/sleep` |
+| **Mutex** (`mutex`) | `xos_mutex_init/exit/lock/trylock/unlock` |
+| **Semaphore** (`semaphore`) | `xos_semaphore_init/exit/wait/post` |
+| **String & Memory Operations** (`other`) | `xos_strcpy/strncpy/strcat/strncat/strlen/strnlen/strcmp/strncmp/strcasecmp/strncasecmp`, `xos_memset/memcpy/memmove/memchr/memcmp` |
 | **Formatting** | `xos_sprintf/snprintf/printf/sscanf`, etc. |
 | **Numeric Conversion** | `xos_strtol/strtoll/strtod/atoi/atol`, etc. |
 | **Sort & Search** | `xos_qsort`, `xos_bsearch` |

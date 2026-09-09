@@ -593,82 +593,120 @@ obj-$(CONFIG_WBOXTEST_MYGROUP) += xxx.o
 
 ### xos_environ_t 接口
 
+分组按 `mem` → `dma` → `io` → `stdio` → `pm` → `file` → `coroutine` → `spinlock` → `thread` → `mutex` → `semaphore` → `other` 的顺序声明（详见 `xstar/xos/xos.h`），初始化时建议保持相同顺序：
+
 ```c
 static struct xos_environ_t env = {
     .mem = {
-        .malloc    = my_malloc,
-        .free      = my_free,
-        .realloc   = my_realloc,
+        .malloc   = my_malloc,
+        .memalign = my_memalign,
+        .realloc  = my_realloc,
+        .calloc   = my_calloc,
+        .free     = my_free,
+        .meminfo  = my_meminfo,
     },
+
     .dma = {
-        .alloc_coherent     = my_dma_alloc_coherent,
-        .free_coherent      = my_dma_free_coherent,
-        .alloc_noncoherent  = my_dma_alloc_noncoherent,
-        .free_noncoherent   = my_dma_free_noncoherent,
-        .sync               = my_dma_sync,
+        .alloc_coherent    = my_dma_alloc_coherent,
+        .free_coherent     = my_dma_free_coherent,
+        .alloc_noncoherent = my_dma_alloc_noncoherent,
+        .free_noncoherent  = my_dma_free_noncoherent,
+        .sync              = my_dma_sync,
     },
+
     .io = {
         .read8   = my_read8,
-        .read16  = my_read16,
-        .read32  = my_read32,
-        .read64  = my_read64,
         .write8  = my_write8,
+        .read16  = my_read16,
         .write16 = my_write16,
+        .read32  = my_read32,
         .write32 = my_write32,
+        .read64  = my_read64,
         .write64 = my_write64,
     },
+
     .stdio = {
         .read  = my_stdio_read,
         .write = my_stdio_write,
     },
+
     .pm = {
         .shutdown = my_shutdown,
         .reboot   = my_reboot,
         .standby  = my_standby,
     },
+
     .file = {
-        .cwd     = my_cwd,
-        .open    = my_file_open,
-        .close   = my_file_close,
-        .read    = my_file_read,
-        .write   = my_file_write,
-        .seek    = my_file_seek,
-        .tell    = my_file_tell,
-        .length  = my_file_length,
-        .sync    = my_file_sync,
-        .mkdir   = my_mkdir,
-        .remove  = my_remove,
-        .access  = my_access,
-        .isdir   = my_isdir,
-        .isfile  = my_isfile,
-        .mode    = my_mode,
-        .walk    = my_walk,
+        .cwd    = my_cwd,
+        .open   = my_file_open,
+        .close  = my_file_close,
+        .isdir  = my_isdir,
+        .isfile = my_isfile,
+        .mode   = my_mode,
+        .mkdir  = my_mkdir,
+        .remove = my_remove,
+        .access = my_access,
+        .walk   = my_walk,
+        .read   = my_file_read,
+        .write  = my_file_write,
+        .seek   = my_file_seek,
+        .tell   = my_file_tell,
+        .length = my_file_length,
+        .sync   = my_file_sync,
     },
+
     .coroutine = {
         .make = my_coroutine_make,
         .jump = my_coroutine_jump,
     },
+
+    .spinlock = {
+        .init    = my_spinlock_init,
+        .exit    = my_spinlock_exit,
+        .lock    = my_spinlock_lock,
+        .trylock = my_spinlock_trylock,
+        .unlock  = my_spinlock_unlock,
+    },
+
     .thread = {
         .create  = my_thread_create,
         .destroy = my_thread_destroy,
         .wait    = my_thread_wait,
         .sleep   = my_thread_sleep,
     },
+
     .mutex = {
-        .init   = my_mutex_init,
-        .exit   = my_mutex_exit,
-        .lock   = my_mutex_lock,
+        .init    = my_mutex_init,
+        .exit    = my_mutex_exit,
+        .lock    = my_mutex_lock,
         .trylock = my_mutex_trylock,
-        .unlock = my_mutex_unlock,
+        .unlock  = my_mutex_unlock,
     },
+
     .semaphore = {
         .init = my_semaphore_init,
         .exit = my_semaphore_exit,
         .wait = my_semaphore_wait,
         .post = my_semaphore_post,
     },
+
     .other = {
-        /* 其他平台特定操作 */
+        .strcpy      = my_strcpy,
+        .strncpy     = my_strncpy,
+        .strcat      = my_strcat,
+        .strncat     = my_strncat,
+        .strlen      = my_strlen,
+        .strnlen     = my_strnlen,
+        .strcmp      = my_strcmp,
+        .strncmp     = my_strncmp,
+        .strcasecmp  = my_strcasecmp,
+        .strncasecmp = my_strncasecmp,
+
+        .memset  = my_memset,
+        .memcpy  = my_memcpy,
+        .memmove = my_memmove,
+        .memchr  = my_memchr,
+        .memcmp  = my_memcmp,
     },
 };
 
