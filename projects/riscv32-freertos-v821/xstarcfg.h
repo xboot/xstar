@@ -22,6 +22,7 @@ extern "C" {
 #include <locale.h>
 #include <time.h>
 #include <math.h>
+#include <libx/xdef.h>
 #include <FreeRTOS.h>
 #include <task.h>
 #include <semphr.h>
@@ -30,7 +31,7 @@ extern "C" {
 typedef unsigned long io_addr_t;
 
 struct spinlock_t {
-	volatile unsigned long lock;
+	struct xatomic_t lock;
 };
 
 struct thread_t {
