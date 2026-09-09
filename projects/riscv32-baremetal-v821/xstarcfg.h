@@ -36,7 +36,7 @@ struct thread_t {
 };
 
 struct mutex_t {
-	volatile void * mutex;
+	struct spinlock_t lock;
 };
 
 struct semaphore_t {

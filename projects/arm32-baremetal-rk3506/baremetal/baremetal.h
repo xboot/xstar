@@ -39,6 +39,12 @@ int baremetal_spinlock_lock(struct spinlock_t * lock);
 int baremetal_spinlock_trylock(struct spinlock_t * lock);
 int baremetal_spinlock_unlock(struct spinlock_t * lock);
 
+void baremetal_mutex_init(struct mutex_t * lock);
+void baremetal_mutex_exit(struct mutex_t * lock);
+int baremetal_mutex_lock(struct mutex_t * lock);
+int baremetal_mutex_trylock(struct mutex_t * lock);
+int baremetal_mutex_unlock(struct mutex_t * lock);
+
 void * arm32_coroutine_make(void * stack, size_t size, void (*func)(struct co_transfer_t));
 struct co_transfer_t arm32_coroutine_jump(void * fctx, void * priv);
 

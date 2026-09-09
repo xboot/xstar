@@ -85,11 +85,11 @@ static struct xos_environ_t env = {
 	},
 
 	.mutex = {
-		.init = NULL,
-		.exit = NULL,
-		.lock = NULL,
-		.trylock = NULL,
-		.unlock = NULL,
+		.init = baremetal_mutex_init,
+		.exit = baremetal_mutex_exit,
+		.lock = baremetal_mutex_lock,
+		.trylock = baremetal_mutex_trylock,
+		.unlock = baremetal_mutex_unlock,
 	},
 
 	.semaphore = {
