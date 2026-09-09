@@ -17,6 +17,7 @@ config XSTAR_LOG
 
 config XSTAR_LOGGER_SIZE
 	int "Logger circular buffer size"
+	range 32 262144
 	default 8192
 	help
 		Size of the circular buffer used by the logger. Larger values allow more
