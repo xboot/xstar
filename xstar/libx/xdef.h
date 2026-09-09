@@ -1,8 +1,6 @@
 #ifndef __XSTAR_LIBX_XDEF_H__
 #define __XSTAR_LIBX_XDEF_H__
 
-#include <xstarcfg.h>
-
 #define SZ_16							(0x00000010)
 #define SZ_256							(0x00000100)
 #define SZ_512							(0x00000200)
@@ -110,56 +108,56 @@ static inline __attribute__((always_inline)) unsigned long __xfls(unsigned long 
 	return (sizeof(x) * 8) - 1 - __builtin_clzl(x);
 }
 
-typedef struct {
-	volatile int32_t v;
-} xatomic_t;
+struct xatomic_t {
+	volatile int v;
+};
 
-static inline __attribute__((always_inline)) int xatomic_load(const xatomic_t * p)
+static inline __attribute__((always_inline)) int xatomic_load(const struct xatomic_t * p)
 {
 	return __atomic_load_n(&p->v, __ATOMIC_SEQ_CST);
 }
 
-static inline __attribute__((always_inline)) void xatomic_store(xatomic_t * p, int v)
+static inline __attribute__((always_inline)) void xatomic_store(struct xatomic_t * p, int v)
 {
 	__atomic_store_n(&p->v, v, __ATOMIC_SEQ_CST);
 }
 
-static inline __attribute__((always_inline)) int xatomic_add(xatomic_t * p, int v)
+static inline __attribute__((always_inline)) int xatomic_add(struct xatomic_t * p, int v)
 {
 	return __atomic_fetch_add(&p->v, v, __ATOMIC_SEQ_CST);
 }
 
-static inline __attribute__((always_inline)) int xatomic_sub(xatomic_t * p, int v)
+static inline __attribute__((always_inline)) int xatomic_sub(struct xatomic_t * p, int v)
 {
 	return __atomic_fetch_sub(&p->v, v, __ATOMIC_SEQ_CST);
 }
 
-static inline __attribute__((always_inline)) int xatomic_cas(xatomic_t * p, int o, int n)
+static inline __attribute__((always_inline)) int xatomic_cas(struct xatomic_t * p, int o, int n)
 {
 	return __atomic_compare_exchange_n(&p->v, &o, n, 0, __ATOMIC_SEQ_CST, __ATOMIC_RELAXED);
 }
 
-static inline __attribute__((always_inline)) int xatomic_xchg(xatomic_t * p, int n)
+static inline __attribute__((always_inline)) int xatomic_xchg(struct xatomic_t * p, int n)
 {
 	return __atomic_exchange_n(&p->v, n, __ATOMIC_SEQ_CST);
 }
 
-static inline __attribute__((always_inline)) int xatomic_load_acquire(const xatomic_t * p)
+static inline __attribute__((always_inline)) int xatomic_load_acquire(const struct xatomic_t * p)
 {
 	return __atomic_load_n(&p->v, __ATOMIC_ACQUIRE);
 }
 
-static inline __attribute__((always_inline)) void xatomic_store_release(xatomic_t * p, int v)
+static inline __attribute__((always_inline)) void xatomic_store_release(struct xatomic_t * p, int v)
 {
 	__atomic_store_n(&p->v, v, __ATOMIC_RELEASE);
 }
 
-static inline __attribute__((always_inline)) int xatomic_add_relaxed(xatomic_t * p, int v)
+static inline __attribute__((always_inline)) int xatomic_add_relaxed(struct xatomic_t * p, int v)
 {
 	return __atomic_fetch_add(&p->v, v, __ATOMIC_RELAXED);
 }
 
-static inline __attribute__((always_inline)) int xatomic_sub_relaxed(xatomic_t * p, int v)
+static inline __attribute__((always_inline)) int xatomic_sub_relaxed(struct xatomic_t * p, int v)
 {
 	return __atomic_fetch_sub(&p->v, v, __ATOMIC_RELAXED);
 }

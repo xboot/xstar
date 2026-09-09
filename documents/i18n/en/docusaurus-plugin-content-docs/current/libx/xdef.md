@@ -1,6 +1,6 @@
 # Common Macros (xdef)
 
-`libx/xdef.h` provides the global, foundational macro definitions and helper utilities used throughout XSTAR, including common size constants, boolean/null pointer definitions, container and offset calculations, branch prediction hints, static assertions, math helpers, and bit-scanning and atomic inline functions. The header is platform-independent and may be included by any source file.
+`libx/xdef.h` provides the global, foundational macro definitions and helper utilities used throughout XSTAR, including common size constants, boolean/null pointer definitions, container and offset calculations, branch prediction hints, static assertions, math helpers, and bit-scanning and atomic inline functions. The header is fully self-contained — it includes no other headers (not even `xstarcfg.h`) and is platform-independent — and may be included by any source file.
 
 ## Size Constants
 
@@ -211,49 +211,49 @@ mask &= ~(1UL << bit);              /* clear that bit */
 
 ## Atomic Inline Functions
 
-32-bit integer atomic operations built on the GCC `__atomic` compiler built-ins. Every function is declared `always_inline`, so there is no function-call overhead even at `-O0`; when the target architecture provides a native instruction, each operation compiles down to a single instruction (x86 `lock` prefix, ARMv7 `ldrex/strex`, AArch64 `ldxr/stxr`, RISC-V `amo`/`lr.w/sc.w`). No runtime library is involved.
+`int`-width integer atomic operations built on the GCC `__atomic` compiler built-ins. Every function is declared `always_inline`, so there is no function-call overhead even at `-O0`; when the target architecture provides a native instruction, each operation compiles down to a single instruction (x86 `lock` prefix, ARMv7 `ldrex/strex`, AArch64 `ldxr/stxr`, RISC-V `amo`/`lr.w/sc.w`). No runtime library is involved.
 
 The API comes in two tiers: six defaults that uniformly use sequential-consistency (`seq_cst`) semantics, plus four weak-ordering variants named after their memory order (acquire/release/relaxed), reserved strictly for performance-sensitive hot paths.
 
-The operand is `xatomic_t` — a struct wrapping a single `volatile int32_t` (exactly 32 bits). The struct wrapper provides compile-time type isolation: plain `int *` / `volatile int *` pointers cannot silently flow into this API, so the classic bug of mixing plain and atomic accesses on the same variable surfaces at compile time (the same approach as the Linux kernel `atomic_t`). For inspection while debugging, read the `.v` member directly. No 64-bit or sub-word (8/16-bit) widths are provided — on platforms such as RV32 those would degrade into libatomic library calls, breaking the zero-dependency rule.
+The operand is `struct xatomic_t` — a struct wrapping a single `volatile int` (32 bits on all supported platforms). The struct wrapper provides compile-time type isolation: plain `int *` / `volatile int *` pointers cannot silently flow into this API, so the classic bug of mixing plain and atomic accesses on the same variable surfaces at compile time (the same approach as the Linux kernel `atomic_t`). For inspection while debugging, read the `.v` member directly. No 64-bit or sub-word (8/16-bit) widths are provided — on platforms such as RV32 those would degrade into libatomic library calls, breaking the zero-dependency rule.
 
-### `int xatomic_load(const xatomic_t * p)`
+### `int xatomic_load(const struct xatomic_t * p)`
 
 Atomically reads `*p`. The parameter is `const`-qualified, so both `const volatile int *` and plain `volatile int *` objects are accepted.
 
-### `void xatomic_store(xatomic_t * p, int v)`
+### `void xatomic_store(struct xatomic_t * p, int v)`
 
 Atomically writes `v` to `*p`.
 
-### `int xatomic_add(xatomic_t * p, int v)`
+### `int xatomic_add(struct xatomic_t * p, int v)`
 
 Atomic add `*p += v`, returning the value **before** the addition. Suitable for multi-threaded counters and reference counting.
 
-### `int xatomic_sub(xatomic_t * p, int v)`
+### `int xatomic_sub(struct xatomic_t * p, int v)`
 
 Atomic subtract `*p -= v`, returning the previous value. Symmetric with `xatomic_add`.
 
-### `int xatomic_cas(xatomic_t * p, int o, int n)`
+### `int xatomic_cas(struct xatomic_t * p, int o, int n)`
 
 Compare-and-swap: writes `n` and returns 1 when `*p == o`, otherwise returns 0. It does **not** retry on failure; callers drive the retry loop themselves when needed.
 
-### `int xatomic_xchg(xatomic_t * p, int n)`
+### `int xatomic_xchg(struct xatomic_t * p, int n)`
 
 Unconditional exchange: writes `n` and returns the old value. Maps to a single swap instruction where available (x86 `lock xchg`, RISC-V `amoswap`), well suited to "claim/steal" patterns.
 
-### `int xatomic_load_acquire(const xatomic_t * p)`
+### `int xatomic_load_acquire(const struct xatomic_t * p)`
 
 Atomic read with acquire semantics: memory accesses after it will not be reordered ahead of it. This is the read half of an acquire/release pair (for example, read a ready flag and then consume the data it publishes); always paired with `xatomic_store_release`. Saves one memory barrier compared to `xatomic_load` on ARM/RISC-V.
 
-### `void xatomic_store_release(xatomic_t * p, int v)`
+### `void xatomic_store_release(struct xatomic_t * p, int v)`
 
 Atomic write with release semantics: memory accesses before it will not be reordered after it. This is the write half of an acquire/release pair (for example, store the data and then publish a ready flag); always paired with `xatomic_load_acquire`.
 
-### `int xatomic_add_relaxed(xatomic_t * p, int v)`
+### `int xatomic_add_relaxed(struct xatomic_t * p, int v)`
 
 Relaxed atomic add `*p += v`, returning the value **before** the addition. Guarantees atomicity only, with no ordering constraints with respect to surrounding accesses; suitable for pure statistics counters that have no ordering relationship with the code around them.
 
-### `int xatomic_sub_relaxed(xatomic_t * p, int v)`
+### `int xatomic_sub_relaxed(struct xatomic_t * p, int v)`
 
 Relaxed atomic subtract `*p -= v`, returning the previous value. Symmetric with `xatomic_add_relaxed`.
 
@@ -272,12 +272,12 @@ Anything finer-grained should still be implemented by invoking the `__atomic` bu
 
 - The `volatile` qualifier on the parameters only exists so that both `volatile int` and plain `int` declarations are accepted without diagnostics; it provides **no synchronization semantics**. Atomicity and ordering come entirely from the compiler built-ins.
 - Use these only for single-variable scenarios such as shared counters, flags, and lock words; for multi-variable composite state, use the XOS mutex (`xos_mutex_lock` and friends).
-- The operand type is uniformly `xatomic_t` instead of a bare `volatile int`: the struct wrapper lets the type system reject plain pointers at compile time, preventing the hidden bug of mixing plain and atomic accesses on the same variable; read the `.v` member when inspecting in a debugger. API parameters and return values stay `int` (matching the Linux kernel `atomic_t` convention; the two are the same type on all supported platforms).
+- The operand type is uniformly `struct xatomic_t` instead of a bare `volatile int`: the struct wrapper lets the type system reject plain pointers at compile time, preventing the hidden bug of mixing plain and atomic accesses on the same variable; read the `.v` member when inspecting in a debugger. API parameters and return values stay `int` (matching the Linux kernel `atomic_t` convention).
 
 ### Examples
 
 ```c
-static xatomic_t counter;
+static struct xatomic_t counter;
 
 xatomic_add(&counter, 1);          /* thread-safe increment */
 int cur = xatomic_load(&counter);  /* atomic snapshot read */
@@ -286,7 +286,7 @@ int cur = xatomic_load(&counter);  /* atomic snapshot read */
 Lock-free maximum tracking with a CAS loop:
 
 ```c
-static xatomic_t max_val;
+static struct xatomic_t max_val;
 
 void update_max(int v)
 {

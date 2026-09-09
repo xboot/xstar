@@ -1,6 +1,6 @@
 # 通用宏定义 (xdef)
 
-`libx/xdef.h` 提供了 XSTAR 全局通用的基础宏定义和工具函数，包括常用尺寸常量、布尔/空指针定义、容器与偏移计算、分支预测提示、静态断言、数学辅助宏，以及位扫描与原子操作内联函数。该头文件不依赖具体平台，所有源码均可包含。
+`libx/xdef.h` 提供了 XSTAR 全局通用的基础宏定义和工具函数，包括常用尺寸常量、布尔/空指针定义、容器与偏移计算、分支预测提示、静态断言、数学辅助宏，以及位扫描与原子操作内联函数。该头文件完全自包含——不引入任何其他头文件（包括 `xstarcfg.h`），也不依赖具体平台，所有源码均可包含。
 
 ## 尺寸常量
 
@@ -211,49 +211,49 @@ mask &= ~(1UL << bit);              /* 清除该位 */
 
 ## 原子操作内联函数
 
-基于 GCC `__atomic` 系列编译器内建实现的 32 位整数原子操作。所有函数使用 `always_inline` 强制内联，即使在 `-O0` 优化级别下也没有函数调用开销；目标架构存在原生指令时直接编译为单条指令（x86 `lock` 前缀、ARMv7 `ldrex/strex`、AArch64 `ldxr/stxr`、RISC-V `amo`/`lr.w/sc.w`），不依赖任何运行时库。
+基于 GCC `__atomic` 系列编译器内建实现的 `int` 宽度整数原子操作。所有函数使用 `always_inline` 强制内联，即使在 `-O0` 优化级别下也没有函数调用开销；目标架构存在原生指令时直接编译为单条指令（x86 `lock` 前缀、ARMv7 `ldrex/strex`、AArch64 `ldxr/stxr`、RISC-V `amo`/`lr.w/sc.w`），不依赖任何运行时库。
 
 API 分为两档：默认 6 个函数统一采用顺序一致性（`seq_cst`）语义；另有 4 个以内存序命名的弱序变体（acquire/release/relaxed），仅供性能敏感的热点路径使用。
 
-操作对象为 `xatomic_t`——包装了单个 `volatile int32_t`（精确 32 位）的结构体类型。结构体包装带来编译期类型隔离：普通 `int *` / `volatile int *` 无法静默传入本 API，"同一变量一处普通访问、一处原子访问"这类隐蔽错误在编译期即暴露（Linux 内核 `atomic_t` 的同款做法）。调试检视时直接读取 `.v` 成员。不提供 64 位或子字（8/16 位）宽度——这类宽度在 RV32 等平台上会退化为 libatomic 库调用，违背零依赖原则。
+操作对象为 `struct xatomic_t`——包装了单个 `volatile int`（所有支持平台上均为 32 位）的结构体类型。结构体包装带来编译期类型隔离：普通 `int *` / `volatile int *` 无法静默传入本 API，"同一变量一处普通访问、一处原子访问"这类隐蔽错误在编译期即暴露（Linux 内核 `atomic_t` 的同款做法）。调试检视时直接读取 `.v` 成员。不提供 64 位或子字（8/16 位）宽度——这类宽度在 RV32 等平台上会退化为 libatomic 库调用，违背零依赖原则。
 
-### `int xatomic_load(const xatomic_t * p)`
+### `int xatomic_load(const struct xatomic_t * p)`
 
 原子读取 `*p`。参数带 `const`，`const volatile int *` 与普通 `volatile int *` 对象均可传入。
 
-### `void xatomic_store(xatomic_t * p, int v)`
+### `void xatomic_store(struct xatomic_t * p, int v)`
 
 原子写入 `v` 到 `*p`。
 
-### `int xatomic_add(xatomic_t * p, int v)`
+### `int xatomic_add(struct xatomic_t * p, int v)`
 
 原子加法 `*p += v`，返回**加之前**的旧值。适用于多线程计数器、引用计数。
 
-### `int xatomic_sub(xatomic_t * p, int v)`
+### `int xatomic_sub(struct xatomic_t * p, int v)`
 
 原子减法 `*p -= v`，返回减之前的旧值。与 `xatomic_add` 对称。
 
-### `int xatomic_cas(xatomic_t * p, int o, int n)`
+### `int xatomic_cas(struct xatomic_t * p, int o, int n)`
 
 比较并交换：当 `*p == o` 时写入 `n` 并返回 1，否则返回 0。失败时**不重试**，需要循环的场景由调用方自行驱动。
 
-### `int xatomic_xchg(xatomic_t * p, int n)`
+### `int xatomic_xchg(struct xatomic_t * p, int n)`
 
 无条件交换：写入 `n` 并返回旧值。在有原生指令的架构上映射为单条交换指令（x86 `lock xchg`、RISC-V `amoswap`），适合"抢锁/占用"模式。
 
-### `int xatomic_load_acquire(const xatomic_t * p)`
+### `int xatomic_load_acquire(const struct xatomic_t * p)`
 
 acquire 语义的原子读取：该操作之后的访存不会被重排到它之前。作为 acquire/release 配对中的读端（例如先读到就绪标志、再访问其发布的数据），与 `xatomic_store_release` 成对使用。在 ARM/RISC-V 上比 `xatomic_load` 少一条内存屏障。
 
-### `void xatomic_store_release(xatomic_t * p, int v)`
+### `void xatomic_store_release(struct xatomic_t * p, int v)`
 
 release 语义的原子写入：该操作之前的访存不会被重排到它之后。作为 acquire/release 配对中的写端（例如先写好数据、再发布就绪标志），与 `xatomic_load_acquire` 成对使用。
 
-### `int xatomic_add_relaxed(xatomic_t * p, int v)`
+### `int xatomic_add_relaxed(struct xatomic_t * p, int v)`
 
 relaxed 原子加法 `*p += v`，返回加之前的旧值。仅保证原子性，不提供与周围访存之间的顺序约束；适用于与前后代码无顺序依赖的纯统计计数。
 
-### `int xatomic_sub_relaxed(xatomic_t * p, int v)`
+### `int xatomic_sub_relaxed(struct xatomic_t * p, int v)`
 
 relaxed 原子减法 `*p -= v`，返回减之前的旧值。与 `xatomic_add_relaxed` 对称。
 
@@ -272,12 +272,12 @@ relaxed 原子减法 `*p -= v`，返回减之前的旧值。与 `xatomic_add_rel
 
 - 参数上的 `volatile` 修饰只是为了同时兼容 `volatile int` 与普通 `int` 两种声明方式，**不提供任何同步语义**；原子性与排序完全由编译器内建承担。
 - 原子操作仅适用于共享计数器、标志位、锁字等单一变量场景；涉及多变量的复合状态请使用 XOS 互斥锁（`xos_mutex_lock` 等）。
-- 操作对象统一为 `xatomic_t`，而非裸 `volatile int`：结构体包装让类型系统在编译期阻止普通指针混入，防住"同一变量一处普通访问、一处原子访问"的隐蔽错误；调试检视时读取 `.v` 成员即可。API 参数与返回值保持 `int`（与 Linux 内核 `atomic_t` 做法一致，所有支持平台上两者为同一类型）。
+- 操作对象统一为 `struct xatomic_t`，而非裸 `volatile int`：结构体包装让类型系统在编译期阻止普通指针混入，防住"同一变量一处普通访问、一处原子访问"的隐蔽错误；调试检视时读取 `.v` 成员即可。API 参数与返回值保持 `int`（与 Linux 内核 `atomic_t` 做法一致）。
 
 ### 使用示例
 
 ```c
-static xatomic_t counter;
+static struct xatomic_t counter;
 
 xatomic_add(&counter, 1);          /* 多线程安全递增 */
 int cur = xatomic_load(&counter);  /* 原子读取快照 */
@@ -286,7 +286,7 @@ int cur = xatomic_load(&counter);  /* 原子读取快照 */
 用 CAS 循环无锁地维护最大值：
 
 ```c
-static xatomic_t max_val;
+static struct xatomic_t max_val;
 
 void update_max(int v)
 {
