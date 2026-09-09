@@ -21,7 +21,7 @@ struct clocksource_t {
 		uint64_t last;
 		uint64_t nsec;
 		struct {
-			unsigned int seq;
+			struct xatomic_t seq;
 		} seqlock;
 		struct timer_t timer;
 	} keeper;
@@ -162,16 +162,16 @@ static inline uint64_t clocksource_delta2ns(struct clocksource_t * cs, uint64_t 
 static inline ktime_t clocksource_keeper_read(struct clocksource_t * cs)
 {
 	uint64_t now, delta, offset;
-	volatile unsigned int seq;
+	int seq;
 
 	do {
 		do {
-			seq = cs->keeper.seqlock.seq;
+			seq = xatomic_load_acquire(&cs->keeper.seqlock.seq);
 		} while(seq & 0x1);
 		now = clocksource_cycle(cs);
 		delta = clocksource_delta(cs, cs->keeper.last, now);
 		offset = clocksource_delta2ns(cs, delta);
-	} while(cs->keeper.seqlock.seq != seq);
+	} while(xatomic_load(&cs->keeper.seqlock.seq) != seq);
 	return ns_to_ktime(cs->keeper.nsec + offset);
 }
 

@@ -101,13 +101,13 @@ static int clocksource_keeper_timer_function(struct timer_t * timer, void * data
 	struct clocksource_t * cs = (struct clocksource_t *)(data);
 	uint64_t now, delta, offset;
 
-	++cs->keeper.seqlock.seq;
+	xatomic_add(&cs->keeper.seqlock.seq, 1);
 	now = clocksource_cycle(cs);
 	delta = clocksource_delta(cs, cs->keeper.last, now);
 	offset = clocksource_delta2ns(cs, delta);
 	cs->keeper.nsec += offset;
 	cs->keeper.last = now;
-	cs->keeper.seqlock.seq++;
+	xatomic_add(&cs->keeper.seqlock.seq, 1);
 
 	timer_forward(timer, ns_to_ktime(cs->keeper.interval));
 	return 1;
@@ -147,7 +147,7 @@ struct device_t * register_clocksource(struct clocksource_t * cs, struct driver_
 	cs->keeper.interval = clocksource_deferment(cs) >> 1;
 	cs->keeper.last = clocksource_cycle(cs);
 	cs->keeper.nsec = 0;
-	cs->keeper.seqlock.seq = 0;
+	xatomic_store(&cs->keeper.seqlock.seq, 0);
 	timer_init(&cs->keeper.timer, clocksource_keeper_timer_function, cs);
 
 	dev->name = xos_strdup(cs->name);
