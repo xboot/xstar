@@ -22,11 +22,13 @@ extern "C" {
 #include <locale.h>
 #include <time.h>
 #include <math.h>
+#include <libx/xdef.h>
 
 typedef unsigned long long io_addr_t;
 
 struct spinlock_t {
-	volatile unsigned long lock;
+	struct xatomic_t lock;
+	unsigned long saved;
 };
 
 struct thread_t {

@@ -41,8 +41,7 @@ static inline unsigned long arm64_irq_save(void)
 
 void baremetal_spinlock_init(struct spinlock_t * lock)
 {
-	if(lock)
-		lock->lock = 0;
+	xatomic_store(&lock->lock, 0);
 }
 
 void baremetal_spinlock_exit(struct spinlock_t * lock)
@@ -51,27 +50,31 @@ void baremetal_spinlock_exit(struct spinlock_t * lock)
 
 int baremetal_spinlock_lock(struct spinlock_t * lock)
 {
-	if(!lock)
-		return 0;
-	lock->lock = arm64_irq_save();
+	lock->saved = arm64_irq_save();
 	__asm__ __volatile__ ("dmb sy" ::: "memory");
+	while(xatomic_xchg(&lock->lock, 1));
 	return 1;
 }
 
 int baremetal_spinlock_trylock(struct spinlock_t * lock)
 {
-	if(!lock)
+	unsigned long saved = arm64_irq_save();
+	__asm__ __volatile__ ("dmb sy" ::: "memory");
+	if(xatomic_xchg(&lock->lock, 1))
+	{
+		if(!(saved & (1 << 7)))
+			arm64_interrupt_enable();
 		return 0;
-	return baremetal_spinlock_lock(lock);
+	}
+	lock->saved = saved;
+	return 1;
 }
 
 int baremetal_spinlock_unlock(struct spinlock_t * lock)
 {
-	if(!lock)
-		return 0;
 	__asm__ __volatile__ ("dmb sy" ::: "memory");
-	if(!(lock->lock & (1 << 7)))
+	xatomic_store_release(&lock->lock, 0);
+	if(!(lock->saved & (1 << 7)))
 		arm64_interrupt_enable();
-	lock->lock = 0;
 	return 1;
 }
