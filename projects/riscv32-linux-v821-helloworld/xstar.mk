@@ -12,7 +12,7 @@ CXXFLAGS	+= -Wa,--noexecstack -ffreestanding
 LDFLAGS		+= -z noexecstack
 OCFLAGS		+=
 ODFLAGS		+=
-MCFLAGS		+= -march=rv32imfdcxandes -mabi=ilp32d -mcmodel=medany
+MCFLAGS		+= -march=rv32imafdcxandes -mabi=ilp32d -mcmodel=medany
 LIBDIRS		+=
 LIBS 		+=
 

@@ -21,7 +21,7 @@ CXXFLAGS	+= -Wa,--noexecstack -ffreestanding
 LDFLAGS		+= -z noexecstack -T $(PRJDIR)/xstar.ld -nostartfiles -nostdinc -nostdlib
 OCFLAGS		+=
 ODFLAGS		+=
-MCFLAGS		+= -march=rv32imfdcxandes -mabi=ilp32d -mcmodel=medany -fno-stack-protector -mstrict-align
+MCFLAGS		+= -march=rv32imafdcxandes -mabi=ilp32d -mcmodel=medany -fno-stack-protector -mstrict-align
 LIBDIRS		+=
 LIBS 		+= -lgcc
 
