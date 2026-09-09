@@ -2,12 +2,10 @@
 
 void freertos_risc_v_application_exception_handler(uint32_t cause)
 {
-	LOG("freertos_risc_v_application_exception_handler %d\r\n", cause);
 }
 
 void freertos_risc_v_application_interrupt_handler(uint32_t cause)
 {
-	LOG("freertos_risc_v_application_exception_handler %d\r\n", cause);
 	interrupt_handle_exception(NULL);
 }
 
