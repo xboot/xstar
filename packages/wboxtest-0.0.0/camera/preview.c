@@ -36,14 +36,14 @@ static void * preview_setup(struct wboxtest_t * wbt)
 	struct wbt_preview_pdata_t * pdat;
 	const char * name = NULL;
 
-	pdat = malloc(sizeof(struct wbt_preview_pdata_t));
+	pdat = xos_mem_malloc(sizeof(struct wbt_preview_pdata_t));
 	if(!pdat)
 		return NULL;
 
 	pdat->w = window_alloc(NULL, NULL, -1);
 	if(!pdat->w)
 	{
-		free(pdat);
+		xos_mem_free(pdat);
 		return NULL;
 	}
 
@@ -51,14 +51,14 @@ static void * preview_setup(struct wboxtest_t * wbt)
 	if(!pdat->c)
 	{
 		window_free(pdat->w);
-		free(pdat);
+		xos_mem_free(pdat);
 		return NULL;
 	}
 
 	if(!camera_start(pdat->c, CAMERA_FORMAT_MJPG, 320, 240))
 	{
 		window_free(pdat->w);
-		free(pdat);
+		xos_mem_free(pdat);
 		return NULL;
 	}
 
@@ -66,7 +66,7 @@ static void * preview_setup(struct wboxtest_t * wbt)
 	{
 		camera_stop(pdat->c);
 		window_free(pdat->w);
-		free(pdat);
+		xos_mem_free(pdat);
 		return NULL;
 	}
 
@@ -75,7 +75,7 @@ static void * preview_setup(struct wboxtest_t * wbt)
 	{
 		camera_stop(pdat->c);
 		window_free(pdat->w);
-		free(pdat);
+		xos_mem_free(pdat);
 		return NULL;
 	}
 
@@ -91,7 +91,7 @@ static void preview_clean(struct wboxtest_t * wbt, void * data)
 		camera_stop(pdat->c);
 		surface_free(pdat->s);
 		window_free(pdat->w);
-		free(pdat);
+		xos_mem_free(pdat);
 	}
 }
 
