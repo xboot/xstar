@@ -190,25 +190,25 @@ static uint32_t get_f133_config(struct dma_channel_t * ch)
 	switch(DMA_G_TYPE(ch->flag))
 	{
 	case DMA_TYPE_MEMTOMEM:
-		if(((uint64_t)ch->src >= 0x00020000) && ((uint64_t)ch->src < 0x00059000))
+		if(((io_addr_t)ch->src >= 0x00020000) && ((io_addr_t)ch->src < 0x00059000))
 			cfg = (cfg & ~(0x3f << 0)) | (F133_DMA_PORT_SRAM << 0);
-		else if(((uint64_t)ch->src >= 0x40000000) && ((uint64_t)ch->src < 0x44000000))
+		else if(((io_addr_t)ch->src >= 0x40000000) && ((io_addr_t)ch->src < 0x44000000))
 			cfg = (cfg & ~(0x3f << 0)) | (F133_DMA_PORT_DRAM << 0);
-		if(((uint64_t)ch->dst >= 0x00020000) && ((uint64_t)ch->dst < 0x00059000))
+		if(((io_addr_t)ch->dst >= 0x00020000) && ((io_addr_t)ch->dst < 0x00059000))
 			cfg = (cfg & ~(0x3f << 16)) | (F133_DMA_PORT_SRAM << 16);
-		else if(((uint64_t)ch->dst >= 0x40000000) && ((uint64_t)ch->dst < 0x44000000))
+		else if(((io_addr_t)ch->dst >= 0x40000000) && ((io_addr_t)ch->dst < 0x44000000))
 			cfg = (cfg & ~(0x3f << 16)) | (F133_DMA_PORT_DRAM << 16);
 		break;
 	case DMA_TYPE_MEMTODEV:
-		if(((uint64_t)ch->src >= 0x00020000) && ((uint64_t)ch->src < 0x00059000))
+		if(((io_addr_t)ch->src >= 0x00020000) && ((io_addr_t)ch->src < 0x00059000))
 			cfg = (cfg & ~(0x3f << 0)) | (F133_DMA_PORT_SRAM << 0);
-		else if(((uint64_t)ch->src >= 0x40000000) && ((uint64_t)ch->src < 0x44000000))
+		else if(((io_addr_t)ch->src >= 0x40000000) && ((io_addr_t)ch->src < 0x44000000))
 			cfg = (cfg & ~(0x3f << 0)) | (F133_DMA_PORT_DRAM << 0);
 		break;
 	case DMA_TYPE_DEVTOMEM:
-		if(((uint64_t)ch->dst >= 0x00020000) && ((uint64_t)ch->dst < 0x00059000))
+		if(((io_addr_t)ch->dst >= 0x00020000) && ((io_addr_t)ch->dst < 0x00059000))
 			cfg = (cfg & ~(0x3f << 16)) | (F133_DMA_PORT_SRAM << 16);
-		else if(((uint64_t)ch->dst >= 0x40000000) && ((uint64_t)ch->dst < 0x44000000))
+		else if(((io_addr_t)ch->dst >= 0x40000000) && ((io_addr_t)ch->dst < 0x44000000))
 			cfg = (cfg & ~(0x3f << 16)) | (F133_DMA_PORT_DRAM << 16);
 		break;
 	case DMA_TYPE_DEVTODEV:
@@ -239,13 +239,19 @@ static void dma_f133_start(struct dmachip_t * chip, int offset)
 	desc = &pdat->desc[offset];
 	ch = &chip->channel[offset];
 	desc->config = get_f133_config(ch);
-	desc->src = (uint64_t)(ch->src);
-	desc->dst = (uint64_t)(ch->dst);
+	desc->src = (uint32_t)((io_addr_t)ch->src);
+	desc->dst = (uint32_t)((io_addr_t)ch->dst);
 	desc->count = (uint32_t)(ch->size);
 	desc->para = get_f133_para(ch);
 	desc->link = 0xfffff800;
 	smp_mb();
-	xos_io_write32(pdat->addr + DMA_CH_DST(offset), (uint64_t)desc);
+	xos_dma_sync(desc, sizeof(struct dma_f101_desc_t), DMA_SYNC_TO_DEVICE);
+	if(ch->src != ch->dst)
+	{
+		xos_dma_sync(ch->src, ch->size, DMA_SYNC_TO_DEVICE);
+		xos_dma_sync(ch->dst, ch->size, DMA_SYNC_FROM_DEVICE);
+	}
+	xos_io_write32(pdat->addr + DMA_CH_DST(offset), (uint32_t)((io_addr_t)desc));
 	smp_mb();
 	xos_io_write32(pdat->addr + DMA_CH_EN(offset), 1);
 	xos_io_write32(pdat->addr + DMA_CH_PAUSE(offset), 0);
@@ -391,7 +397,7 @@ static struct device_t * dma_f133_probe(struct driver_t * drv, struct dtnode_t *
 	xos_io_write32(pdat->addr + DMA_IRQ_EN1, 0x33333333);
 	xos_io_write32(pdat->addr + DMA_IRQ_PEND0, 0x77777777);
 	xos_io_write32(pdat->addr + DMA_IRQ_PEND1, 0x77777777);
-	xos_io_write32(pdat->addr + DMA_AUTO_GATE, 0);
+	xos_io_write32(pdat->addr + DMA_AUTO_GATE, 0x7);
 	for(i = 0; i < pdat->ndma; i++)
 	{
 		xos_io_write32(pdat->addr + DMA_CH_EN(i), 0x0);
