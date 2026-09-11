@@ -40,7 +40,8 @@ static void ce_plmt_timer_interrupt(void * data)
 {
 	struct clockevent_t * ce = (struct clockevent_t *)data;
 	struct ce_plmt_timer_pdata_t * pdat = (struct ce_plmt_timer_pdata_t *)ce->priv;
-	xos_io_write64(pdat->addr + PLMT_MTIMECMP(pdat->cpu), 0xffffffffffffffff);
+	xos_io_write32(pdat->addr + PLMT_MTIMECMP(pdat->cpu) + 0, 0xffffffff);
+	xos_io_write32(pdat->addr + PLMT_MTIMECMP(pdat->cpu) + 4, 0xffffffff);
 	csr_clear(mie, MIE_MTIE);
 	ce->handler(ce, ce->data);
 }
@@ -48,8 +49,15 @@ static void ce_plmt_timer_interrupt(void * data)
 static int ce_plmt_timer_next(struct clockevent_t * ce, uint64_t evt)
 {
 	struct ce_plmt_timer_pdata_t * pdat = (struct ce_plmt_timer_pdata_t *)ce->priv;
-	uint64_t last = xos_io_read64(pdat->addr + PLMT_MTIME) + evt;
-	xos_io_write64(pdat->addr + PLMT_MTIMECMP(pdat->cpu), last);
+	uint32_t hi1, hi2, lo;
+	do {
+		hi1 = xos_io_read32(pdat->addr + PLMT_MTIME + 4);
+		lo = xos_io_read32(pdat->addr + PLMT_MTIME);
+		hi2 = xos_io_read32(pdat->addr + PLMT_MTIME + 4);
+	} while(hi1 != hi2);
+	uint64_t last = (((uint64_t)hi1 << 32) | lo) + evt;
+	xos_io_write32(pdat->addr + PLMT_MTIMECMP(pdat->cpu) + 0, (last >> 0) & 0xffffffff);
+	xos_io_write32(pdat->addr + PLMT_MTIMECMP(pdat->cpu) + 4, (last >> 32) & 0xffffffff);
 	csr_set(mie, MIE_MTIE);
 	return 1;
 }
@@ -94,7 +102,8 @@ static struct device_t * ce_plmt_timer_probe(struct driver_t * drv, struct dtnod
 	ce->priv = pdat;
 
 	hook_core_interrupt(7, ce_plmt_timer_interrupt, ce);
-	xos_io_write64(pdat->addr + PLMT_MTIMECMP(pdat->cpu), 0xffffffffffffffffULL);
+	xos_io_write32(pdat->addr + PLMT_MTIMECMP(pdat->cpu) + 0, 0xffffffff);
+	xos_io_write32(pdat->addr + PLMT_MTIMECMP(pdat->cpu) + 4, 0xffffffff);
 	csr_clear(mie, MIE_MTIE);
 	csr_set(mstatus, MSTATUS_MIE);
 

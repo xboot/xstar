@@ -35,7 +35,14 @@ struct cs_plmt_timer_pdata_t {
 static uint64_t cs_plmt_timer_read(struct clocksource_t * cs)
 {
 	struct cs_plmt_timer_pdata_t * pdat = (struct cs_plmt_timer_pdata_t *)cs->priv;
-	return xos_io_read64(pdat->addr + PLMT_MTIME);
+	uint32_t hi1, hi2, lo;
+
+	do {
+		hi1 = xos_io_read32(pdat->addr + PLMT_MTIME + 4);
+		lo = xos_io_read32(pdat->addr + PLMT_MTIME);
+		hi2 = xos_io_read32(pdat->addr + PLMT_MTIME + 4);
+	} while(hi1 != hi2);
+	return ((uint64_t)hi1 << 32) | lo;
 }
 
 static struct device_t * cs_plmt_timer_probe(struct driver_t * drv, struct dtnode_t * n)
