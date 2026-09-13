@@ -6,7 +6,7 @@
 #
 # Compile Options
 #
-CONFIG_CROSS_COMPILE="riscv32-elf-"
+CONFIG_CROSS_COMPILE="riscv32-unknown-elf-"
 CONFIG_ARCH="riscv32"
 # CONFIG_ARCH_ARM32 is not set
 # CONFIG_ARCH_ARM64 is not set
@@ -243,7 +243,7 @@ CONFIG_DRV_INPUT_ROTARY_GPIO=y
 # Touchscreen Support
 #
 CONFIG_DRV_INPUT_TOUCHSCREEN_CST816D=y
-# CONFIG_DRV_INPUT_TOUCHSCREEN_GT911 is not set
+CONFIG_DRV_INPUT_TOUCHSCREEN_GT911=y
 # end of Touchscreen Support
 # end of Input Support
 

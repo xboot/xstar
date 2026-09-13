@@ -6,7 +6,7 @@
 #
 # Compile Options
 #
-CONFIG_CROSS_COMPILE="riscv32-elf-"
+CONFIG_CROSS_COMPILE="riscv32-unknown-elf-"
 CONFIG_ARCH="riscv32"
 # CONFIG_ARCH_ARM32 is not set
 # CONFIG_ARCH_ARM64 is not set
