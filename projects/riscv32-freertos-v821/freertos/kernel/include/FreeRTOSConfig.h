@@ -1,5 +1,5 @@
 /*
- * FreeRTOS Kernel V11.2.0
+ * FreeRTOS Kernel V11.3.1
  * Copyright (C) 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
@@ -36,7 +36,6 @@
 #define configCPU_CLOCK_HZ                         ((unsigned long)40000000)
 #define configMTIME_BASE_ADDRESS                   (0x48400000)
 #define configMTIMECMP_BASE_ADDRESS                (0x48400008)
-#define configENABLE_FPU                           (1)
 
 /******************************************************************************/
 /* Scheduling behaviour related definitions. **********************************/

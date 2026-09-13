@@ -123,7 +123,9 @@ definitions. */
 
         /* Update the 64-bit mtimer compare match value. */
         ld t2, 0(a1)                /* Load ullNextTime into t2. */
-        sd t2, 0(a0)                /* Store ullNextTime into compare register. */
+        srli t4, t2, 32             /* Obtain the high 32-bit word of ullNextTime. */
+        sw t4, 4(a0)                /* Store high word into compare register. */
+        sw t2, 0(a0)                /* Store low word into compare register. */
         ld t0, uxTimerIncrementsForOneTick  /* Load the value of ullTimerIncrementForOneTick into t0 (could this be optimized by storing in an array next to pullNextTime?). */
         add t4, t0, t2              /* Add ullNextTime to the timer increments for one tick. */
         sd t4, 0(a1)                /* Store ullNextTime. */

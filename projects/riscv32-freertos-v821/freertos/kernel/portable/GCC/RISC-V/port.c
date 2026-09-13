@@ -147,7 +147,8 @@ size_t xTaskReturnAddress = ( size_t ) portTASK_RETURN_ADDRESS;
         ullNextTime <<= 32ULL; /* High 4-byte word is 32-bits up. */
         ullNextTime |= ( uint64_t ) ulCurrentTimeLow;
         ullNextTime += ( uint64_t ) uxTimerIncrementsForOneTick;
-        *pullMachineTimerCompareRegister = ullNextTime;
+        *( ( volatile uint32_t * ) ( ( uintptr_t ) pullMachineTimerCompareRegister ) + 1UL ) = ( uint32_t ) ( ullNextTime >> 32UL );
+        *( ( volatile uint32_t * ) ( ( uintptr_t ) pullMachineTimerCompareRegister ) + 0UL ) = ( uint32_t ) ( ullNextTime >> 0UL );
 
         /* Prepare the time to use after the next tick interrupt. */
         ullNextTime += ( uint64_t ) uxTimerIncrementsForOneTick;

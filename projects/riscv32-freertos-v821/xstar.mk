@@ -10,6 +10,10 @@ ASFLAGS		+= -I $(PRJDIR)/freertos/kernel/include -I $(PRJDIR)/freertos/kernel/po
 CFLAGS		+= -I $(PRJDIR)/freertos/kernel/include -I $(PRJDIR)/freertos/kernel/portable/GCC/RISC-V -I $(PRJDIR)/freertos/kernel/portable/GCC/RISC-V/chip_specific_extensions/andes_a27l2
 CXXFLAGS	+= -I $(PRJDIR)/freertos/kernel/include -I $(PRJDIR)/freertos/kernel/portable/GCC/RISC-V -I $(PRJDIR)/freertos/kernel/portable/GCC/RISC-V/chip_specific_extensions/andes_a27l2
 
+ASFLAGS		+= -DconfigENABLE_FPU=1
+CFLAGS		+= -DconfigENABLE_FPU=1
+CXXFLAGS	+= -DconfigENABLE_FPU=1
+
 ASFLAGS		+= -ffunction-sections -fdata-sections
 CFLAGS		+= -ffunction-sections -fdata-sections
 CXXFLAGS	+= -ffunction-sections -fdata-sections
