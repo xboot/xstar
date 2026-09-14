@@ -1,0 +1,50 @@
+#ifndef __XSTARCFG_H__
+#define __XSTARCFG_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include <assert.h>
+#include <ctype.h>
+#include <stdarg.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <limits.h>
+#include <float.h>
+#include <setjmp.h>
+#include <exit.h>
+#include <errno.h>
+#include <environ.h>
+#include <locale.h>
+#include <time.h>
+#include <math.h>
+#include <libx/xdef.h>
+
+typedef unsigned long io_addr_t;
+
+struct thread_t {
+	volatile void * thread;
+};
+
+struct semaphore_t {
+	volatile void * sem;
+};
+
+struct spinlock_t {
+	struct xatomic_t lock;
+	unsigned long saved;
+};
+
+struct mutex_t {
+	struct spinlock_t lock;
+};
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* __XSTARCFG_H__ */

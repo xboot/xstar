@@ -1,0 +1,7 @@
+subdirs-y += startup
+subdirs-y += baremetal
+subdirs-y += command
+subdirs-y += driver
+
+obj-y += main.o
+obj-y += romdisk.o
