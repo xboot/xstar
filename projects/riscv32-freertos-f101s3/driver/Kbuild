@@ -12,6 +12,7 @@ obj-y += irq-f101-gpio.o
 obj-y += pwm-f101.o
 obj-y += reset-f101.o
 obj-y += rtc-f101.o
+obj-y += sdhci-f101.o
 obj-y += spi-f101.o
 obj-y += thermometer-f101.o
 obj-y += uart-16550.o

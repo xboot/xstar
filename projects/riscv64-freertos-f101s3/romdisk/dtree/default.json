@@ -182,13 +182,14 @@
 			{ "name": "pll-periph-2x", "value": 2 },
 			{ "name": "pll-audio1-div2", "value": 3 }
 		],
-		"name": "mux-smhc0", "shift": 24, "width": 3
+		"name": "mux-smhc0", "shift": 24, "width": 3,
+		"default": { "parent": "pll-periph-1x" }
 	},
 	"clk-gate@0x02001830": { "parent": "mux-smhc0", "name": "gate-smhc0", "shift": 31, "invert": false },
-	"clk-divider@0x02001830": { "parent": "gate-smhc0", "name": "div-smhc0", "shift": 0, "width": 4, "divider-one-based": true },
+	"clk-divider@0x02001830": { "parent": "gate-smhc0", "name": "div-smhc0", "shift": 0, "width": 4, "divider-one-based": true, "default": { "rate": 100000000 } },
 	"clk-ratio@0x02001830": { "parent": "div-smhc0", "name": "ratio-smhc0", "shift": 8, "width": 2 },
 	"clk-link": { "parent": "ratio-smhc0", "name": "smhc0" },
-	"clk-gate@0x0200184c": { "parent": "psi", "name": "bus-smhc0", "shift": 0, "invert": false },
+	"clk-gate@0x0200184c": { "parent": "psi", "name": "bus-smhc0", "shift": 0, "invert": false, "default": { "enable": true } },
 
 	"clk-mux@0x02001838": {
 		"parent": [
@@ -728,6 +729,34 @@
 		"status": "okay"
 	},
 
+	"sdhci-f101@0x04020000": {
+		"clock-name": "smhc0",
+		"reset": 432,
+		"max-clock-frequency": 50000000,
+		"clk-gpio": 162,
+		"clk-gpio-config": 2,
+		"cmd-gpio": 163,
+		"cmd-gpio-config": 2,
+		"dat0-gpio": 161,
+		"dat0-gpio-config": 2,
+		"dat1-gpio": 160,
+		"dat1-gpio-config": 2,
+		"dat2-gpio": 165,
+		"dat2-gpio-config": 2,
+		"dat3-gpio": 164,
+		"dat3-gpio-config": 2,
+		"dat4-gpio": -1,
+		"dat4-gpio-config": -1,
+		"dat5-gpio": -1,
+		"dat5-gpio-config": -1,
+		"dat6-gpio": -1,
+		"dat6-gpio-config": -1,
+		"dat7-gpio": -1,
+		"dat7-gpio-config": -1,
+		"cd-gpio": -1,
+		"cd-gpio-config": -1
+	},
+
 	"rtc-f101@0x03090000": {
 		"clock-name": "losc"
 	},
@@ -737,10 +766,11 @@
 	},
 
 	"led-gpio:0": {
-		"gpio": 162,
+		"gpio": 138,
 		"gpio-config": 1,
 		"active-low": false,
-		"default-brightness": 0
+		"default-brightness": 0,
+		"status": "okay"
 	},
 
 	"ledtrigger-heartbeat": {
@@ -762,7 +792,8 @@
 		"height": 240,
 		"physical-width": 32,
 		"physical-height": 32,
-		"backlight": null
+		"backlight": null,
+		"status": "disabled"
 	},
 
 	"console-uart": {
