@@ -109,7 +109,7 @@ static struct device_t * wdg_f101_probe(struct driver_t * drv, struct dtnode_t *
 	clk_enable(pdat->clk);
 	xos_io_write32(pdat->addr + WDG_IRQ_EN, 0x0);
 	xos_io_write32(pdat->addr + WDG_IRQ_STA, 0x1);
-	xos_io_write32(pdat->addr + WDG_CFG, (0x16aa << 16) | (0x1 << 0));
+	xos_io_write32(pdat->addr + WDG_CFG, (0x16aa << 16) | (0x1 << 8) | (0x1 << 0));
 	xos_io_write32(pdat->addr + WDG_MODE, (0x16aa << 16) | (0 << 0));
 	xos_io_write32(pdat->addr + WDG_CTRL, (0xa57 << 1) | (1 << 0));
 
