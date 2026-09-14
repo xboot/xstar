@@ -77,7 +77,7 @@ static ssize_t clk_read_rate(struct kobj_t * kobj, void * buf, size_t size)
 {
 	struct clk_t * clk = (struct clk_t *)kobj->priv;
 	uint64_t rate = clk_get_rate(clk->name);
-	return xos_sprintf(buf, "%ld.%06ldMHZ", rate / (uint64_t)(1000 * 1000), rate % (uint64_t)(1000 * 1000));
+	return xos_sprintf(buf, "%Ld.%06LdMHZ", rate / (uint64_t)(1000 * 1000), rate % (uint64_t)(1000 * 1000));
 }
 
 static ssize_t clk_write_rate(struct kobj_t * kobj, void * buf, size_t size)
