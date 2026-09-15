@@ -33,7 +33,7 @@ int partition_detect(struct block_t * pblk)
 	{
 		if(partition_detect_gpt(pblk))
 			return 1;
-		if(partition_detect_mbr(pblk))
+		else if(partition_detect_mbr(pblk))
 			return 1;
 	}
 	return 0;
