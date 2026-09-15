@@ -54,13 +54,8 @@ static int is_extended(uint8_t type)
 int partition_detect_mbr(struct block_t * pblk)
 {
 	struct mbr_header_t mbr;
-	struct device_t * dev;
-	struct block_t * blk;
-	uint64_t offset, length;
-	uint32_t lba, cnt;
-	char nbuf[64];
 	char sbuf[64];
-	int i;
+	char nbuf[64];
 
 	if(!pblk || !pblk->name || (block_capacity(pblk) <= 0))
 		return 0;
@@ -76,19 +71,19 @@ int partition_detect_mbr(struct block_t * pblk)
 
 	LOG("Found mbr partition:\r\n");
 	LOG("  0x%016Lx ~ 0x%016Lx %s %*s- %s\r\n", 0ULL, block_capacity(pblk) - 1, xos_ssize(sbuf, block_capacity(pblk)), 9 - xos_strlen(sbuf), "", pblk->name);
-	for(i = 0; i < 4; i++)
+	for(int i = 0; i < 4; i++)
 	{
 		if((mbr.entry[i].type != 0) && (!is_extended(mbr.entry[i].type)))
 		{
 			xos_snprintf(nbuf, sizeof(nbuf), "p%d", i);
-			lba = ((uint32_t)mbr.entry[i].start[3] << 24) | ((uint32_t)mbr.entry[i].start[2] << 16) | ((uint32_t)mbr.entry[i].start[1] << 8) | ((uint32_t)mbr.entry[i].start[0] << 0);
-			cnt = ((uint32_t)mbr.entry[i].length[3] << 24) | ((uint32_t)mbr.entry[i].length[2] << 16) | ((uint32_t)mbr.entry[i].length[1] << 8) | ((uint32_t)mbr.entry[i].length[0] << 0);
-			offset = (uint64_t)lba * 512;
-			length = (uint64_t)cnt * 512;
-			dev = register_sub_block(pblk, offset, length, nbuf);
+			uint32_t lba = ((uint32_t)mbr.entry[i].start[3] << 24) | ((uint32_t)mbr.entry[i].start[2] << 16) | ((uint32_t)mbr.entry[i].start[1] << 8) | ((uint32_t)mbr.entry[i].start[0] << 0);
+			uint32_t cnt = ((uint32_t)mbr.entry[i].length[3] << 24) | ((uint32_t)mbr.entry[i].length[2] << 16) | ((uint32_t)mbr.entry[i].length[1] << 8) | ((uint32_t)mbr.entry[i].length[0] << 0);
+			uint64_t offset = (uint64_t)lba * 512;
+			uint64_t length = (uint64_t)cnt * 512;
+			struct device_t * dev = register_sub_block(pblk, offset, length, nbuf);
 			if(dev)
 			{
-				blk = (struct block_t *)dev->priv;
+				struct block_t * blk = (struct block_t *)dev->priv;
 				LOG("  0x%016Lx ~ 0x%016Lx %s %*s- %s\r\n", offset, offset + length - 1, xos_ssize(sbuf, length), 9 - xos_strlen(sbuf), "", blk->name);
 			}
 		}
