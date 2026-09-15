@@ -63,6 +63,7 @@ struct blk_spinand_pdata_t {
 	struct spi_device_t * dev;
 	struct spinand_info_t info;
 	uint8_t * buf;
+	uint8_t * txbuf;
 };
 
 static const struct spinand_info_t spinand_infos[] = {
@@ -367,54 +368,126 @@ static uint64_t blk_spinand_read(struct block_t * blk, uint8_t * buf, uint64_t o
 	return len;
 }
 
-//TODO fixme for erase...
+static int spinand_buf_is_ff(uint8_t * buf, uint32_t len)
+{
+	uint32_t i;
+
+	for(i = 0; i < len; i++)
+	{
+		if(buf[i] != 0xff)
+			return FALSE;
+	}
+	return TRUE;
+}
+
+static int spinand_erase_block(struct spi_device_t * dev, struct spinand_info_t * info, uint64_t addr)
+{
+	uint8_t tx[4];
+	uint32_t pa = addr / info->page_size;
+	int r;
+
+	tx[0] = OPCODE_WRITE_ENABLE;
+	spi_device_select(dev);
+	r = spi_device_write_then_read(dev, tx, 1, 0, 0);
+	spi_device_deselect(dev);
+	if(r < 0)
+		return FALSE;
+	spinand_wait_for_busy(dev);
+	tx[0] = OPCODE_BLOCK_ERASE;
+	tx[1] = (uint8_t)(pa >> 16);
+	tx[2] = (uint8_t)(pa >> 8);
+	tx[3] = (uint8_t)(pa >> 0);
+	spi_device_select(dev);
+	r = spi_device_write_then_read(dev, tx, 4, 0, 0);
+	spi_device_deselect(dev);
+	if(r < 0)
+		return FALSE;
+	spinand_wait_for_busy(dev);
+	return TRUE;
+}
+
+static int spinand_program_page(struct blk_spinand_pdata_t * pdat, uint64_t addr, uint8_t * page)
+{
+	uint8_t tx[4];
+	uint32_t pa = addr / pdat->info.page_size;
+	int r;
+
+	if(spinand_buf_is_ff(page, pdat->info.page_size))
+		return TRUE;
+	pdat->txbuf[0] = OPCODE_PROGRAM_LOAD;
+	pdat->txbuf[1] = 0x0;
+	pdat->txbuf[2] = 0x0;
+	xos_memcpy(&pdat->txbuf[3], page, pdat->info.page_size);
+	tx[0] = OPCODE_WRITE_ENABLE;
+	spi_device_select(pdat->dev);
+	r = spi_device_write_then_read(pdat->dev, tx, 1, 0, 0);
+	spi_device_deselect(pdat->dev);
+	if(r < 0)
+		return FALSE;
+	spinand_wait_for_busy(pdat->dev);
+	spi_device_select(pdat->dev);
+	r = spi_device_write_then_read(pdat->dev, pdat->txbuf, 3 + pdat->info.page_size, 0, 0);
+	spi_device_deselect(pdat->dev);
+	if(r < 0)
+		return FALSE;
+	spinand_wait_for_busy(pdat->dev);
+	tx[0] = OPCODE_PROGRAM_EXEC;
+	tx[1] = (uint8_t)(pa >> 16);
+	tx[2] = (uint8_t)(pa >> 8);
+	tx[3] = (uint8_t)(pa >> 0);
+	spi_device_select(pdat->dev);
+	r = spi_device_write_then_read(pdat->dev, tx, 4, 0, 0);
+	spi_device_deselect(pdat->dev);
+	if(r < 0)
+		return FALSE;
+	spinand_wait_for_busy(pdat->dev);
+	return TRUE;
+}
+
 static uint64_t blk_spinand_write(struct block_t * blk, uint8_t * buf, uint64_t offset, uint64_t count)
 {
 	struct blk_spinand_pdata_t * pdat = (struct blk_spinand_pdata_t *)blk->priv;
-	uint32_t addr = offset;
-	uint32_t cnt = count;
-	uint32_t len = 0;
-	uint32_t pa, ca;
-	uint32_t n;
-	uint8_t tx[4099];
-	int r;
+	uint32_t bsize = pdat->info.page_size * pdat->info.pages_per_block;
+	uint64_t bmask = (uint64_t)bsize - 1;
+	uint64_t base = offset & ~bmask;
+	uint64_t end = offset + count;
+	uint64_t boff, len = 0;
+	uint32_t bcnt, i;
 
-	while(cnt > 0)
+	while(base < end)
 	{
-		pa = addr / pdat->info.page_size;
-		ca = addr & (pdat->info.page_size - 1);
-		n = cnt > (pdat->info.page_size - ca) ? (pdat->info.page_size - ca) : cnt;
-		tx[0] = OPCODE_WRITE_ENABLE;
-		spi_device_select(pdat->dev);
-		r = spi_device_write_then_read(pdat->dev, tx, 1, 0, 0);
-		spi_device_deselect(pdat->dev);
-		if(r < 0)
+		boff = offset > base ? offset - base : 0;
+		bcnt = (uint32_t)((end - base) > bsize ? bsize : (end - base));
+		bcnt -= boff;
+		if((boff > 0) || (bcnt < bsize))
+		{
+			if(blk_spinand_read(blk, pdat->buf, base, bsize) != bsize)
+				break;
+			xos_memcpy(&pdat->buf[boff], buf, bcnt);
+		}
+		else
+		{
+			xos_memcpy(pdat->buf, buf, bsize);
+		}
+		if(spinand_buf_is_ff(pdat->buf, bsize))
+		{
+			base += bsize;
+			buf += bcnt;
+			len += bcnt;
+			continue;
+		}
+		if(!spinand_erase_block(pdat->dev, &pdat->info, base))
 			break;
-		spinand_wait_for_busy(pdat->dev);
-		tx[0] = OPCODE_PROGRAM_LOAD;
-		tx[1] = (uint8_t)(ca >> 8);
-		tx[2] = (uint8_t)(ca >> 0);
-		xos_memcpy(&tx[3], buf, n);
-		spi_device_select(pdat->dev);
-		r = spi_device_write_then_read(pdat->dev, tx, 3 + n, 0, 0);
-		spi_device_deselect(pdat->dev);
-		if(r < 0)
+		for(i = 0; i < pdat->info.pages_per_block; i++)
+		{
+			if(!spinand_program_page(pdat, base + (uint64_t)i * pdat->info.page_size, &pdat->buf[i * pdat->info.page_size]))
+				break;
+		}
+		if(i < pdat->info.pages_per_block)
 			break;
-		spinand_wait_for_busy(pdat->dev);
-		tx[0] = OPCODE_PROGRAM_EXEC;
-		tx[1] = (uint8_t)(pa >> 16);
-		tx[2] = (uint8_t)(pa >> 8);
-		tx[3] = (uint8_t)(pa >> 0);
-		spi_device_select(pdat->dev);
-		r = spi_device_write_then_read(pdat->dev, tx, 4, 0, 0);
-		spi_device_deselect(pdat->dev);
-		if(r < 0)
-			break;
-		spinand_wait_for_busy(pdat->dev);
-		addr += n;
-		buf += n;
-		len += n;
-		cnt -= n;
+		base += bsize;
+		buf += bcnt;
+		len += bcnt;
 	}
 	return len;
 }
@@ -462,6 +535,16 @@ static struct device_t * blk_spinand_probe(struct driver_t * drv, struct dtnode_
 
 	pdat->dev = spidev;
 	pdat->buf = xos_mem_malloc(info.page_size * info.pages_per_block);
+	pdat->txbuf = xos_mem_malloc(info.page_size + 3);
+	if(!pdat->buf || !pdat->txbuf)
+	{
+		xos_mem_free(pdat->buf);
+		xos_mem_free(pdat->txbuf);
+		xos_mem_free(blk);
+		xos_mem_free(pdat);
+		spi_device_free(spidev);
+		return NULL;
+	}
 	xos_memcpy(&pdat->info, &info, sizeof(struct spinand_info_t));
 
 	blk->name = alloc_device_name(dt_read_name(n), dt_read_id(n));
@@ -475,6 +558,7 @@ static struct device_t * blk_spinand_probe(struct driver_t * drv, struct dtnode_
 	if(!(dev = register_block(blk, drv)))
 	{
 		xos_mem_free(pdat->buf);
+		xos_mem_free(pdat->txbuf);
 		spi_device_free(pdat->dev);
 		free_device_name(blk->name);
 		xos_mem_free(blk->priv);
@@ -524,6 +608,7 @@ static void blk_spinand_remove(struct device_t * dev)
 		unregister_sub_block(blk);
 		unregister_block(blk);
 		xos_mem_free(pdat->buf);
+		xos_mem_free(pdat->txbuf);
 		spi_device_free(pdat->dev);
 		free_device_name(blk->name);
 		xos_mem_free(blk->priv);
