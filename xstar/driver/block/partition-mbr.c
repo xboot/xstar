@@ -57,6 +57,7 @@ int partition_detect_mbr(struct block_t * pblk)
 	struct device_t * dev;
 	struct block_t * blk;
 	uint64_t offset, length;
+	uint32_t lba, cnt;
 	char nbuf[64];
 	char sbuf[64];
 	int i;
@@ -80,8 +81,10 @@ int partition_detect_mbr(struct block_t * pblk)
 		if((mbr.entry[i].type != 0) && (!is_extended(mbr.entry[i].type)))
 		{
 			xos_snprintf(nbuf, sizeof(nbuf), "p%d", i);
-			offset = 512 * ((mbr.entry[i].start[3] << 24) | (mbr.entry[i].start[2] << 16) | (mbr.entry[i].start[1] << 8) | (mbr.entry[i].start[0] << 0));
-			length = 512 * ((mbr.entry[i].length[3] << 24) | (mbr.entry[i].length[2] << 16) | (mbr.entry[i].length[1] << 8) | (mbr.entry[i].length[0] << 0));
+			lba = ((uint32_t)mbr.entry[i].start[3] << 24) | ((uint32_t)mbr.entry[i].start[2] << 16) | ((uint32_t)mbr.entry[i].start[1] << 8) | ((uint32_t)mbr.entry[i].start[0] << 0);
+			cnt = ((uint32_t)mbr.entry[i].length[3] << 24) | ((uint32_t)mbr.entry[i].length[2] << 16) | ((uint32_t)mbr.entry[i].length[1] << 8) | ((uint32_t)mbr.entry[i].length[0] << 0);
+			offset = (uint64_t)lba * 512;
+			length = (uint64_t)cnt * 512;
 			dev = register_sub_block(pblk, offset, length, nbuf);
 			if(dev)
 			{
