@@ -110,7 +110,7 @@ int partition_detect_mbr(struct block_t * pblk)
 			}
 			else if((lba > 0) && (cnt > 0))
 			{
-				xos_snprintf(nbuf, sizeof(nbuf), "p%d", i);
+				xos_snprintf(nbuf, sizeof(nbuf), "p%d", i + 1);
 				register_mbr_partition(pblk, (uint64_t)lba * 512, (uint64_t)cnt * 512, nbuf, sbuf);
 			}
 		}
