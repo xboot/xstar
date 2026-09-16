@@ -32,8 +32,8 @@ static void usage(void)
 {
 	shell_printf("usage:\r\n");
 	shell_printf("    dmesg [option]\r\n");
-	shell_printf("    -c    clear the log buffer after printing (with -w, clear after first dump)\r\n");
-	shell_printf("    -w    wait for new messages and print them, ctrl-c to exit\r\n");
+	shell_printf("    -c    clear the log buffer after printing\r\n");
+	shell_printf("    -w    wait for new messages and print them\r\n");
 }
 
 static int dmesg_write(const char * buf, int len, void * data)

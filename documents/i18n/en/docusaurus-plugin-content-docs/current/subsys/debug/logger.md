@@ -30,7 +30,8 @@ Logs are viewed via the shell `dmesg` command:
 ```
 dmesg        # Print all logs retained in the buffer (non-destructive, can be run repeatedly)
 dmesg -c     # Print and then clear the buffer
-dmesg -w     # Replay existing logs, then keep printing new messages, exit with Ctrl-C
+dmesg -w     # Replay existing logs, then keep printing new messages
+dmesg -w -c  # Replay existing logs, clear the buffer, then keep printing new messages
 ```
 
 ## API
