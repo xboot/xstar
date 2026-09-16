@@ -145,6 +145,11 @@ config CMD_STANDBY
 	bool
 	default y
 
+config CMD_START
+	prompt "Enable start command"
+	bool
+	default y
+
 config CMD_SYNC
 	prompt "Enable sync command"
 	bool

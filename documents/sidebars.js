@@ -35,6 +35,7 @@ const sidebars = {
     'command/setting',
     'command/shutdown',
     'command/standby',
+    'command/start',
     'command/sync',
     'command/test',
     'command/tscal',

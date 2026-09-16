@@ -29,6 +29,7 @@ obj-$(CONFIG_CMD_RM) += cmd-rm.o
 obj-$(CONFIG_CMD_SETTING) += cmd-setting.o
 obj-$(CONFIG_CMD_SHUTDOWN) += cmd-shutdown.o
 obj-$(CONFIG_CMD_STANDBY) += cmd-standby.o
+obj-$(CONFIG_CMD_START) += cmd-start.o
 obj-$(CONFIG_CMD_SYNC) += cmd-sync.o
 obj-$(CONFIG_CMD_TEST) += cmd-test.o
 obj-$(CONFIG_CMD_TSCAL) += cmd-tscal.o
