@@ -22,6 +22,7 @@
  * SOFTWARE.
  */
 
+#include <xstar.h>
 #include <kernel/shell/context.h>
 #include <kernel/time/delay.h>
 #include <kernel/command/command.h>
@@ -44,8 +45,10 @@ static int do_delay(int argc, char ** argv)
 	}
 	const char * p0 = sarg_at(&sarg, 0);
 	uint32_t ms = p0 ? xos_strtoul(p0, NULL, 0) : 1000;
-	mdelay(ms);
-
+	if(xstar_feature_thread())
+		xos_thread_msleep(ms);
+	else
+		mdelay(ms);
 	return 0;
 }
 

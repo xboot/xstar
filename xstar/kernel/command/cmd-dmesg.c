@@ -22,6 +22,7 @@
  * SOFTWARE.
  */
 
+#include <xstar.h>
 #include <kernel/core/logger.h>
 #include <kernel/shell/context.h>
 #include <kernel/shell/ctrlc.h>
@@ -60,7 +61,10 @@ static int do_dmesg(int argc, char ** argv)
 			logger_dump(&pos, dmesg_write, NULL);
 			if(shell_ctrlc())
 				break;
-			xos_thread_msleep(50);
+			if(xstar_feature_thread())
+				xos_thread_msleep(50);
+			else
+				mdelay(50);
 		}
 	}
 	else
