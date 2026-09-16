@@ -76,7 +76,7 @@ int logger_dump(int * pos, int (*cb)(const char * buf, int len, void * data), vo
 		int start, end;
 		xos_spinlock_lock(&__logger_ctx.lock);
 		end = __logger_ctx.head;
-		if(!pos)
+		if(!pos || (*pos < 0))
 			start = __logger_ctx.tail;
 		else
 		{

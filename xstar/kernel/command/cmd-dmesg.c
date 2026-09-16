@@ -32,7 +32,7 @@ static void usage(void)
 {
 	shell_printf("usage:\r\n");
 	shell_printf("    dmesg [option]\r\n");
-	shell_printf("    -c    clear the log buffer after printing\r\n");
+	shell_printf("    -c    clear the log buffer after printing (with -w, clear after first dump)\r\n");
 	shell_printf("    -w    wait for new messages and print them, ctrl-c to exit\r\n");
 }
 
@@ -55,7 +55,12 @@ static int do_dmesg(int argc, char ** argv)
 	}
 	if(sarg_has(&sarg, "-w"))
 	{
-		int pos = 0;
+		if(sarg_has(&sarg, "-c"))
+		{
+			logger_dump(NULL, dmesg_write, NULL);
+			logger_clear();
+		}
+		int pos = -1;
 		while(1)
 		{
 			logger_dump(&pos, dmesg_write, NULL);
