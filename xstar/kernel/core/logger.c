@@ -48,7 +48,7 @@ static int logger_push(struct logger_ctx_t * ctx, const char * buf, int len)
 
 int logger(const char * fmt, ...)
 {
-	char buf[1024];
+	char buf[512];
 	uint64_t us = ktime_to_us(ktime_get());
 	int n = xos_snprintf(buf, sizeof(buf), "[%5u.%06u]", (unsigned long)(us / 1000000), (unsigned long)(us % 1000000));
 	if(n < 0)
@@ -71,7 +71,7 @@ int logger_dump(int * pos, int (*cb)(const char * buf, int len, void * data), vo
 {
 	if(cb)
 	{
-		char buf[1024];
+		char buf[512];
 		int total = 0;
 		int start, end;
 		xos_spinlock_lock(&__logger_ctx.lock);
