@@ -66,7 +66,6 @@ main() → xstar_init()
   ├── do_init_dtree(dtree)          解析设备树 JSON，探测所有设备
   ├── do_init_wallclock()           从 RTC 设备校准墙钟时间
   ├── do_init_memory()              注册内存信息 KOBJ
-  ├── do_init_logger()              注册日志控制 KOBJ
   ├── do_init_version()             注册版本信息 KOBJ
   ├── do_init_copyright()           注册版权验证 KOBJ
   ├── do_init_random()              初始化随机数生成器

@@ -10,6 +10,7 @@ obj-$(CONFIG_CMD_CRON) += cmd-cron.o
 obj-$(CONFIG_CMD_DATE) += cmd-date.o
 obj-$(CONFIG_CMD_DCP) += cmd-dcp.o
 obj-$(CONFIG_CMD_DELAY) += cmd-delay.o
+obj-$(CONFIG_CMD_DMESG) += cmd-dmesg.o
 obj-$(CONFIG_CMD_ECHO) += cmd-echo.o
 obj-$(CONFIG_CMD_EVENT) += cmd-event.o
 obj-$(CONFIG_CMD_EARTH) += cmd-earth.o

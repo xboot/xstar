@@ -66,7 +66,6 @@ main() -> xstar_init()
   ├── do_init_dtree(dtree)          Parse device tree JSON, probe all devices
   ├── do_init_wallclock()           Calibrate wall clock from RTC device
   ├── do_init_memory()              Register memory info KOBJ
-  ├── do_init_logger()              Register logger control KOBJ
   ├── do_init_version()             Register version info KOBJ
   ├── do_init_copyright()           Register copyright verification KOBJ
   ├── do_init_random()              Initialize random number generator

@@ -107,34 +107,6 @@ static void do_init_memory(void)
 }
 
 /*
- * logger
- */
-static struct kobj_t * search_class_logger_kobj(void)
-{
-	struct kobj_t * kclass = kobj_search_directory_with_create(kobj_get_root(), "class");
-	return kobj_search_directory_with_create(kclass, "logger");
-}
-
-static ssize_t logger_read_status(struct kobj_t * kobj, void * buf, size_t size)
-{
-	return xos_sprintf(buf, "%d", logger_status());
-}
-
-static ssize_t logger_write_status(struct kobj_t * kobj, void * buf, size_t size)
-{
-	if(xos_strtol(buf, NULL, 0) != 0)
-		logger_enable();
-	else
-		logger_disable();
-	return size;
-}
-
-static void do_init_logger(void)
-{
-	kobj_add_regular(search_class_logger_kobj(), "status", logger_read_status, logger_write_status, NULL);
-}
-
-/*
  * version
  */
 int xstar_version(void)
@@ -739,9 +711,6 @@ void xstar_init(struct xos_environ_t * env, const char * dtree)
 
 	/* Do initial memory */
 	do_init_memory();
-
-	/* Do initial logger */
-	do_init_logger();
 
 	/* Do initial version */
 	do_init_version();

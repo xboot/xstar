@@ -13,10 +13,9 @@ extern "C" {
 #define LOG(fmt, arg...)	do { } while(0)
 #endif
 
-void logger_enable(void);
-void logger_disable(void);
-int logger_status(void);
 int logger(const char * fmt, ...);
+int logger_dump(int * pos, int (*cb)(const char * buf, int len, void * data), void * data);
+void logger_clear(void);
 
 #ifdef __cplusplus
 }

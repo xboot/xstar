@@ -29,9 +29,7 @@ static struct logger_ctx_t {
 	char buffer[CONFIG_XSTAR_LOGGER_SIZE];
 	int head;
 	int tail;
-	int enable;
 	struct spinlock_t lock;
-	struct xatomic_t atomic;
 } __logger_ctx = { 0 };
 
 static int logger_push(struct logger_ctx_t * ctx, const char * buf, int len)
@@ -48,96 +46,79 @@ static int logger_push(struct logger_ctx_t * ctx, const char * buf, int len)
 	return len;
 }
 
-static void logger_pop(struct logger_ctx_t * ctx)
-{
-	if(xatomic_cas(&ctx->atomic, 0, 1))
-	{
-		char buf[512];
-		while(ctx->tail != ctx->head)
-		{
-			int len = 0;
-			int start;
-			int w = 0;
-			xos_spinlock_lock(&ctx->lock);
-			{
-				start = ctx->tail;
-				for(int tail = ctx->tail; (len < (int)sizeof(buf)) && (tail != ctx->head); tail = (tail + 1) % (int)sizeof(ctx->buffer))
-					buf[len++] = ctx->buffer[tail];
-			}
-			xos_spinlock_unlock(&ctx->lock);
-			if(!len)
-				break;
-			while(w < len)
-			{
-				ssize_t r = xos_stdio_write(&buf[w], len - w);
-				if(r <= 0)
-					break;
-				w += r;
-			}
-			xos_spinlock_lock(&ctx->lock);
-			{
-				if((int)((ctx->tail + sizeof(ctx->buffer) - start) % sizeof(ctx->buffer)) < w)
-					ctx->tail = (start + w) % (int)sizeof(ctx->buffer);
-			}
-			xos_spinlock_unlock(&ctx->lock);
-			if(w < len)
-				break;
-		}
-		xatomic_store_release(&ctx->atomic, 0);
-	}
-}
-
-void logger_enable(void)
-{
-	xos_spinlock_lock(&__logger_ctx.lock);
-	__logger_ctx.enable = 1;
-	xos_spinlock_unlock(&__logger_ctx.lock);
-}
-
-void logger_disable(void)
-{
-	xos_spinlock_lock(&__logger_ctx.lock);
-	__logger_ctx.enable = 0;
-	xos_spinlock_unlock(&__logger_ctx.lock);
-}
-
-int logger_status(void)
-{
-	return __logger_ctx.enable ? 1 : 0;
-}
-
 int logger(const char * fmt, ...)
 {
-	if(__logger_ctx.enable)
+	char buf[1024];
+	uint64_t us = ktime_to_us(ktime_get());
+	int n = xos_snprintf(buf, sizeof(buf), "[%5u.%06u]", (unsigned long)(us / 1000000), (unsigned long)(us % 1000000));
+	if(n < 0)
+		n = 0;
+	else if(n >= (int)sizeof(buf))
+		n = sizeof(buf) - 1;
+	va_list ap;
+	va_start(ap, fmt);
+	int m = xos_vsnprintf(buf + n, sizeof(buf) - n, fmt, ap);
+	va_end(ap);
+	if(m < 0)
+		m = 0;
+	else if(m >= (int)(sizeof(buf) - n))
+		m = sizeof(buf) - n - 1;
+	logger_push(&__logger_ctx, buf, n + m);
+	return n + m;
+}
+
+int logger_dump(int * pos, int (*cb)(const char * buf, int len, void * data), void * data)
+{
+	if(cb)
 	{
-		char buf[512];
-		uint64_t us = ktime_to_us(ktime_get());
-		int n = xos_snprintf(buf, sizeof(buf), "[%5u.%06u]", (unsigned long)(us / 1000000), (unsigned long)(us % 1000000));
-		if(n < 0)
-			n = 0;
-		else if(n >= (int)sizeof(buf))
-			n = sizeof(buf) - 1;
-		va_list ap;
-		va_start(ap, fmt);
-		int m = xos_vsnprintf(buf + n, sizeof(buf) - n, fmt, ap);
-		va_end(ap);
-		if(m < 0)
-			m = 0;
-		else if(m >= (int)(sizeof(buf) - n))
-			m = sizeof(buf) - n - 1;
-		logger_push(&__logger_ctx, buf, n + m);
-		logger_pop(&__logger_ctx);
-		return n + m;
+		char buf[1024];
+		int total = 0;
+		int start, end;
+		xos_spinlock_lock(&__logger_ctx.lock);
+		end = __logger_ctx.head;
+		if(!pos)
+			start = __logger_ctx.tail;
+		else
+		{
+			start = *pos;
+			if(((end + (int)sizeof(__logger_ctx.buffer) - start) % (int)sizeof(__logger_ctx.buffer)) > ((end + (int)sizeof(__logger_ctx.buffer) - __logger_ctx.tail) % (int)sizeof(__logger_ctx.buffer)))
+				start = __logger_ctx.tail;
+		}
+		xos_spinlock_unlock(&__logger_ctx.lock);
+		while(start != end)
+		{
+			int len = 0;
+			xos_spinlock_lock(&__logger_ctx.lock);
+			for(; (len < (int)sizeof(buf)) && (start != end); start = (start + 1) % (int)sizeof(__logger_ctx.buffer))
+				buf[len++] = __logger_ctx.buffer[start];
+			xos_spinlock_unlock(&__logger_ctx.lock);
+			if(len > 0)
+			{
+				int w = cb(buf, len, data);
+				if(w < 0)
+					break;
+				total += (w < len) ? w : len;
+			}
+		}
+		if(pos)
+			*pos = end;
+		return total;
 	}
 	return 0;
+}
+
+void logger_clear(void)
+{
+	xos_spinlock_lock(&__logger_ctx.lock);
+	__logger_ctx.head = 0;
+	__logger_ctx.tail = 0;
+	xos_spinlock_unlock(&__logger_ctx.lock);
 }
 
 static void logger_pure_init(void)
 {
 	__logger_ctx.head = 0;
 	__logger_ctx.tail = 0;
-	__logger_ctx.enable = 1;
 	xos_spinlock_init(&__logger_ctx.lock);
-	xatomic_store(&__logger_ctx.atomic, 0);
 }
 pure_initcall(logger_pure_init);

@@ -50,6 +50,11 @@ config CMD_DELAY
 	bool
 	default y
 
+config CMD_DMESG
+	prompt "Enable dmesg command"
+	bool
+	default y
+
 config CMD_ECHO
 	prompt "Enable echo command"
 	bool
