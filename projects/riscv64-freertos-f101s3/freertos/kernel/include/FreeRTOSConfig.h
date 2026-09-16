@@ -47,8 +47,8 @@
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION    0
 #define configUSE_TICKLESS_IDLE                    0
 #define configMAX_PRIORITIES                       5U
-#define configMINIMAL_STACK_SIZE                   128U
-#define configMAX_TASK_NAME_LEN                    4U
+#define configMINIMAL_STACK_SIZE                   1024U
+#define configMAX_TASK_NAME_LEN                    16U
 #define configTICK_TYPE_WIDTH_IN_BITS              TICK_TYPE_WIDTH_64_BITS
 #define configIDLE_SHOULD_YIELD                    1
 #define configTASK_NOTIFICATION_ARRAY_ENTRIES      1U
