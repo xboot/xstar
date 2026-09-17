@@ -5,7 +5,7 @@ source "packages/libm-0.0.0/Kconfig"
 
 source "packages/libcjson-0.0.0/Kconfig"
 source "packages/libxnes-1.0.0/Kconfig"
-source "packages/lvgl-9.4.0/Kconfig"
+source "packages/lvgl-9.6.0/Kconfig"
 source "packages/plmpeg-0.0.0/Kconfig"
 source "packages/vww-0.0.0/Kconfig"
 source "packages/wboxtest-0.0.0/Kconfig"

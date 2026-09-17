@@ -23,8 +23,8 @@ CXXFLAGS	+= -I $(PKGDIR)/libxnes-1.0.0
 endif
 
 ifdef CONFIG_PKG_LVGL
-CFLAGS		+= -I $(PKGDIR)/lvgl-9.4.0
-CXXFLAGS	+= -I $(PKGDIR)/lvgl-9.4.0
+CFLAGS		+= -I $(PKGDIR)/lvgl-9.6.0 -I $(PKGDIR)/lvgl-9.6.0/lvgl/include
+CXXFLAGS	+= -I $(PKGDIR)/lvgl-9.6.0 -I $(PKGDIR)/lvgl-9.6.0/lvgl/include
 endif
 
 ifdef CONFIG_PKG_PLMPEG
