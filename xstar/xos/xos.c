@@ -261,6 +261,47 @@ static inline struct co_transfer_t __xos_coroutine_jump(void * fctx, void * priv
 }
 
 /*
+ * thread
+ */
+static struct thread_t * __xos_thread_create(const char * name, void (*func)(void *), void * data, int stksz)
+{
+	return NULL;
+}
+
+static void __xos_thread_destroy(struct thread_t * thread)
+{
+}
+
+static void __xos_thread_wait(struct thread_t * thread)
+{
+}
+
+static void __xos_thread_sleep(uint64_t ns)
+{
+}
+
+/*
+ * semaphore
+ */
+static void __xos_semaphore_init(struct semaphore_t * sem, unsigned int count)
+{
+}
+
+static void __xos_semaphore_exit(struct semaphore_t * sem)
+{
+}
+
+static int __xos_semaphore_wait(struct semaphore_t * sem, int timeout)
+{
+	return 1;
+}
+
+static int __xos_semaphore_post(struct semaphore_t * sem)
+{
+	return 1;
+}
+
+/*
  * spinlock
  */
 static void __xos_spinlock_init(struct spinlock_t * lock)
@@ -287,26 +328,6 @@ static int __xos_spinlock_unlock(struct spinlock_t * lock)
 }
 
 /*
- * thread
- */
-static struct thread_t * __xos_thread_create(const char * name, void (*func)(void *), void * data, int stksz)
-{
-	return NULL;
-}
-
-static void __xos_thread_destroy(struct thread_t * thread)
-{
-}
-
-static void __xos_thread_wait(struct thread_t * thread)
-{
-}
-
-static void __xos_thread_sleep(uint64_t ns)
-{
-}
-
-/*
  * mutex
  */
 static void __xos_mutex_init(struct mutex_t * lock)
@@ -328,27 +349,6 @@ static int __xos_mutex_trylock(struct mutex_t * lock)
 }
 
 static int __xos_mutex_unlock(struct mutex_t * lock)
-{
-	return 1;
-}
-
-/*
- * semaphore
- */
-static void __xos_semaphore_init(struct semaphore_t * sem, unsigned int count)
-{
-}
-
-static void __xos_semaphore_exit(struct semaphore_t * sem)
-{
-}
-
-static int __xos_semaphore_wait(struct semaphore_t * sem, int timeout)
-{
-	return 1;
-}
-
-static int __xos_semaphore_post(struct semaphore_t * sem)
 {
 	return 1;
 }
@@ -614,6 +614,20 @@ struct xos_environ_t __xos_environ = {
 		.jump = __xos_coroutine_jump,
 	},
 
+	.thread = {
+		.create = __xos_thread_create,
+		.destroy = __xos_thread_destroy,
+		.wait = __xos_thread_wait,
+		.sleep = __xos_thread_sleep,
+	},
+
+	.semaphore = {
+		.init = __xos_semaphore_init,
+		.exit = __xos_semaphore_exit,
+		.wait = __xos_semaphore_wait,
+		.post = __xos_semaphore_post,
+	},
+
 	.spinlock = {
 		.init = __xos_spinlock_init,
 		.exit = __xos_spinlock_exit,
@@ -622,26 +636,12 @@ struct xos_environ_t __xos_environ = {
 		.unlock = __xos_spinlock_unlock,
 	},
 
-	.thread = {
-		.create = __xos_thread_create,
-		.destroy = __xos_thread_destroy,
-		.wait = __xos_thread_wait,
-		.sleep = __xos_thread_sleep,
-	},
-
 	.mutex = {
 		.init = __xos_mutex_init,
 		.exit = __xos_mutex_exit,
 		.lock = __xos_mutex_lock,
 		.trylock = __xos_mutex_trylock,
 		.unlock = __xos_mutex_unlock,
-	},
-
-	.semaphore = {
-		.init = __xos_semaphore_init,
-		.exit = __xos_semaphore_exit,
-		.wait = __xos_semaphore_wait,
-		.post = __xos_semaphore_post,
 	},
 
 	.other = {
@@ -781,6 +781,30 @@ void xos_environ_init(struct xos_environ_t * env)
 			__xos_environ.coroutine.jump = env->coroutine.jump;
 
 		/*
+		 * thread
+		 */
+		if(env->thread.create)
+			__xos_environ.thread.create = env->thread.create;
+		if(env->thread.destroy)
+			__xos_environ.thread.destroy = env->thread.destroy;
+		if(env->thread.wait)
+			__xos_environ.thread.wait = env->thread.wait;
+		if(env->thread.sleep)
+			__xos_environ.thread.sleep = env->thread.sleep;
+
+		/*
+		 * semaphore
+		 */
+		if(env->semaphore.init)
+			__xos_environ.semaphore.init = env->semaphore.init;
+		if(env->semaphore.exit)
+			__xos_environ.semaphore.exit = env->semaphore.exit;
+		if(env->semaphore.wait)
+			__xos_environ.semaphore.wait = env->semaphore.wait;
+		if(env->semaphore.post)
+			__xos_environ.semaphore.post = env->semaphore.post;
+
+		/*
 		 * spinlock
 		 */
 		if(env->spinlock.init)
@@ -795,18 +819,6 @@ void xos_environ_init(struct xos_environ_t * env)
 			__xos_environ.spinlock.unlock = env->spinlock.unlock;
 
 		/*
-		 * thread
-		 */
-		if(env->thread.create)
-			__xos_environ.thread.create = env->thread.create;
-		if(env->thread.destroy)
-			__xos_environ.thread.destroy = env->thread.destroy;
-		if(env->thread.wait)
-			__xos_environ.thread.wait = env->thread.wait;
-		if(env->thread.sleep)
-			__xos_environ.thread.sleep = env->thread.sleep;
-
-		/*
 		 * mutex
 		 */
 		if(env->mutex.init)
@@ -819,18 +831,6 @@ void xos_environ_init(struct xos_environ_t * env)
 			__xos_environ.mutex.trylock = env->mutex.trylock;
 		if(env->mutex.unlock)
 			__xos_environ.mutex.unlock = env->mutex.unlock;
-
-		/*
-		 * semaphore
-		 */
-		if(env->semaphore.init)
-			__xos_environ.semaphore.init = env->semaphore.init;
-		if(env->semaphore.exit)
-			__xos_environ.semaphore.exit = env->semaphore.exit;
-		if(env->semaphore.wait)
-			__xos_environ.semaphore.wait = env->semaphore.wait;
-		if(env->semaphore.post)
-			__xos_environ.semaphore.post = env->semaphore.post;
 
 		/*
 		 * other

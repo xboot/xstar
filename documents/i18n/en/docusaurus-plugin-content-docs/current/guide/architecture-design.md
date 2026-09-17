@@ -162,6 +162,22 @@ struct xos_environ_t {
         struct co_transfer_t (*jump)(void * fctx, void * priv);
     } coroutine;
 
+    /* Thread */
+    struct {
+        struct thread_t * (*create)(const char * name, void (*func)(void *), void * data, int stksz);
+        void (*destroy)(struct thread_t * thread);
+        void (*wait)(struct thread_t * thread);
+        void (*sleep)(uint64_t ns);
+    } thread;
+
+    /* Semaphore */
+    struct {
+        void (*init)(struct semaphore_t * sem, unsigned int count);
+        void (*exit)(struct semaphore_t * sem);
+        int (*wait)(struct semaphore_t * sem, int timeout);
+        int (*post)(struct semaphore_t * sem);
+    } semaphore;
+
     /* Spinlock */
     struct {
         void (*init)(struct spinlock_t * lock);
@@ -171,14 +187,6 @@ struct xos_environ_t {
         int (*unlock)(struct spinlock_t * lock);
     } spinlock;
 
-    /* Thread */
-    struct {
-        struct thread_t * (*create)(const char * name, void (*func)(void *), void * data, int stksz);
-        void (*destroy)(struct thread_t * thread);
-        void (*wait)(struct thread_t * thread);
-        void (*sleep)(uint64_t ns);
-    } thread;
-
     /* Mutex */
     struct {
         void (*init)(struct mutex_t * lock);
@@ -187,14 +195,6 @@ struct xos_environ_t {
         int (*trylock)(struct mutex_t * lock);
         int (*unlock)(struct mutex_t * lock);
     } mutex;
-
-    /* Semaphore */
-    struct {
-        void (*init)(struct semaphore_t * sem, unsigned int count);
-        void (*exit)(struct semaphore_t * sem);
-        int (*wait)(struct semaphore_t * sem, int timeout);
-        int (*post)(struct semaphore_t * sem);
-    } semaphore;
 
     /* String and memory operations */
     struct {
@@ -218,7 +218,7 @@ struct xos_environ_t {
 };
 ```
 
-The groups are declared in the order `mem` → `dma` → `io` → `stdio` → `pm` → `file` → `coroutine` → `spinlock` → `thread` → `mutex` → `semaphore` → `other`. Platform implementations should use designated initializers written in this order so they can be compared directly against `xstar/xos/xos.h`.
+The groups are declared in the order `mem` → `dma` → `io` → `stdio` → `pm` → `file` → `coroutine` → `thread` → `semaphore` → `spinlock` → `mutex` → `other`. Platform implementations should use designated initializers written in this order so they can be compared directly against `xstar/xos/xos.h`.
 
 ### API Categories
 
@@ -233,10 +233,10 @@ XOS provides platform-related operations via `xos_environ_t`, and also directly 
 | **Power Management** (`pm`) | `xos_pm_shutdown/reboot/standby` |
 | **File System** (`file`) | `xos_file_cwd/open/close/read/write/seek/tell/length/sync`, `xos_file_mkdir/remove/access/walk`, `xos_file_isdir/isfile/mode` |
 | **Coroutine** (`coroutine`) | `xos_coroutine_make`, `xos_coroutine_jump` |
-| **Spinlock** (`spinlock`) | `xos_spinlock_init/exit/lock/trylock/unlock` |
 | **Thread** (`thread`) | `xos_thread_create/destroy/wait/sleep` |
-| **Mutex** (`mutex`) | `xos_mutex_init/exit/lock/trylock/unlock` |
 | **Semaphore** (`semaphore`) | `xos_semaphore_init/exit/wait/post` |
+| **Spinlock** (`spinlock`) | `xos_spinlock_init/exit/lock/trylock/unlock` |
+| **Mutex** (`mutex`) | `xos_mutex_init/exit/lock/trylock/unlock` |
 | **String & Memory Operations** (`other`) | `xos_strcpy/strncpy/strcat/strncat/strlen/strnlen/strcmp/strncmp/strcasecmp/strncasecmp`, `xos_memset/memcpy/memmove/memchr/memcmp` |
 | **Formatting** | `xos_sprintf/snprintf/printf/sscanf`, etc. |
 | **Numeric Conversion** | `xos_strtol/strtoll/strtod/atoi/atol`, etc. |

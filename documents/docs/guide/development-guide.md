@@ -593,7 +593,7 @@ obj-$(CONFIG_WBOXTEST_MYGROUP) += xxx.o
 
 ### xos_environ_t 接口
 
-分组按 `mem` → `dma` → `io` → `stdio` → `pm` → `file` → `coroutine` → `spinlock` → `thread` → `mutex` → `semaphore` → `other` 的顺序声明（详见 `xstar/xos/xos.h`），初始化时建议保持相同顺序：
+分组按 `mem` → `dma` → `io` → `stdio` → `pm` → `file` → `coroutine` → `thread` → `semaphore` → `spinlock` → `mutex` → `other` 的顺序声明（详见 `xstar/xos/xos.h`），初始化时建议保持相同顺序：
 
 ```c
 static struct xos_environ_t env = {
@@ -660,6 +660,20 @@ static struct xos_environ_t env = {
         .jump = my_coroutine_jump,
     },
 
+    .thread = {
+        .create  = my_thread_create,
+        .destroy = my_thread_destroy,
+        .wait    = my_thread_wait,
+        .sleep   = my_thread_sleep,
+    },
+
+    .semaphore = {
+        .init = my_semaphore_init,
+        .exit = my_semaphore_exit,
+        .wait = my_semaphore_wait,
+        .post = my_semaphore_post,
+    },
+
     .spinlock = {
         .init    = my_spinlock_init,
         .exit    = my_spinlock_exit,
@@ -668,26 +682,12 @@ static struct xos_environ_t env = {
         .unlock  = my_spinlock_unlock,
     },
 
-    .thread = {
-        .create  = my_thread_create,
-        .destroy = my_thread_destroy,
-        .wait    = my_thread_wait,
-        .sleep   = my_thread_sleep,
-    },
-
     .mutex = {
         .init    = my_mutex_init,
         .exit    = my_mutex_exit,
         .lock    = my_mutex_lock,
         .trylock = my_mutex_trylock,
         .unlock  = my_mutex_unlock,
-    },
-
-    .semaphore = {
-        .init = my_semaphore_init,
-        .exit = my_semaphore_exit,
-        .wait = my_semaphore_wait,
-        .post = my_semaphore_post,
     },
 
     .other = {

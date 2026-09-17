@@ -588,7 +588,7 @@ Porting XOS to a new platform requires implementing the `xos_environ_t` function
 
 ### xos_environ_t Interface
 
-The groups are declared in the order `mem` → `dma` → `io` → `stdio` → `pm` → `file` → `coroutine` → `spinlock` → `thread` → `mutex` → `semaphore` → `other` (see `xstar/xos/xos.h`); keep the same order when initializing:
+The groups are declared in the order `mem` → `dma` → `io` → `stdio` → `pm` → `file` → `coroutine` → `thread` → `semaphore` → `spinlock` → `mutex` → `other` (see `xstar/xos/xos.h`); keep the same order when initializing:
 
 ```c
 static struct xos_environ_t env = {
@@ -655,6 +655,20 @@ static struct xos_environ_t env = {
         .jump = my_coroutine_jump,
     },
 
+    .thread = {
+        .create  = my_thread_create,
+        .destroy = my_thread_destroy,
+        .wait    = my_thread_wait,
+        .sleep   = my_thread_sleep,
+    },
+
+    .semaphore = {
+        .init = my_semaphore_init,
+        .exit = my_semaphore_exit,
+        .wait = my_semaphore_wait,
+        .post = my_semaphore_post,
+    },
+
     .spinlock = {
         .init    = my_spinlock_init,
         .exit    = my_spinlock_exit,
@@ -663,26 +677,12 @@ static struct xos_environ_t env = {
         .unlock  = my_spinlock_unlock,
     },
 
-    .thread = {
-        .create  = my_thread_create,
-        .destroy = my_thread_destroy,
-        .wait    = my_thread_wait,
-        .sleep   = my_thread_sleep,
-    },
-
     .mutex = {
         .init    = my_mutex_init,
         .exit    = my_mutex_exit,
         .lock    = my_mutex_lock,
         .trylock = my_mutex_trylock,
         .unlock  = my_mutex_unlock,
-    },
-
-    .semaphore = {
-        .init = my_semaphore_init,
-        .exit = my_semaphore_exit,
-        .wait = my_semaphore_wait,
-        .post = my_semaphore_post,
     },
 
     .other = {

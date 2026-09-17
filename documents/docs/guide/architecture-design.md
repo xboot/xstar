@@ -162,6 +162,22 @@ struct xos_environ_t {
         struct co_transfer_t (*jump)(void * fctx, void * priv);
     } coroutine;
 
+    /* 线程 */
+    struct {
+        struct thread_t * (*create)(const char * name, void (*func)(void *), void * data, int stksz);
+        void (*destroy)(struct thread_t * thread);
+        void (*wait)(struct thread_t * thread);
+        void (*sleep)(uint64_t ns);
+    } thread;
+
+    /* 信号量 */
+    struct {
+        void (*init)(struct semaphore_t * sem, unsigned int count);
+        void (*exit)(struct semaphore_t * sem);
+        int (*wait)(struct semaphore_t * sem, int timeout);
+        int (*post)(struct semaphore_t * sem);
+    } semaphore;
+
     /* 自旋锁 */
     struct {
         void (*init)(struct spinlock_t * lock);
@@ -171,14 +187,6 @@ struct xos_environ_t {
         int (*unlock)(struct spinlock_t * lock);
     } spinlock;
 
-    /* 线程 */
-    struct {
-        struct thread_t * (*create)(const char * name, void (*func)(void *), void * data, int stksz);
-        void (*destroy)(struct thread_t * thread);
-        void (*wait)(struct thread_t * thread);
-        void (*sleep)(uint64_t ns);
-    } thread;
-
     /* 互斥锁 */
     struct {
         void (*init)(struct mutex_t * lock);
@@ -187,14 +195,6 @@ struct xos_environ_t {
         int (*trylock)(struct mutex_t * lock);
         int (*unlock)(struct mutex_t * lock);
     } mutex;
-
-    /* 信号量 */
-    struct {
-        void (*init)(struct semaphore_t * sem, unsigned int count);
-        void (*exit)(struct semaphore_t * sem);
-        int (*wait)(struct semaphore_t * sem, int timeout);
-        int (*post)(struct semaphore_t * sem);
-    } semaphore;
 
     /* 字符串与内存操作 */
     struct {
@@ -218,7 +218,7 @@ struct xos_environ_t {
 };
 ```
 
-各分组按 `mem` → `dma` → `io` → `stdio` → `pm` → `file` → `coroutine` → `spinlock` → `thread` → `mutex` → `semaphore` → `other` 的顺序声明，平台实现建议使用指定初始化器并按此顺序书写，便于与 `xstar/xos/xos.h` 对照。
+各分组按 `mem` → `dma` → `io` → `stdio` → `pm` → `file` → `coroutine` → `thread` → `semaphore` → `spinlock` → `mutex` → `other` 的顺序声明，平台实现建议使用指定初始化器并按此顺序书写，便于与 `xstar/xos/xos.h` 对照。
 
 ### API 分类
 
@@ -233,10 +233,10 @@ XOS 通过 `xos_environ_t` 提供平台相关的操作，同时还直接提供�
 | **电源管理** (`pm`) | `xos_pm_shutdown/reboot/standby` |
 | **文件系统** (`file`) | `xos_file_cwd/open/close/read/write/seek/tell/length/sync`, `xos_file_mkdir/remove/access/walk`, `xos_file_isdir/isfile/mode` |
 | **协程** (`coroutine`) | `xos_coroutine_make`, `xos_coroutine_jump` |
-| **自旋锁** (`spinlock`) | `xos_spinlock_init/exit/lock/trylock/unlock` |
 | **线程** (`thread`) | `xos_thread_create/destroy/wait/sleep` |
-| **互斥锁** (`mutex`) | `xos_mutex_init/exit/lock/trylock/unlock` |
 | **信号量** (`semaphore`) | `xos_semaphore_init/exit/wait/post` |
+| **自旋锁** (`spinlock`) | `xos_spinlock_init/exit/lock/trylock/unlock` |
+| **互斥锁** (`mutex`) | `xos_mutex_init/exit/lock/trylock/unlock` |
 | **字符串与内存操作** (`other`) | `xos_strcpy/strncpy/strcat/strncat/strlen/strnlen/strcmp/strncmp/strcasecmp/strncasecmp`, `xos_memset/memcpy/memmove/memchr/memcmp` |
 | **格式化** | `xos_sprintf/snprintf/printf/sscanf` 等 |
 | **数值转换** | `xos_strtol/strtoll/strtod/atoi/atol` 等 |

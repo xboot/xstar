@@ -139,6 +139,20 @@ struct xos_environ_t {
 	} coroutine;
 
 	struct {
+		struct thread_t * (*create)(const char * name, void (*func)(void *), void * data, int stksz);
+		void (*destroy)(struct thread_t * thread);
+		void (*wait)(struct thread_t * thread);
+		void (*sleep)(uint64_t ns);
+	} thread;
+
+	struct {
+		void (*init)(struct semaphore_t * sem, unsigned int count);
+		void (*exit)(struct semaphore_t * sem);
+		int (*wait)(struct semaphore_t * sem, int timeout);
+		int (*post)(struct semaphore_t * sem);
+	} semaphore;
+
+	struct {
 		void (*init)(struct spinlock_t * lock);
 		void (*exit)(struct spinlock_t * lock);
 		int (*lock)(struct spinlock_t * lock);
@@ -147,26 +161,12 @@ struct xos_environ_t {
 	} spinlock;
 
 	struct {
-		struct thread_t * (*create)(const char * name, void (*func)(void *), void * data, int stksz);
-		void (*destroy)(struct thread_t * thread);
-		void (*wait)(struct thread_t * thread);
-		void (*sleep)(uint64_t ns);
-	} thread;
-
-	struct {
 		void (*init)(struct mutex_t * lock);
 		void (*exit)(struct mutex_t * lock);
 		int (*lock)(struct mutex_t * lock);
 		int (*trylock)(struct mutex_t * lock);
 		int (*unlock)(struct mutex_t * lock);
 	} mutex;
-
-	struct {
-		void (*init)(struct semaphore_t * sem, unsigned int count);
-		void (*exit)(struct semaphore_t * sem);
-		int (*wait)(struct semaphore_t * sem, int timeout);
-		int (*post)(struct semaphore_t * sem);
-	} semaphore;
 
 	struct {
 		char * (*strcpy)(char * dest, const char * src);
@@ -523,39 +523,6 @@ static inline struct co_transfer_t xos_coroutine_jump(void * fctx, void * priv)
 }
 
 /*
- * spinlock
- */
-static inline void xos_spinlock_init(struct spinlock_t * lock)
-{
-	#undef init
-	__xos_environ.spinlock.init(lock);
-}
-
-static inline void xos_spinlock_exit(struct spinlock_t * lock)
-{
-	#undef exit
-	__xos_environ.spinlock.exit(lock);
-}
-
-static inline int xos_spinlock_lock(struct spinlock_t * lock)
-{
-	#undef lock
-	return __xos_environ.spinlock.lock(lock);
-}
-
-static inline int xos_spinlock_trylock(struct spinlock_t * lock)
-{
-	#undef trylock
-	return __xos_environ.spinlock.trylock(lock);
-}
-
-static inline int xos_spinlock_unlock(struct spinlock_t * lock)
-{
-	#undef unlock
-	return __xos_environ.spinlock.unlock(lock);
-}
-
-/*
  * thread
  */
 static inline struct thread_t * xos_thread_create(const char * name, void (*func)(void *), void * data, int stksz)
@@ -598,6 +565,66 @@ static inline void xos_thread_msleep(uint64_t ms)
 }
 
 /*
+ * semaphore
+ */
+static inline void xos_semaphore_init(struct semaphore_t * sem, unsigned int count)
+{
+	#undef init
+	__xos_environ.semaphore.init(sem, count);
+}
+
+static inline void xos_semaphore_exit(struct semaphore_t * sem)
+{
+	#undef exit
+	__xos_environ.semaphore.exit(sem);
+}
+
+static inline int xos_semaphore_wait(struct semaphore_t * sem, int timeout)
+{
+	#undef wait
+	return __xos_environ.semaphore.wait(sem, timeout);
+}
+
+static inline int xos_semaphore_post(struct semaphore_t * sem)
+{
+	#undef post
+	return __xos_environ.semaphore.post(sem);
+}
+
+/*
+ * spinlock
+ */
+static inline void xos_spinlock_init(struct spinlock_t * lock)
+{
+	#undef init
+	__xos_environ.spinlock.init(lock);
+}
+
+static inline void xos_spinlock_exit(struct spinlock_t * lock)
+{
+	#undef exit
+	__xos_environ.spinlock.exit(lock);
+}
+
+static inline int xos_spinlock_lock(struct spinlock_t * lock)
+{
+	#undef lock
+	return __xos_environ.spinlock.lock(lock);
+}
+
+static inline int xos_spinlock_trylock(struct spinlock_t * lock)
+{
+	#undef trylock
+	return __xos_environ.spinlock.trylock(lock);
+}
+
+static inline int xos_spinlock_unlock(struct spinlock_t * lock)
+{
+	#undef unlock
+	return __xos_environ.spinlock.unlock(lock);
+}
+
+/*
  * mutex
  */
 static inline void xos_mutex_init(struct mutex_t * lock)
@@ -628,33 +655,6 @@ static inline int xos_mutex_unlock(struct mutex_t * lock)
 {
 	#undef unlock
 	return __xos_environ.mutex.unlock(lock);
-}
-
-/*
- * semaphore
- */
-static inline void xos_semaphore_init(struct semaphore_t * sem, unsigned int count)
-{
-	#undef init
-	__xos_environ.semaphore.init(sem, count);
-}
-
-static inline void xos_semaphore_exit(struct semaphore_t * sem)
-{
-	#undef exit
-	__xos_environ.semaphore.exit(sem);
-}
-
-static inline int xos_semaphore_wait(struct semaphore_t * sem, int timeout)
-{
-	#undef wait
-	return __xos_environ.semaphore.wait(sem, timeout);
-}
-
-static inline int xos_semaphore_post(struct semaphore_t * sem)
-{
-	#undef post
-	return __xos_environ.semaphore.post(sem);
 }
 
 /*
