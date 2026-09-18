@@ -29,9 +29,12 @@ static void xlvgl_disp_flush(lv_display_t * disp, const lv_area_t * area, uint8_
 {
 	struct xlvgl_context_t * ctx = (struct xlvgl_context_t *)lv_display_get_driver_data(disp);
 
-	window_dirtylist_clear(ctx->win);
-	window_dirtylist_add(ctx->win, &(struct region_t){ area->x1, area->y1, lv_area_get_width(area), lv_area_get_height(area) });
-	window_present_commit(ctx->win);
+	window_dirtylist_add(ctx->win, &(struct region_t){ area->x1, area->y1, area->x2 - area->x1 + 1, area->y2 - area->y1 + 1 });
+	if(lv_display_flush_is_last(disp))
+	{
+		window_present_commit(ctx->win);
+		window_dirtylist_clear(ctx->win);
+	}
 
 	lv_display_flush_ready(disp);
 }
