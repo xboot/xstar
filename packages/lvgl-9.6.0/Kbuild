@@ -1,6 +1,6 @@
 subdirs-$(CONFIG_PKG_LVGL) += lvgl
 
-obj-$(CONFIG_PKG_LVGL) += lv_mem_core_xstar.o
+obj-$(CONFIG_PKG_LVGL) += lv_mem_xstar.o
 obj-$(CONFIG_PKG_LVGL) += lv_sprintf_xstar.o
 obj-$(CONFIG_PKG_LVGL) += lv_string_xstar.o
 obj-$(CONFIG_PKG_LVGL) += xlvgl.o

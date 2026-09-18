@@ -29,12 +29,10 @@
 
 void lv_mem_init(void)
 {
-	return;
 }
 
 void lv_mem_deinit(void)
 {
-	return;
 }
 
 lv_mem_pool_t lv_mem_add_pool(void * mem, size_t bytes)
@@ -44,7 +42,6 @@ lv_mem_pool_t lv_mem_add_pool(void * mem, size_t bytes)
 
 void lv_mem_remove_pool(lv_mem_pool_t pool)
 {
-	return;
 }
 
 void * lv_malloc_core(size_t size)
@@ -52,19 +49,18 @@ void * lv_malloc_core(size_t size)
 	return xos_mem_malloc(size);
 }
 
-void * lv_realloc_core(void * p, size_t new_size)
-{
-	return xos_mem_realloc(p, new_size);
-}
-
 void lv_free_core(void * p)
 {
 	xos_mem_free(p);
 }
 
+void * lv_realloc_core(void * p, size_t new_size)
+{
+	return xos_mem_realloc(p, new_size);
+}
+
 void lv_mem_monitor_core(lv_mem_monitor_t * mon_p)
 {
-	return;
 }
 
 lv_result_t lv_mem_test_core(void)
