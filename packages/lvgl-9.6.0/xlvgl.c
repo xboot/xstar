@@ -25,6 +25,11 @@
 #include <xstar.h>
 #include <xlvgl.h>
 
+static void xlvgl_disp_flush_ready(void * data)
+{
+	lv_display_flush_ready((lv_display_t *)data);
+}
+
 static void xlvgl_disp_flush(lv_display_t * disp, const lv_area_t * area, uint8_t * px_map)
 {
 	struct xlvgl_context_t * ctx = (struct xlvgl_context_t *)lv_display_get_driver_data(disp);
@@ -32,11 +37,20 @@ static void xlvgl_disp_flush(lv_display_t * disp, const lv_area_t * area, uint8_
 	window_dirtylist_add(ctx->win, &(struct region_t){ area->x1, area->y1, area->x2 - area->x1 + 1, area->y2 - area->y1 + 1 });
 	if(lv_display_flush_is_last(disp))
 	{
-		window_present_commit(ctx->win);
+		if(!window_present_submit(ctx->win, xlvgl_disp_flush_ready, disp))
+			xlvgl_disp_flush_ready(disp);
 		window_dirtylist_clear(ctx->win);
 	}
+	else
+	{
+		lv_display_flush_ready(disp);
+	}
+}
 
-	lv_display_flush_ready(disp);
+static void xlvgl_disp_flush_wait(lv_display_t * disp)
+{
+	struct xlvgl_context_t * ctx = (struct xlvgl_context_t *)lv_display_get_driver_data(disp);
+	window_present_wait(ctx->win);
 }
 
 static uint32_t xlvgl_tick_get(void)
@@ -215,6 +229,7 @@ struct xlvgl_context_t * xlvgl_context_alloc(const char * fb, const char * input
 	lv_display_set_driver_data(ctx->disp, ctx);
 	lv_display_set_dpi(ctx->disp, window_get_dpi(ctx->win));
 	lv_display_set_flush_cb(ctx->disp, xlvgl_disp_flush);
+	lv_display_set_flush_wait_cb(ctx->disp, xlvgl_disp_flush_wait);
 	lv_display_set_buffers(ctx->disp, ctx->win->surface->pixels, NULL, window_get_width(ctx->win) * window_get_height(ctx->win) * 4, LV_DISPLAY_RENDER_MODE_DIRECT);
 
 	lv_tick_set_cb(xlvgl_tick_get);
