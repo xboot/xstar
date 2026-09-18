@@ -110,7 +110,7 @@ int linux_fb_surface_destroy(void * context, struct linux_fb_surface_t * surface
 	return 1;
 }
 
-int linux_fb_surface_present(void * context, struct linux_fb_surface_t * surface, struct linux_dirtylist_t * l)
+int linux_fb_surface_present(void * context, struct linux_fb_surface_t * surface, struct dirtylist_t * l)
 {
 	struct linux_fb_context_t * ctx = (struct linux_fb_context_t *)context;
 
@@ -118,7 +118,7 @@ int linux_fb_surface_present(void * context, struct linux_fb_surface_t * surface
 	{
 		for(int i = 0; i < l->count; i++)
 		{
-			struct linux_region_t * r = &l->items[i].region;
+			struct region_t * r = &l->items[i].region;
 			uint16_t * q = ctx->vram + r->y * ctx->fi.line_length + r->x * (ctx->vi.bits_per_pixel >> 3);
 			for(int y = 0; y < r->h; y++)
 			{

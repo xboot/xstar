@@ -593,7 +593,7 @@ struct linux_fb_drm_context_t {
 	uint32_t pixlen;
 	int index;
 	struct fb_drm_buf_t * drmbuf[2];
-	struct linux_dirtylist_t * nl, * ol;
+	struct dirtylist_t * nl, * ol;
 };
 
 static struct fb_drm_buf_t * fb_drm_buf_create(struct linux_fb_drm_context_t * ctx)
@@ -800,8 +800,8 @@ void * linux_fb_drm_open(const char * dev, const char * connector)
 	ctx->index = 0;
 	ctx->drmbuf[0] = fb_drm_buf_create(ctx);
 	ctx->drmbuf[1] = fb_drm_buf_create(ctx);
-	ctx->nl = linux_dirtylist_alloc(0);
-	ctx->ol = linux_dirtylist_alloc(0);
+	ctx->nl = dirtylist_alloc(0);
+	ctx->ol = dirtylist_alloc(0);
 	ctx->stride = ctx->drmbuf[0]->stride;
 	ctx->pixlen = ctx->drmbuf[0]->pixlen;
 
@@ -820,8 +820,8 @@ void linux_fb_drm_close(void * context)
 			drmModeFreeResources(ctx->res);
 		fb_drm_buf_destroy(ctx, ctx->drmbuf[0]);
 		fb_drm_buf_destroy(ctx, ctx->drmbuf[1]);
-		linux_dirtylist_free(ctx->nl);
-		linux_dirtylist_free(ctx->ol);
+		dirtylist_free(ctx->nl);
+		dirtylist_free(ctx->ol);
 		close(ctx->fd);
 		free(ctx);
 	}
@@ -869,21 +869,21 @@ int linux_fb_drm_surface_destroy(void * context, struct linux_fb_surface_t * sur
 	return 1;
 }
 
-int linux_fb_drm_surface_present(void * context, struct linux_fb_surface_t * surface, struct linux_dirtylist_t * l)
+int linux_fb_drm_surface_present(void * context, struct linux_fb_surface_t * surface, struct dirtylist_t * l)
 {
 	struct linux_fb_drm_context_t * ctx = (struct linux_fb_drm_context_t *)context;
-	struct linux_dirtylist_t * nl = ctx->nl;
+	struct dirtylist_t * nl = ctx->nl;
 	struct fb_drm_buf_t * drmbuf;
-	struct linux_region_t * r;
+	struct region_t * r;
 	unsigned char * p, * q;
 	int stride = ctx->stride;
 	int offset, line, height;
 	int i, j;
 
-	linux_dirtylist_clear(nl);
-	linux_dirtylist_merge(nl, ctx->ol);
-	linux_dirtylist_merge(nl, l);
-	linux_dirtylist_clone(ctx->ol, l);
+	dirtylist_clear(nl);
+	dirtylist_merge(nl, ctx->ol);
+	dirtylist_merge(nl, l);
+	dirtylist_clone(ctx->ol, l);
 
 	ctx->index = (ctx->index + 1) & 0x1;
 	drmbuf = ctx->drmbuf[ctx->index];

@@ -8,103 +8,6 @@ extern "C" {
 #include <xstar.h>
 
 /*
- * Linux region
- */
-struct linux_region_t {
-	int x, y;
-	int w, h;
-};
-
-static inline void linux_region_init(struct linux_region_t * r, int x, int y, int w, int h)
-{
-	r->x = x;
-	r->y = y;
-	r->w = w;
-	r->h = h;
-}
-
-static inline void linux_region_clone(struct linux_region_t * r, struct linux_region_t * o)
-{
-	r->x = o->x;
-	r->y = o->y;
-	r->w = o->w;
-	r->h = o->h;
-}
-
-static inline int linux_region_isempty(struct linux_region_t * r)
-{
-	if((r->w > 0) && (r->h > 0))
-		return 0;
-	return 1;
-}
-
-static inline int linux_region_hit(struct linux_region_t * r, int x, int y)
-{
-	if((x >= r->x) && (x < r->x + r->w) && (y >= r->y) && (y < r->y + r->h))
-		return 1;
-	return 0;
-}
-
-static inline int linux_region_contains(struct linux_region_t * r, struct linux_region_t * o)
-{
-	int rr = r->x + r->w;
-	int rb = r->y + r->h;
-	int or = o->x + o->w;
-	int ob = o->y + o->h;
-	if((o->x >= r->x) && (o->x < rr) && (o->y >= r->y) && (o->y < rb) && (or > r->x) && (or <= rr) && (ob > r->y) && (ob <= rb))
-		return 1;
-	return 0;
-}
-
-static inline int linux_region_overlap(struct linux_region_t * r, struct linux_region_t * o)
-{
-	if((o->x + o->w >= r->x) && (o->x <= r->x + r->w) && (o->y + o->h >= r->y) && (o->y <= r->y + r->h))
-		return 1;
-	return 0;
-}
-
-static inline void linux_region_expand(struct linux_region_t * r, struct linux_region_t * o, int n)
-{
-	r->x = o->x - n;
-	r->y = o->y - n;
-	r->w = o->w + n * 2;
-	r->h = o->h + n * 2;
-}
-
-static inline int linux_region_intersect(struct linux_region_t * r, struct linux_region_t * a, struct linux_region_t * b)
-{
-	int x0 = XMAX(a->x, b->x);
-	int x1 = XMIN(a->x + a->w, b->x + b->w);
-	if(x0 <= x1)
-	{
-		int y0 = XMAX(a->y, b->y);
-		int y1 = XMIN(a->y + a->h, b->y + b->h);
-		if(y0 <= y1)
-		{
-			r->x = x0;
-			r->y = y0;
-			r->w = x1 - x0;
-			r->h = y1 - y0;
-			return 1;
-		}
-	}
-	return 0;
-}
-
-static inline int linux_region_union(struct linux_region_t * r, struct linux_region_t * a, struct linux_region_t * b)
-{
-	int ar = a->x + a->w;
-	int ab = a->y + a->h;
-	int br = b->x + b->w;
-	int bb = b->y + b->h;
-	r->x = XMIN(a->x, b->x);
-	r->y = XMIN(a->y, b->y);
-	r->w = XMAX(ar, br) - r->x;
-	r->h = XMAX(ab, bb) - r->y;
-	return 1;
-}
-
-/*
  * Linux interface
  */
 void linux_init(void);
@@ -135,27 +38,6 @@ int linux_cam_exist(const char * dev);
 void * linux_cam_start(const char * dev, int * format, int * width, int * height);
 void linux_cam_stop(void * context);
 int linux_cam_capture(void * context, void ** buf);
-
-/*
- * Linux dirtylist
- */
-struct linux_dirtylist_item_t {
-	struct linux_region_t region;
-	int area;
-};
-
-struct linux_dirtylist_t {
-	struct linux_dirtylist_item_t * items;
-	unsigned int size;
-	unsigned int count;
-};
-
-struct linux_dirtylist_t * linux_dirtylist_alloc(unsigned int size);
-void linux_dirtylist_free(struct linux_dirtylist_t * l);
-void linux_dirtylist_clone(struct linux_dirtylist_t * l, struct linux_dirtylist_t * o);
-void linux_dirtylist_merge(struct linux_dirtylist_t * l, struct linux_dirtylist_t * o);
-void linux_dirtylist_clear(struct linux_dirtylist_t * l);
-void linux_dirtylist_add(struct linux_dirtylist_t * l, struct linux_region_t * r);
 
 /*
  * Dma interface
@@ -244,7 +126,7 @@ int linux_fb_get_pwidth(void * context);
 int linux_fb_get_pheight(void * context);
 int linux_fb_surface_create(void * context, struct linux_fb_surface_t * surface, int width, int height);
 int linux_fb_surface_destroy(void * context, struct linux_fb_surface_t * surface);
-int linux_fb_surface_present(void * context, struct linux_fb_surface_t * surface, struct linux_dirtylist_t * l);
+int linux_fb_surface_present(void * context, struct linux_fb_surface_t * surface, struct dirtylist_t * l);
 void linux_fb_set_backlight(void * context, int brightness);
 int linux_fb_get_backlight(void * context);
 
@@ -257,7 +139,7 @@ int linux_fb_drm_get_pwidth(void * context);
 int linux_fb_drm_get_pheight(void * context);
 int linux_fb_drm_surface_create(void * context, struct linux_fb_surface_t * surface, int width, int height);
 int linux_fb_drm_surface_destroy(void * context, struct linux_fb_surface_t * surface);
-int linux_fb_drm_surface_present(void * context, struct linux_fb_surface_t * surface, struct linux_dirtylist_t * l);
+int linux_fb_drm_surface_present(void * context, struct linux_fb_surface_t * surface, struct dirtylist_t * l);
 void linux_fb_drm_set_backlight(void * context, int brightness);
 int linux_fb_drm_get_backlight(void * context);
 
@@ -270,7 +152,7 @@ int linux_fb_sdl_get_pwidth(void * context);
 int linux_fb_sdl_get_pheight(void * context);
 int linux_fb_sdl_surface_create(void * context, struct linux_fb_surface_t * surface, int width, int height);
 int linux_fb_sdl_surface_destroy(void * context, struct linux_fb_surface_t * surface);
-int linux_fb_sdl_surface_present(void * context, struct linux_fb_surface_t * surface, struct linux_dirtylist_t * l);
+int linux_fb_sdl_surface_present(void * context, struct linux_fb_surface_t * surface, struct dirtylist_t * l);
 void linux_fb_sdl_set_backlight(void * context, int brightness);
 int linux_fb_sdl_get_backlight(void * context);
 

@@ -77,7 +77,7 @@ static void fb_destroy(struct framebuffer_t * fb, struct surface_t * s)
 static void fb_present(struct framebuffer_t * fb, struct surface_t * s, struct dirtylist_t * l)
 {
 	struct fb_linux_pdata_t * pdat = (struct fb_linux_pdata_t *)fb->priv;
-	linux_fb_surface_present(pdat->priv, s->priv, (struct linux_dirtylist_t *)l);
+	linux_fb_surface_present(pdat->priv, s->priv, l);
 }
 
 static struct device_t * fb_linux_probe(struct driver_t * drv, struct dtnode_t * n)

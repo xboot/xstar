@@ -109,10 +109,10 @@ int linux_fb_sdl_surface_destroy(void * context, struct linux_fb_surface_t * sur
 	return 1;
 }
 
-int linux_fb_sdl_surface_present(void * context, struct linux_fb_surface_t * surface, struct linux_dirtylist_t * l)
+int linux_fb_sdl_surface_present(void * context, struct linux_fb_surface_t * surface, struct dirtylist_t * l)
 {
 	struct linux_fb_sdl_context_t * ctx = (struct linux_fb_sdl_context_t *)context;
-	struct linux_region_t * r;
+	struct region_t * r;
 	int i;
 
 	if(l && (l->count > 0))

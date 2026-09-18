@@ -108,10 +108,10 @@ int win_fb_sdl_surface_destroy(void * context, struct win_fb_surface_t * surface
 	return 1;
 }
 
-int win_fb_sdl_surface_present(void * context, struct win_fb_surface_t * surface, struct win_dirtylist_t * l)
+int win_fb_sdl_surface_present(void * context, struct win_fb_surface_t * surface, struct dirtylist_t * l)
 {
 	struct win_fb_sdl_context_t * ctx = (struct win_fb_sdl_context_t *)context;
-	struct win_region_t * r;
+	struct region_t * r;
 	int i;
 
 	win_event_sdl_poll();
