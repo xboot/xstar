@@ -46,7 +46,7 @@ Rotation is counter-clockwise. When rotated 90 or 270 degrees, the window width 
 2. Obtain the rendering Surface via `window_get_surface()` and perform graphics drawing on it
 3. `window_dirtylist_add()` marks regions that need updating
 4. `window_dirtylist_optimize()` rebuilds the dirty rectangle list as an exact non-overlapping union and compresses it on demand (optional, recommended when accumulating multiple regions)
-5. `window_present_commit()` composites dirty regions from the rendering Surface to the framebuffer and calls `framebuffer_present()` to refresh the screen
+5. `window_present_commit()` composites dirty regions from the rendering Surface to the framebuffer and presents (blocking synchronously until the source surface is no longer referenced by hardware); use `window_present_submit()` to submit asynchronously when rendering should overlap with the refresh
 6. `window_present_clear()` clears the dirty rectangle list, preparing for the next frame
 
 ### Event Handling
@@ -107,7 +107,9 @@ Conversion formula: `px = max(dpi * dp / 160, 1)`
 | `window_dirtylist_add(w, r)` | Add a region to the dirty rectangle list |
 | `window_dirtylist_optimize(w, n)` | Optimize the dirty rectangle list: rebuild as an exact non-overlapping union and compress to at most n rects |
 | `window_present_clear(w)` | Clear dirty rectangles and clear the rendering Surface |
-| `window_present_commit(w)` | Commit dirty regions to the framebuffer and present |
+| `window_present_commit(w)` | Commit dirty regions to the framebuffer synchronously; completed when it returns |
+| `window_present_submit(w, cb, data)` | Submit dirty regions asynchronously; returns 1 if the transfer is in flight (`cb(data)` invoked exactly once on completion, interrupt context allowed), returns 0 if already completed (no callback) |
+| `window_present_wait(w)` | Block until the in-flight asynchronous present completes |
 
 ### Events
 
@@ -144,6 +146,23 @@ while(window_pump_event(w, &e) || 1)
 window_free(w);
 ```
 
+### Asynchronous Present
+
+```c
+static void present_done(void * data)
+{
+    /* The source surface is reusable, trigger the next frame rendering here */
+}
+
+if(!window_present_submit(w, present_done, NULL))
+{
+    /* Returns 0 meaning already completed (no callback), continue directly */
+}
+
+/* To wait synchronously for an in-flight transfer (window_free waits automatically before destroying) */
+window_present_wait(w);
+```
+
 ### Screen Rotation
 
 ```c
@@ -165,4 +184,6 @@ int bl = window_get_backlight(w);
 - The rendering Surface pixel format is 32-bit premultiplied ARGB
 - The dirty rectangle mechanism avoids full-screen refresh, improving rendering efficiency
 - `window_present_commit()` uses G2D hardware acceleration (if available) for Surface compositing
+- `window_present_commit()` is equivalent to `window_present_submit(w, NULL, NULL)`, blocking synchronously until the source surface is no longer referenced by hardware
+- The completion semantics of asynchronous present is "the source surface is reusable"; for page-flip style drivers (DRM, double-buffered LCDC) the completion event is naturally aligned with vertical sync
 - `window_pump_event()` is non-blocking; returns 0 immediately when no events are available

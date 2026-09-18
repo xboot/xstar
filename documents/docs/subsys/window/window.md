@@ -46,7 +46,7 @@ enum window_orientation_t {
 2. 通过 `window_get_surface()` 获取渲染 Surface，在其上执行图形绘制
 3. `window_dirtylist_add()` 标记需要更新的区域
 4. `window_dirtylist_optimize()` 将脏矩形列表重建为精确不重叠并集并按需压缩（可选，累积多个区域时推荐）
-5. `window_present_commit()` 将脏区域内的内容从渲染 Surface 合成到帧缓冲，并调用 `framebuffer_present()` 刷新屏幕
+5. `window_present_commit()` 将脏区域内的内容从渲染 Surface 合成到帧缓冲并呈现（同步阻塞直至源 surface 不再被硬件引用）；需要与刷新并行渲染时使用 `window_present_submit()` 异步提交
 6. `window_present_clear()` 清空脏矩形列表，准备下一帧
 
 ### 事件处理
@@ -107,7 +107,9 @@ int px = window_dp_to_px(w, 16);  /* 16dp 转换为像素 */
 | `window_dirtylist_add(w, r)` | 添加区域到脏矩形列表 |
 | `window_dirtylist_optimize(w, n)` | 优化脏矩形列表：重建为精确不重叠并集并压缩至最多 n 个矩形 |
 | `window_present_clear(w)` | 清空脏矩形并清除渲染 Surface |
-| `window_present_commit(w)` | 提交脏区域到帧缓冲并呈现 |
+| `window_present_commit(w)` | 同步提交脏区域到帧缓冲并呈现，返回即已完成 |
+| `window_present_submit(w, cb, data)` | 异步提交脏区域到帧缓冲，返回 1 表示传输在途（完成时调用 `cb(data)` 恰好一次，允许中断上下文），返回 0 表示已完成（不回调） |
+| `window_present_wait(w)` | 阻塞等待在途的异步呈现完成 |
 
 ### 事件
 
@@ -144,6 +146,23 @@ while(window_pump_event(w, &e) || 1)
 window_free(w);
 ```
 
+### 异步呈现
+
+```c
+static void present_done(void * data)
+{
+    /* 源 surface 已可复用，可在此触发下一帧渲染 */
+}
+
+if(!window_present_submit(w, present_done, NULL))
+{
+    /* 返回 0 表示已完成（未回调），可直接继续 */
+}
+
+/* 需要同步等待在途传输时（如销毁窗口前，window_free 内部会自动等待） */
+window_present_wait(w);
+```
+
 ### 屏幕旋转
 
 ```c
@@ -165,4 +184,6 @@ int bl = window_get_backlight(w);
 - 渲染 Surface 的像素格式为 32 位预乘 ARGB
 - 脏矩形机制避免全屏刷新，提高渲染效率
 - `window_present_commit()` 内部通过 G2D 硬件加速（若可用）执行 Surface 合成
+- `window_present_commit()` 等价于 `window_present_submit(w, NULL, NULL)`，同步阻塞直至源 surface 不再被硬件引用
+- 异步呈现的完成语义为"源 surface 可复用"；页翻转类驱动（DRM、双缓冲 LCDC）的完成事件自然对齐垂直同步
 - `window_pump_event()` 为非阻塞接口，无事件时立即返回 0
