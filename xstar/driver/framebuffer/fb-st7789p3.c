@@ -191,7 +191,7 @@ static void fb_destroy(struct framebuffer_t * fb, struct surface_t * s)
 	surface_free(s);
 }
 
-static void fb_present(struct framebuffer_t * fb, struct surface_t * s, struct dirtylist_t * l)
+static int fb_present(struct framebuffer_t * fb, struct surface_t * s, struct dirtylist_t * l, void (*cb)(void *), void * data)
 {
 	struct fb_st7789p3_pdata_t * pdat = (struct fb_st7789p3_pdata_t *)fb->priv;
 
@@ -237,6 +237,11 @@ static void fb_present(struct framebuffer_t * fb, struct surface_t * s, struct d
 		spi_device_write_then_read(pdat->dev, pdat->txbuf, pdat->width * pdat->height * 2, 0, 0);
 		spi_device_deselect(pdat->dev);
 	}
+	return 0;
+}
+
+static void fb_wait(struct framebuffer_t * fb)
+{
 }
 
 static struct device_t * fb_st7789p3_probe(struct driver_t * drv, struct dtnode_t * n)
@@ -299,6 +304,7 @@ static struct device_t * fb_st7789p3_probe(struct driver_t * drv, struct dtnode_
 	fb->create = fb_create;
 	fb->destroy = fb_destroy;
 	fb->present = fb_present;
+	fb->wait = fb_wait;
 	fb->priv = pdat;
 
 	if(pdat->rst >= 0)

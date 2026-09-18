@@ -150,7 +150,7 @@ static void fb_destroy(struct framebuffer_t * fb, struct surface_t * s)
 	surface_free(s);
 }
 
-static void fb_present(struct framebuffer_t * fb, struct surface_t * s, struct dirtylist_t * l)
+static int fb_present(struct framebuffer_t * fb, struct surface_t * s, struct dirtylist_t * l, void (*cb)(void *), void * data)
 {
 	struct fb_ssd1308_pdata_t * pdat = (struct fb_ssd1308_pdata_t *)fb->priv;
 	uint32_t * p = s->pixels;
@@ -166,6 +166,11 @@ static void fb_present(struct framebuffer_t * fb, struct surface_t * s, struct d
 		}
 	}
 	ssd1308_refresh(pdat);
+	return 0;
+}
+
+static void fb_wait(struct framebuffer_t * fb)
+{
 }
 
 static struct device_t * fb_ssd1308_probe(struct driver_t * drv, struct dtnode_t * n)
@@ -214,6 +219,7 @@ static struct device_t * fb_ssd1308_probe(struct driver_t * drv, struct dtnode_t
 	fb->create = fb_create;
 	fb->destroy = fb_destroy;
 	fb->present = fb_present;
+	fb->wait = fb_wait;
 	fb->priv = pdat;
 
 	ssd1308_initial(pdat);

@@ -117,11 +117,13 @@ struct window_t * window_alloc(const char * fb, const char * input, int orientat
 void window_free(struct window_t * w);
 void window_set_matrix(struct window_t * w, struct matrix2d_t * m);
 void window_exit(struct window_t * w);
-void window_dirtylist_fullscreen(struct window_t * w);
 void window_dirtylist_clear(struct window_t * w);
 void window_dirtylist_add(struct window_t * w, struct region_t * r);
 void window_dirtylist_optimize(struct window_t * w, int n);
+void window_dirtylist_fullscreen(struct window_t * w);
 void window_present_clear(struct window_t * w);
+int window_present_submit(struct window_t * w, void (*cb)(void *), void * data);
+void window_present_wait(struct window_t * w);
 void window_present_commit(struct window_t * w);
 int window_pump_event(struct window_t * w, struct event_t * e);
 void push_event(struct event_t * e);

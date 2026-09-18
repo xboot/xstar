@@ -46,7 +46,12 @@ static void fb_dummy_destroy(struct framebuffer_t * fb, struct surface_t * s)
 	surface_free(s);
 }
 
-static void fb_dummy_present(struct framebuffer_t * fb, struct surface_t * s, struct dirtylist_t * l)
+static int fb_dummy_present(struct framebuffer_t * fb, struct surface_t * s, struct dirtylist_t * l, void (*cb)(void *), void * data)
+{
+	return 0;
+}
+
+static void fb_dummy_wait(struct framebuffer_t * fb)
 {
 }
 
@@ -61,6 +66,7 @@ static struct framebuffer_t fb_dummy = {
 	.create		= fb_dummy_create,
 	.destroy	= fb_dummy_destroy,
 	.present	= fb_dummy_present,
+	.wait		= fb_dummy_wait,
 	.priv		= NULL,
 };
 
@@ -562,6 +568,7 @@ void window_free(struct window_t * w)
 		xos_mutex_lock(&__window_lock);
 		list_del(&w->list);
 		xos_mutex_unlock(&__window_lock);
+		window_present_wait(w);
 		if(w->fbsurface)
 			framebuffer_destroy_surface(w->fb, w->fbsurface);
 		if(w->surface)
@@ -643,15 +650,6 @@ void window_exit(struct window_t * w)
 	}
 }
 
-void window_dirtylist_fullscreen(struct window_t * w)
-{
-	if(w)
-	{
-		dirtylist_clear(w->dirtylist);
-		dirtylist_add(w->dirtylist, &(struct region_t){ 0, 0, surface_get_width(w->surface), surface_get_height(w->surface) });
-	}
-}
-
 void window_dirtylist_clear(struct window_t * w)
 {
 	if(w)
@@ -673,6 +671,15 @@ void window_dirtylist_optimize(struct window_t * w, int n)
 {
 	if(w && (w->dirtylist->count > 0))
 		dirtylist_optimize(w->dirtylist, n);
+}
+
+void window_dirtylist_fullscreen(struct window_t * w)
+{
+	if(w)
+	{
+		dirtylist_clear(w->dirtylist);
+		dirtylist_add(w->dirtylist, &(struct region_t){ 0, 0, surface_get_width(w->surface), surface_get_height(w->surface) });
+	}
 }
 
 void window_present_clear(struct window_t * w)
@@ -703,7 +710,7 @@ void window_present_clear(struct window_t * w)
 	}
 }
 
-void window_present_commit(struct window_t * w)
+int window_present_submit(struct window_t * w, void (*cb)(void *), void * data)
 {
 	if(w && (w->dirtylist->count > 0))
 	{
@@ -816,8 +823,7 @@ void window_present_commit(struct window_t * w)
 		{
 		case GMFLAG_IDENTITY:
 		{
-			framebuffer_present_surface(w->fb, w->surface, w->dirtylist);
-			break;
+			return framebuffer_present_submit(w->fb, w->surface, w->dirtylist, cb, data);
 		}
 		case GMFLAG_ROTATE_0:
 		{
@@ -831,8 +837,7 @@ void window_present_commit(struct window_t * w)
 				item->region.y = ry + gm->ty;
 				window_surface_blit_rotate_0(w->fbsurface, &item->region, &w->gmatrix, w->surface);
 			}
-			framebuffer_present_surface(w->fb, w->fbsurface, w->dirtylist);
-			break;
+			return framebuffer_present_submit(w->fb, w->fbsurface, w->dirtylist, cb, data);
 		}
 		case GMFLAG_ROTATE_90:
 		{
@@ -850,8 +855,7 @@ void window_present_commit(struct window_t * w)
 				item->region.h = rw;
 				window_surface_blit_rotate_90(w->fbsurface, &item->region, &w->gmatrix, w->surface);
 			}
-			framebuffer_present_surface(w->fb, w->fbsurface, w->dirtylist);
-			break;
+			return framebuffer_present_submit(w->fb, w->fbsurface, w->dirtylist, cb, data);
 		}
 		case GMFLAG_ROTATE_180:
 		{
@@ -867,8 +871,7 @@ void window_present_commit(struct window_t * w)
 				item->region.y = gm->ty - ry - rh;
 				window_surface_blit_rotate_180(w->fbsurface, &item->region, &w->gmatrix, w->surface);
 			}
-			framebuffer_present_surface(w->fb, w->fbsurface, w->dirtylist);
-			break;
+			return framebuffer_present_submit(w->fb, w->fbsurface, w->dirtylist, cb, data);
 		}
 		case GMFLAG_ROTATE_270:
 		{
@@ -886,8 +889,7 @@ void window_present_commit(struct window_t * w)
 				item->region.h = rw;
 				window_surface_blit_rotate_270(w->fbsurface, &item->region, &w->gmatrix, w->surface);
 			}
-			framebuffer_present_surface(w->fb, w->fbsurface, w->dirtylist);
-			break;
+			return framebuffer_present_submit(w->fb, w->fbsurface, w->dirtylist, cb, data);
 		}
 		case GMFLAG_FLIP_H:
 		{
@@ -902,8 +904,7 @@ void window_present_commit(struct window_t * w)
 				item->region.y = ry + gm->ty;
 				window_surface_blit_flip_h(w->fbsurface, &item->region, &w->gmatrix, w->surface);
 			}
-			framebuffer_present_surface(w->fb, w->fbsurface, w->dirtylist);
-			break;
+			return framebuffer_present_submit(w->fb, w->fbsurface, w->dirtylist, cb, data);
 		}
 		case GMFLAG_FLIP_MD:
 		{
@@ -921,8 +922,7 @@ void window_present_commit(struct window_t * w)
 				item->region.h = rw;
 				window_surface_blit_flip_md(w->fbsurface, &item->region, &w->gmatrix, w->surface);
 			}
-			framebuffer_present_surface(w->fb, w->fbsurface, w->dirtylist);
-			break;
+			return framebuffer_present_submit(w->fb, w->fbsurface, w->dirtylist, cb, data);
 		}
 		case GMFLAG_FLIP_V:
 		{
@@ -937,8 +937,7 @@ void window_present_commit(struct window_t * w)
 				item->region.y = gm->ty - ry - rh;
 				window_surface_blit_flip_v(w->fbsurface, &item->region, &w->gmatrix, w->surface);
 			}
-			framebuffer_present_surface(w->fb, w->fbsurface, w->dirtylist);
-			break;
+			return framebuffer_present_submit(w->fb, w->fbsurface, w->dirtylist, cb, data);
 		}
 		case GMFLAG_FLIP_AD:
 		{
@@ -956,8 +955,7 @@ void window_present_commit(struct window_t * w)
 				item->region.h = rw;
 				window_surface_blit_flip_ad(w->fbsurface, &item->region, &w->gmatrix, w->surface);
 			}
-			framebuffer_present_surface(w->fb, w->fbsurface, w->dirtylist);
-			break;
+			return framebuffer_present_submit(w->fb, w->fbsurface, w->dirtylist, cb, data);
 		}
 		case GMFLAG_OTHER:
 		{
@@ -976,13 +974,24 @@ void window_present_commit(struct window_t * w)
 				item->area = item->region.w * item->region.h;
 				window_surface_blit_other(w->fbsurface, &item->region, &w->gmatrix, w->surface);
 			}
-			framebuffer_present_surface(w->fb, w->fbsurface, w->dirtylist);
-			break;
+			return framebuffer_present_submit(w->fb, w->fbsurface, w->dirtylist, cb, data);
 		}
 		default:
 			break;
 		}
 	}
+	return 0;
+}
+
+void window_present_wait(struct window_t * w)
+{
+	if(w)
+		framebuffer_present_wait(w->fb);
+}
+
+void window_present_commit(struct window_t * w)
+{
+	window_present_submit(w, NULL, NULL);
 }
 
 static void global_to_local_point(struct window_t * w , int x, int y, int * nx, int * ny)

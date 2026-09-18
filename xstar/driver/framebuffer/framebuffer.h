@@ -10,8 +10,7 @@ extern "C" {
 #include <driver/driver.h>
 #include <kernel/graphic/surface.h>
 
-struct framebuffer_t
-{
+struct framebuffer_t {
 	/* Framebuffer name */
 	char * name;
 
@@ -33,8 +32,17 @@ struct framebuffer_t
 	/* Destroy a surface */
 	void (*destroy)(struct framebuffer_t * fb, struct surface_t * s);
 
-	/* Present a surface */
-	void (*present)(struct framebuffer_t * fb, struct surface_t * s, struct dirtylist_t * l);
+	/*
+	 * Present a surface, completion means the source surface is no longer referenced by hardware.
+	 * cb == NULL : synchronous, blocks until completion and returns 0.
+	 * cb != NULL : asynchronous hint. Returns 1 if the transfer is in flight, cb(data) will be
+	 *              invoked exactly once on completion (interrupt context allowed); returns 0
+	 *              if it has already completed during the call, cb will never be invoked.
+	 */
+	int (*present)(struct framebuffer_t * fb, struct surface_t * s, struct dirtylist_t * l, void (*cb)(void *), void * data);
+
+	/* Wait for the in-flight present to complete, required, use an empty function if present never returns 1 */
+	void (*wait)(struct framebuffer_t * fb);
 
 	/* Private data */
 	void * priv;
@@ -104,9 +112,14 @@ static inline void framebuffer_destroy_surface(struct framebuffer_t * fb, struct
 	fb->destroy(fb, s);
 }
 
-static inline void framebuffer_present_surface(struct framebuffer_t * fb, struct surface_t * s, struct dirtylist_t * l)
+static inline int framebuffer_present_submit(struct framebuffer_t * fb, struct surface_t * s, struct dirtylist_t * l, void (*cb)(void *), void * data)
 {
-	fb->present(fb, s, l);
+	return fb->present(fb, s, l, cb, data);
+}
+
+static inline void framebuffer_present_wait(struct framebuffer_t * fb)
+{
+	fb->wait(fb);
 }
 
 struct framebuffer_t * search_framebuffer(const char * name);
