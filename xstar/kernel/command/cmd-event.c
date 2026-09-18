@@ -151,38 +151,38 @@ static int do_event(int argc, char ** argv)
 				{
 					if(ectx->index > 0)
 					{
-					struct surface_t * s = window_get_surface(w);
-					struct cg_ctx_t * cg = surface_get_cg_ctx(s);
-					cg_save(cg);
-					cg_set_line_width(cg, 1);
-					cg_set_source_rgba(cg, 0.0, 0.0, 1.0, 1.0);
-					cg_move_to(cg, ectx->param[0].x, ectx->param[0].y);
-					for(int i = 1; i < ectx->index; i++)
-						cg_line_to(cg, ectx->param[i].x, ectx->param[i].y);
-					cg_stroke(cg);
-					cg_set_line_width(cg, 1);
-					cg_set_source_rgba(cg, 1.0, 0.0, 0.0, 1.0);
-					for(int i = 0; i < ectx->index; i++)
-						cg_rectangle(cg, ectx->param[i].x - 1, ectx->param[i].y - 1, 2, 2);
-					cg_fill(cg);
-					cg_restore(cg);
-
-					if(ectx->pressed)
-					{
+						struct surface_t * s = window_get_surface(w);
+						struct cg_ctx_t * cg = surface_get_cg_ctx(s);
 						cg_save(cg);
 						cg_set_line_width(cg, 1);
-						cg_set_source_rgba(cg, 1.0, 1.0, 0.0, 1.0);
-						cg_move_to(cg, 0, ectx->param[ectx->index - 1].y);
-						cg_line_to(cg, window_get_width(w), ectx->param[ectx->index - 1].y);
-						cg_move_to(cg, ectx->param[ectx->index - 1].x, 0);
-						cg_line_to(cg, ectx->param[ectx->index - 1].x, window_get_height(w));
+						cg_set_source_rgba(cg, 0.0, 0.0, 1.0, 1.0);
+						cg_move_to(cg, ectx->param[0].x, ectx->param[0].y);
+						for(int i = 1; i < ectx->index; i++)
+							cg_line_to(cg, ectx->param[i].x, ectx->param[i].y);
 						cg_stroke(cg);
 						cg_set_line_width(cg, 1);
-						cg_set_source_rgba(cg, 0.0, 0.0, 1.0, 1.0);
-						cg_arc(cg, ectx->param[ectx->index - 1].x, ectx->param[ectx->index - 1].y, 32, 0, 2 * M_PI);
-						cg_stroke(cg);
+						cg_set_source_rgba(cg, 1.0, 0.0, 0.0, 1.0);
+						for(int i = 0; i < ectx->index; i++)
+							cg_rectangle(cg, ectx->param[i].x - 1, ectx->param[i].y - 1, 2, 2);
+						cg_fill(cg);
 						cg_restore(cg);
-					}
+
+						if(ectx->pressed)
+						{
+							cg_save(cg);
+							cg_set_line_width(cg, 1);
+							cg_set_source_rgba(cg, 1.0, 1.0, 0.0, 1.0);
+							cg_move_to(cg, 0, ectx->param[ectx->index - 1].y);
+							cg_line_to(cg, window_get_width(w), ectx->param[ectx->index - 1].y);
+							cg_move_to(cg, ectx->param[ectx->index - 1].x, 0);
+							cg_line_to(cg, ectx->param[ectx->index - 1].x, window_get_height(w));
+							cg_stroke(cg);
+							cg_set_line_width(cg, 1);
+							cg_set_source_rgba(cg, 0.0, 0.0, 1.0, 1.0);
+							cg_arc(cg, ectx->param[ectx->index - 1].x, ectx->param[ectx->index - 1].y, 32, 0, 2 * M_PI);
+							cg_stroke(cg);
+							cg_restore(cg);
+						}
 					}
 				}
 				window_present_commit(w);
