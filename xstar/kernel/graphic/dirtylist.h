@@ -25,6 +25,7 @@ void dirtylist_clone(struct dirtylist_t * l, struct dirtylist_t * o);
 void dirtylist_merge(struct dirtylist_t * l, struct dirtylist_t * o);
 void dirtylist_clear(struct dirtylist_t * l);
 void dirtylist_add(struct dirtylist_t * l, struct region_t * r);
+void dirtylist_optimize(struct dirtylist_t * l, int n);
 
 #ifdef __cplusplus
 }

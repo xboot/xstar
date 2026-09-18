@@ -120,6 +120,7 @@ void window_exit(struct window_t * w);
 void window_dirtylist_fullscreen(struct window_t * w);
 void window_dirtylist_clear(struct window_t * w);
 void window_dirtylist_add(struct window_t * w, struct region_t * r);
+void window_dirtylist_optimize(struct window_t * w, int n);
 void window_present_clear(struct window_t * w);
 void window_present_commit(struct window_t * w);
 int window_pump_event(struct window_t * w, struct event_t * e);

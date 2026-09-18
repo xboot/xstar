@@ -669,6 +669,12 @@ void window_dirtylist_add(struct window_t * w, struct region_t * r)
 	}
 }
 
+void window_dirtylist_optimize(struct window_t * w, int n)
+{
+	if(w && (w->dirtylist->count > 0))
+		dirtylist_optimize(w->dirtylist, n);
+}
+
 void window_present_clear(struct window_t * w)
 {
 	if(w && (w->dirtylist->count > 0))

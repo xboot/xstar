@@ -2533,6 +2533,7 @@ void xui_loop(struct xui_context_t * ctx, void (*func)(struct xui_context_t *))
 				}
 			}
 		}
+		window_dirtylist_optimize(ctx->w, 3);
 		window_present_commit(ctx->w);
 	}
 }

@@ -45,8 +45,9 @@ enum window_orientation_t {
 1. `window_alloc()` 创建窗口，绑定帧缓冲设备和输入设备，分配渲染 Surface
 2. 通过 `window_get_surface()` 获取渲染 Surface，在其上执行图形绘制
 3. `window_dirtylist_add()` 标记需要更新的区域
-4. `window_present_commit()` 将脏区域内的内容从渲染 Surface 合成到帧缓冲，并调用 `framebuffer_present()` 刷新屏幕
-5. `window_present_clear()` 清空脏矩形列表，准备下一帧
+4. `window_dirtylist_optimize()` 将脏矩形列表重建为精确不重叠并集并按需压缩（可选，累积多个区域时推荐）
+5. `window_present_commit()` 将脏区域内的内容从渲染 Surface 合成到帧缓冲，并调用 `framebuffer_present()` 刷新屏幕
+6. `window_present_clear()` 清空脏矩形列表，准备下一帧
 
 ### 事件处理
 
@@ -104,6 +105,7 @@ int px = window_dp_to_px(w, 16);  /* 16dp 转换为像素 */
 | `window_dirtylist_fullscreen(w)` | 标记全屏为脏区域 |
 | `window_dirtylist_clear(w)` | 清空脏矩形列表 |
 | `window_dirtylist_add(w, r)` | 添加区域到脏矩形列表 |
+| `window_dirtylist_optimize(w, n)` | 优化脏矩形列表：重建为精确不重叠并集并压缩至最多 n 个矩形 |
 | `window_present_clear(w)` | 清空脏矩形并清除渲染 Surface |
 | `window_present_commit(w)` | 提交脏区域到帧缓冲并呈现 |
 

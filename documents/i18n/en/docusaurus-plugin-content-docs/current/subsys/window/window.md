@@ -45,8 +45,9 @@ Rotation is counter-clockwise. When rotated 90 or 270 degrees, the window width 
 1. `window_alloc()` creates the window, binds the framebuffer and input devices, and allocates the rendering Surface
 2. Obtain the rendering Surface via `window_get_surface()` and perform graphics drawing on it
 3. `window_dirtylist_add()` marks regions that need updating
-4. `window_present_commit()` composites dirty regions from the rendering Surface to the framebuffer and calls `framebuffer_present()` to refresh the screen
-5. `window_present_clear()` clears the dirty rectangle list, preparing for the next frame
+4. `window_dirtylist_optimize()` rebuilds the dirty rectangle list as an exact non-overlapping union and compresses it on demand (optional, recommended when accumulating multiple regions)
+5. `window_present_commit()` composites dirty regions from the rendering Surface to the framebuffer and calls `framebuffer_present()` to refresh the screen
+6. `window_present_clear()` clears the dirty rectangle list, preparing for the next frame
 
 ### Event Handling
 
@@ -104,6 +105,7 @@ Conversion formula: `px = max(dpi * dp / 160, 1)`
 | `window_dirtylist_fullscreen(w)` | Mark the entire screen as dirty |
 | `window_dirtylist_clear(w)` | Clear the dirty rectangle list |
 | `window_dirtylist_add(w, r)` | Add a region to the dirty rectangle list |
+| `window_dirtylist_optimize(w, n)` | Optimize the dirty rectangle list: rebuild as an exact non-overlapping union and compress to at most n rects |
 | `window_present_clear(w)` | Clear dirty rectangles and clear the rendering Surface |
 | `window_present_commit(w)` | Commit dirty regions to the framebuffer and present |
 
