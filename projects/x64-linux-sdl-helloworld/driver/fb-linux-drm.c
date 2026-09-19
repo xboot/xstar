@@ -77,12 +77,13 @@ static void fb_destroy(struct framebuffer_t * fb, struct surface_t * s)
 static int fb_present(struct framebuffer_t * fb, struct surface_t * s, struct dirtylist_t * l, void (*cb)(void *), void * data)
 {
 	struct fb_linux_drm_pdata_t * pdat = (struct fb_linux_drm_pdata_t *)fb->priv;
-	linux_fb_drm_surface_present(pdat->priv, s->priv, l);
-	return 0;
+	return linux_fb_drm_surface_present(pdat->priv, s->priv, l, cb, data);
 }
 
 static void fb_wait(struct framebuffer_t * fb)
 {
+	struct fb_linux_drm_pdata_t * pdat = (struct fb_linux_drm_pdata_t *)fb->priv;
+	linux_fb_drm_surface_wait(pdat->priv);
 }
 
 static struct device_t * fb_linux_drm_probe(struct driver_t * drv, struct dtnode_t * n)

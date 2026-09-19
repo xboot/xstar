@@ -869,7 +869,7 @@ int linux_fb_drm_surface_destroy(void * context, struct linux_fb_surface_t * sur
 	return 1;
 }
 
-int linux_fb_drm_surface_present(void * context, struct linux_fb_surface_t * surface, struct dirtylist_t * l)
+int linux_fb_drm_surface_present(void * context, struct linux_fb_surface_t * surface, struct dirtylist_t * l, void (*cb)(void *), void * data)
 {
 	struct linux_fb_drm_context_t * ctx = (struct linux_fb_drm_context_t *)context;
 	struct dirtylist_t * nl = ctx->nl;
@@ -903,7 +903,11 @@ int linux_fb_drm_surface_present(void * context, struct linux_fb_surface_t * sur
 		}
 		drmModeSetCrtc(ctx->fd, ctx->crtc_id, drmbuf->fb, 0, 0, &ctx->conn_id, 1, &ctx->conn->modes[0]);
 	}
-	return 1;
+	return 0;
+}
+
+void linux_fb_drm_surface_wait(void * context)
+{
 }
 
 void linux_fb_drm_set_backlight(void * context, int brightness)

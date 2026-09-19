@@ -108,7 +108,7 @@ int win_fb_sdl_surface_destroy(void * context, struct win_fb_surface_t * surface
 	return 1;
 }
 
-int win_fb_sdl_surface_present(void * context, struct win_fb_surface_t * surface, struct dirtylist_t * l)
+int win_fb_sdl_surface_present(void * context, struct win_fb_surface_t * surface, struct dirtylist_t * l, void (*cb)(void *), void * data)
 {
 	struct win_fb_sdl_context_t * ctx = (struct win_fb_sdl_context_t *)context;
 	struct region_t * r;
@@ -124,7 +124,11 @@ int win_fb_sdl_surface_present(void * context, struct win_fb_surface_t * surface
 		}
 		SDL_UpdateWindowSurface(ctx->window);
 	}
-	return 1;
+	return 0;
+}
+
+void win_fb_sdl_surface_wait(void * context)
+{
 }
 
 void win_fb_sdl_set_backlight(void * context, int brightness)

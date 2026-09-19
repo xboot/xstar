@@ -126,7 +126,8 @@ int linux_fb_get_pwidth(void * context);
 int linux_fb_get_pheight(void * context);
 int linux_fb_surface_create(void * context, struct linux_fb_surface_t * surface, int width, int height);
 int linux_fb_surface_destroy(void * context, struct linux_fb_surface_t * surface);
-int linux_fb_surface_present(void * context, struct linux_fb_surface_t * surface, struct dirtylist_t * l);
+int linux_fb_surface_present(void * context, struct linux_fb_surface_t * surface, struct dirtylist_t * l, void (*cb)(void *), void * data);
+void linux_fb_surface_wait(void * context);
 void linux_fb_set_backlight(void * context, int brightness);
 int linux_fb_get_backlight(void * context);
 
@@ -139,7 +140,8 @@ int linux_fb_drm_get_pwidth(void * context);
 int linux_fb_drm_get_pheight(void * context);
 int linux_fb_drm_surface_create(void * context, struct linux_fb_surface_t * surface, int width, int height);
 int linux_fb_drm_surface_destroy(void * context, struct linux_fb_surface_t * surface);
-int linux_fb_drm_surface_present(void * context, struct linux_fb_surface_t * surface, struct dirtylist_t * l);
+int linux_fb_drm_surface_present(void * context, struct linux_fb_surface_t * surface, struct dirtylist_t * l, void (*cb)(void *), void * data);
+void linux_fb_drm_surface_wait(void * context);
 void linux_fb_drm_set_backlight(void * context, int brightness);
 int linux_fb_drm_get_backlight(void * context);
 
@@ -152,7 +154,8 @@ int linux_fb_sdl_get_pwidth(void * context);
 int linux_fb_sdl_get_pheight(void * context);
 int linux_fb_sdl_surface_create(void * context, struct linux_fb_surface_t * surface, int width, int height);
 int linux_fb_sdl_surface_destroy(void * context, struct linux_fb_surface_t * surface);
-int linux_fb_sdl_surface_present(void * context, struct linux_fb_surface_t * surface, struct dirtylist_t * l);
+int linux_fb_sdl_surface_present(void * context, struct linux_fb_surface_t * surface, struct dirtylist_t * l, void (*cb)(void *), void * data);
+void linux_fb_sdl_surface_wait(void * context);
 void linux_fb_sdl_set_backlight(void * context, int brightness);
 int linux_fb_sdl_get_backlight(void * context);
 

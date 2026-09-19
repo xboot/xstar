@@ -110,7 +110,7 @@ int linux_fb_surface_destroy(void * context, struct linux_fb_surface_t * surface
 	return 1;
 }
 
-int linux_fb_surface_present(void * context, struct linux_fb_surface_t * surface, struct dirtylist_t * l)
+int linux_fb_surface_present(void * context, struct linux_fb_surface_t * surface, struct dirtylist_t * l, void (*cb)(void *), void * data)
 {
 	struct linux_fb_context_t * ctx = (struct linux_fb_context_t *)context;
 
@@ -132,7 +132,11 @@ int linux_fb_surface_present(void * context, struct linux_fb_surface_t * surface
 		}
 		ioctl(ctx->fd, FBIOPAN_DISPLAY, &ctx->vi);
 	}
-	return 1;
+	return 0;
+}
+
+void linux_fb_surface_wait(void * context)
+{
 }
 
 void linux_fb_set_backlight(void * context, int brightness)
