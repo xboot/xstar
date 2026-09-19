@@ -31,4 +31,4 @@ struct dirtylist_t {
 
 ## Description
 
-The dirty rectangle list tracks regions that need redrawing. `dirtylist_add()` is a plain O(1) append with no merging; once regions have been accumulated, call `dirtylist_optimize()` to optimize in a single pass: it first rebuilds the list as a pixel-exact, pairwise non-overlapping union via a y-axis band sweep, then repeatedly merges the pair with the least bounding-box penalty until at most n rects remain. When n <= 0, compression is skipped and only the exact union is kept (suitable for present paths with no per-rect transaction overhead).
+The dirty rectangle list tracks regions that need redrawing. `dirtylist_add()` is a plain O(1) append with no merging; once regions have been accumulated, call `dirtylist_optimize()` to optimize in a single pass: it first rebuilds the list as a pixel-exact, pairwise non-overlapping union via a y-axis band sweep, then repeatedly merges the pair with the least bounding-box penalty until at most n rects remain. When `n <= 0`, compression is skipped and only the exact union is kept (suitable for present paths with no per-rect transaction overhead).
