@@ -64,10 +64,10 @@ static void circle_clean(struct wboxtest_t * wbt, void * data)
 static void circle_run(struct wboxtest_t * wbt, void * data)
 {
 	struct wbt_circle_pdata_t * pdat = (struct wbt_circle_pdata_t *)data;
-	struct surface_t * s = window_get_surface(pdat->w);
 
 	if(pdat)
 	{
+		struct surface_t * s = window_frame_acquire(pdat->w);
 		xos_srand(0);
 		pdat->calls = 0;
 		pdat->t2 = pdat->t1 = ktime_get();
@@ -95,6 +95,8 @@ static void circle_run(struct wboxtest_t * wbt, void * data)
 			pdat->calls++;
 			pdat->t2 = ktime_get();
 		} while(ktime_before(pdat->t2, ktime_add_ms(pdat->t1, 2000)));
+		window_frame_damage(pdat->w, NULL);
+		window_frame_release(pdat->w, NULL, NULL);
 		wboxtest_printf(" Counts: %g\r\n", (double)(pdat->calls * 1000.0) / ktime_ms_delta(pdat->t2, pdat->t1));
 	}
 }

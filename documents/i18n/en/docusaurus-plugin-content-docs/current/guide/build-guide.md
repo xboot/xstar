@@ -65,7 +65,7 @@ The project Makefile is a lightweight wrapper that delegates to the root Makefil
 1. **Compile Options** — `CONFIG_CROSS_COMPILE`, architecture (ARM32/64, RISC-V32/64, X32/X64), `CONFIG_OPTIMIZE_LEVEL` (default `-O3`)
 2. **Project Selection** — `CONFIG_PROJECT_NAME` and project-specific options
 3. **Package Libraries** — `CONFIG_PKG_LIBC/LIBM/LIBCJSON/LVGL/WBOXTEST/XUI`, etc.
-4. **Xstar Options** — `CONFIG_XSTAR`, `CONFIG_XSTAR_LOG`, `CONFIG_XSTAR_LOGGER_SIZE`, `CONFIG_XSTAR_MAX_PATH`, `CONFIG_XSTAR_WINDOW_ORIENTATION`
+4. **Xstar Options** — `CONFIG_XSTAR`, `CONFIG_XSTAR_LOG`, `CONFIG_XSTAR_LOGGER_SIZE`, `CONFIG_XSTAR_MAX_PATH`, `CONFIG_XSTAR_WINDOW_DIRTY_RECTANGLE_LIMIT`, `CONFIG_XSTAR_WINDOW_ORIENTATION`
 5. **Device Drivers** — 50+ devices, with specific drivers under each category such as `CONFIG_DRV_CLK_FIXED`, `CONFIG_DRV_I2C_GPIO`
 6. **Command Configuration** — Each Shell command can be individually enabled/disabled, e.g. `CONFIG_CMD_HELP`, `CONFIG_CMD_ECHO`
 

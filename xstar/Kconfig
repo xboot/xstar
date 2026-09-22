@@ -30,6 +30,40 @@ config XSTAR_MAX_PATH
 		Maximum path length for shell commands.
 
 choice
+	prompt "Window buffer mode"
+	default XSTAR_WINDOW_SINGLE_BUFFER
+	help
+		Select the buffering mode used by the window subsystem.
+
+config XSTAR_WINDOW_SINGLE_BUFFER
+	bool "Single buffer"
+	help
+		Use one window surface. This is the default and is recommended for
+		framebuffer drivers that complete presentation synchronously.
+
+config XSTAR_WINDOW_DOUBLE_BUFFER
+	bool "Double buffer"
+	help
+		Use ping-pong window surfaces so application rendering can overlap an
+		asynchronous framebuffer present operation. Synchronous drivers gain no
+		concurrency and incur an additional damage copy on each frame.
+endchoice
+
+config XSTAR_WINDOW_BUFFER_MODE
+	int
+	default 0 if XSTAR_WINDOW_SINGLE_BUFFER
+	default 1 if XSTAR_WINDOW_DOUBLE_BUFFER
+
+config XSTAR_WINDOW_DIRTY_RECTANGLE_LIMIT
+	int "Maximum damage rectangle count"
+	range 1 32
+	default 4
+	help
+		Maximum number of damage rectangles retained for each frame. Smaller
+		values reduce per-rectangle processing and transaction overhead, while
+		larger values reduce bounding-box overdraw.
+
+choice
 	prompt "Window default orientation"
 	default XSTAR_WINDOW_ORIENTATION_ROTATE_0
 	help

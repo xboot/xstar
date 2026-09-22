@@ -12,6 +12,7 @@ extern "C" {
 struct xlvgl_context_t {
 	struct window_t * win;
 	lv_display_t * disp;
+	lv_draw_buf_t drawbuf;
 	lv_timer_t * timer;
 	struct {
 		lv_indev_t * indev;

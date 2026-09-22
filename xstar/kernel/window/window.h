@@ -31,34 +31,32 @@ struct window_t {
 	struct matrix2d_t lmatrix;
 	struct matrix2d_t gmatrix;
 	struct framebuffer_t * fb;
-	struct surface_t * fbsurface;
-	struct surface_t * surface;
-	struct dirtylist_t * dirtylist;
+	struct surface_t * fbsurface[2];
+	struct surface_t * surface[2];
+	struct dirtylist_t * pending;
+	struct dirtylist_t * inflight;
+	struct dirtylist_t * fbspace[2];
+	struct mutex_t lock;
 	struct fifo_t * event;
 	struct hmap_t * map;
+	int bufdbl;
+	int bufidx;
 	int copyright;
 	int gmflag;
 	int dpi;
 };
 
-static inline struct surface_t * window_get_surface(struct window_t * w)
-{
-	if(w)
-		return w->surface;
-	return NULL;
-}
-
 static inline int window_get_width(struct window_t * w)
 {
 	if(w)
-		return surface_get_width(w->surface);
+		return surface_get_width(w->surface[0] ? w->surface[0] : w->fbsurface[0]);
 	return 0;
 }
 
 static inline int window_get_height(struct window_t * w)
 {
 	if(w)
-		return surface_get_height(w->surface);
+		return surface_get_height(w->surface[0] ? w->surface[0] : w->fbsurface[0]);
 	return 0;
 }
 
@@ -66,7 +64,7 @@ static inline int window_get_pwidth(struct window_t * w)
 {
 	if(w)
 	{
-		if((surface_get_width(w->surface) == framebuffer_get_width(w->fb)) && (surface_get_height(w->surface) == framebuffer_get_height(w->fb)))
+		if((window_get_width(w) == framebuffer_get_width(w->fb)) && (window_get_height(w) == framebuffer_get_height(w->fb)))
 			return framebuffer_get_pwidth(w->fb);
 		else
 			return framebuffer_get_pheight(w->fb);
@@ -78,7 +76,7 @@ static inline int window_get_pheight(struct window_t * w)
 {
 	if(w)
 	{
-		if((surface_get_width(w->surface) == framebuffer_get_width(w->fb)) && (surface_get_height(w->surface) == framebuffer_get_height(w->fb)))
+		if((window_get_width(w) == framebuffer_get_width(w->fb)) && (window_get_height(w) == framebuffer_get_height(w->fb)))
 			return framebuffer_get_pheight(w->fb);
 		else
 			return framebuffer_get_pwidth(w->fb);
@@ -117,14 +115,12 @@ struct window_t * window_alloc(const char * fb, const char * input, int orientat
 void window_free(struct window_t * w);
 void window_set_matrix(struct window_t * w, struct matrix2d_t * m);
 void window_exit(struct window_t * w);
-void window_dirtylist_clear(struct window_t * w);
-void window_dirtylist_add(struct window_t * w, struct region_t * r);
-void window_dirtylist_optimize(struct window_t * w, int n);
-void window_dirtylist_fullscreen(struct window_t * w);
-void window_present_clear(struct window_t * w);
-int window_present_submit(struct window_t * w, void (*cb)(void *), void * data);
-void window_present_wait(struct window_t * w);
-void window_present_commit(struct window_t * w);
+struct surface_t * window_frame_acquire(struct window_t * w);
+struct dirtylist_t * window_frame_damage_get(struct window_t * w);
+void window_frame_damage(struct window_t * w, struct region_t * r);
+void window_frame_clear(struct window_t * w);
+int window_frame_release(struct window_t * w, void (*cb)(void *), void * data);
+void window_frame_wait(struct window_t * w);
 int window_pump_event(struct window_t * w, struct event_t * e);
 void push_event(struct event_t * e);
 

@@ -14,7 +14,7 @@ struct framebuffer_t {
     int width, height, pwidth, pheight;
     void (*setbl)(struct framebuffer_t * fb, int brightness);
     int (*getbl)(struct framebuffer_t * fb);
-    struct surface_t * (*create)(struct framebuffer_t * fb, int width, int height);
+    struct surface_t * (*create)(struct framebuffer_t * fb);
     void (*destroy)(struct framebuffer_t * fb, struct surface_t * s);
     int (*present)(struct framebuffer_t * fb, struct surface_t * s, struct dirtylist_t * l, void (*cb)(void *), void * data);
     void (*wait)(struct framebuffer_t * fb);
@@ -28,6 +28,15 @@ struct framebuffer_t {
 
 - `cb == NULL`：同步模式，阻塞直到完成后返回 0
 - `cb != NULL`：异步模式（建议性的）。返回 1 表示传输在途，完成时 `cb(data)` 恰好被调用一次（允许中断上下文）；返回 0 表示调用期间已完成，`cb` 不会被调用
+
+`cb` 是“异步完成回调”，不是无条件的完成通知。驱动不得在返回 0 时调用 `cb`，以免在调用者尚未退出提交路径或仍持有锁时产生重入。如果调用者希望两种模式都执行同一个完成处理，应使用以下模式：
+
+```c
+if(!framebuffer_present_submit(fb, s, l, present_done, data))
+	present_done(data);
+```
+
+这样同步完成由调用者处理，异步完成由驱动回调处理，`present_done(data)` 总共恰好执行一次。
 
 `wait` 为必选实现，阻塞等待在途的 `present` 完成；不支持异步的驱动将其实现为空函数即可。页翻转类驱动（DRM、双缓冲 LCDC）的完成事件自然对齐垂直同步。
 

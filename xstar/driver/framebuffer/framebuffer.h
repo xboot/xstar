@@ -27,7 +27,7 @@ struct framebuffer_t {
 	int (*getbl)(struct framebuffer_t * fb);
 
 	/* Create a surface */
-	struct surface_t * (*create)(struct framebuffer_t * fb, int width, int height);
+	struct surface_t * (*create)(struct framebuffer_t * fb);
 
 	/* Destroy a surface */
 	void (*destroy)(struct framebuffer_t * fb, struct surface_t * s);
@@ -47,29 +47,6 @@ struct framebuffer_t {
 	/* Private data */
 	void * priv;
 };
-
-static inline void present_surface(void * vram, struct surface_t * s, struct dirtylist_t * l)
-{
-	struct region_t * r;
-	unsigned char * p, * q;
-	int count = l->count;
-	int stride = s->stride;
-	int offset, line, height;
-	int i, j;
-
-	for(i = 0; i < count; i++)
-	{
-		r = &l->items[i].region;
-		offset = r->y * stride + (r->x << 2);
-		line = r->w << 2;
-		height = r->h;
-
-		p = (unsigned char *)vram + offset;
-		q = (unsigned char *)s->pixels + offset;
-		for(j = 0; j < height; j++, p += stride, q += stride)
-			xos_memcpy(p, q, line);
-	}
-}
 
 static inline int framebuffer_get_width(struct framebuffer_t * fb)
 {
@@ -102,9 +79,9 @@ static inline int framebuffer_get_dpi(struct framebuffer_t * fb)
 	return 0;
 }
 
-static inline struct surface_t * framebuffer_create_surface(struct framebuffer_t * fb, int width, int height)
+static inline struct surface_t * framebuffer_create_surface(struct framebuffer_t * fb)
 {
-	return fb->create(fb, width, height);
+	return fb->create(fb);
 }
 
 static inline void framebuffer_destroy_surface(struct framebuffer_t * fb, struct surface_t * s)

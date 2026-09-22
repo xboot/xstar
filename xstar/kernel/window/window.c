@@ -36,9 +36,9 @@ static int fb_dummy_getbl(struct framebuffer_t * fb)
 	return 1000;
 }
 
-static struct surface_t * fb_dummy_create(struct framebuffer_t * fb, int width, int height)
+static struct surface_t * fb_dummy_create(struct framebuffer_t * fb)
 {
-	return surface_alloc(width, height);
+	return surface_alloc(fb->width, fb->height);
 }
 
 static void fb_dummy_destroy(struct framebuffer_t * fb, struct surface_t * s)
@@ -145,7 +145,7 @@ static inline void window_surface_blit_rotate_90(struct surface_t * s, struct re
 			if(!region_intersect(&r, &r, clip))
 				return;
 		}
-		region_init(&region, tx, ty - sw, sh, sw);
+		region_init(&region, tx, ty - sw + 1, sh, sw);
 		if(!region_intersect(&r, &r, &region))
 			return;
 
@@ -182,7 +182,7 @@ static inline void window_surface_blit_rotate_180(struct surface_t * s, struct r
 			if(!region_intersect(&r, &r, clip))
 				return;
 		}
-		region_init(&region, tx - sw, ty - sh, sw, sh);
+		region_init(&region, tx - sw + 1, ty - sh + 1, sw, sh);
 		if(!region_intersect(&r, &r, &region))
 			return;
 
@@ -219,7 +219,7 @@ static inline void window_surface_blit_rotate_270(struct surface_t * s, struct r
 			if(!region_intersect(&r, &r, clip))
 				return;
 		}
-		region_init(&region, tx - sh, ty, sh, sw);
+		region_init(&region, tx - sh + 1, ty, sh, sw);
 		if(!region_intersect(&r, &r, &region))
 			return;
 
@@ -256,7 +256,7 @@ static inline void window_surface_blit_flip_h(struct surface_t * s, struct regio
 			if(!region_intersect(&r, &r, clip))
 				return;
 		}
-		region_init(&region, tx - sw, ty, sw, sh);
+		region_init(&region, tx - sw + 1, ty, sw, sh);
 		if(!region_intersect(&r, &r, &region))
 			return;
 
@@ -330,7 +330,7 @@ static inline void window_surface_blit_flip_v(struct surface_t * s, struct regio
 			if(!region_intersect(&r, &r, clip))
 				return;
 		}
-		region_init(&region, tx, ty - sh, sw, sh);
+		region_init(&region, tx, ty - sh + 1, sw, sh);
 		if(!region_intersect(&r, &r, &region))
 			return;
 
@@ -361,7 +361,7 @@ static inline void window_surface_blit_flip_ad(struct surface_t * s, struct regi
 			if(!region_intersect(&r, &r, clip))
 				return;
 		}
-		region_init(&region, tx - sh, ty - sw, sh, sw);
+		region_init(&region, tx - sh + 1, ty - sw + 1, sh, sw);
 		if(!region_intersect(&r, &r, &region))
 			return;
 
@@ -419,32 +419,37 @@ static inline void window_surface_blit_other(struct surface_t * s, struct region
 			float ofy = fy;
 			for(int x = x1; x < x2; ++x, ofx += t.a, ofy += t.b)
 			{
-				int x0 = (int)ofx;
-				int y0 = (int)ofy;
-				if(x0 >= -1 && x0 < sw && y0 >= -1 && y0 < sh)
-				{
-					int fx_i = (int)((ofx - x0) * 256);
-					int fy_i = (int)((ofy - y0) * 256);
-					if(fx_i < 0) fx_i = 0; else if(fx_i > 255) fx_i = 255;
-					if(fy_i < 0) fy_i = 0; else if(fy_i > 255) fy_i = 255;
-					int x0c = x0 < 0 ? 0 : (x0 >= sw ? sw - 1 : x0);
-					int y0c = y0 < 0 ? 0 : (y0 >= sh ? sh - 1 : y0);
-					int x1c = x0 + 1 < 0 ? 0 : (x0 + 1 >= sw ? sw - 1 : x0 + 1);
-					int y1c = y0 + 1 < 0 ? 0 : (y0 + 1 >= sh ? sh - 1 : y0 + 1);
-					uint32_t p00 = *(sp + y0c * ss + x0c);
-					uint32_t p10 = *(sp + y0c * ss + x1c);
-					uint32_t p01 = *(sp + y1c * ss + x0c);
-					uint32_t p11 = *(sp + y1c * ss + x1c);
-					int w00 = (256 - fx_i) * (256 - fy_i);
-					int w10 = fx_i * (256 - fy_i);
-					int w01 = (256 - fx_i) * fy_i;
-					int w11 = fx_i * fy_i;
-					int ra = ((p00 >> 16) & 0xff) * w00 + ((p10 >> 16) & 0xff) * w10 + ((p01 >> 16) & 0xff) * w01 + ((p11 >> 16) & 0xff) * w11;
-					int ga = ((p00 >> 8) & 0xff) * w00 + ((p10 >> 8) & 0xff) * w10 + ((p01 >> 8) & 0xff) * w01 + ((p11 >> 8) & 0xff) * w11;
-					int ba = ((p00 >> 0) & 0xff) * w00 + ((p10 >> 0) & 0xff) * w10 + ((p01 >> 0) & 0xff) * w01 + ((p11 >> 0) & 0xff) * w11;
-					int aa = ((p00 >> 24) & 0xff) * w00 + ((p10 >> 24) & 0xff) * w10 + ((p01 >> 24) & 0xff) * w01 + ((p11 >> 24) & 0xff) * w11;
-					*p = ((aa >> 16) << 24) | ((ra >> 16) << 16) | ((ga >> 16) << 8) | (ba >> 16);
-				}
+				float sx = ofx;
+				float sy = ofy;
+				if(sx < 0)
+					sx = 0;
+				else if(sx > sw - 1)
+					sx = sw - 1;
+				if(sy < 0)
+					sy = 0;
+				else if(sy > sh - 1)
+					sy = sh - 1;
+				int x0 = (int)sx;
+				int y0 = (int)sy;
+				int fx_i = (int)((sx - x0) * 256);
+				int fy_i = (int)((sy - y0) * 256);
+				if(fx_i < 0) fx_i = 0; else if(fx_i > 255) fx_i = 255;
+				if(fy_i < 0) fy_i = 0; else if(fy_i > 255) fy_i = 255;
+				int x1c = x0 < sw - 1 ? x0 + 1 : sw - 1;
+				int y1c = y0 < sh - 1 ? y0 + 1 : sh - 1;
+				uint32_t p00 = *(sp + y0 * ss + x0);
+				uint32_t p10 = *(sp + y0 * ss + x1c);
+				uint32_t p01 = *(sp + y1c * ss + x0);
+				uint32_t p11 = *(sp + y1c * ss + x1c);
+				int w00 = (256 - fx_i) * (256 - fy_i);
+				int w10 = fx_i * (256 - fy_i);
+				int w01 = (256 - fx_i) * fy_i;
+				int w11 = fx_i * fy_i;
+				int ra = ((p00 >> 16) & 0xff) * w00 + ((p10 >> 16) & 0xff) * w10 + ((p01 >> 16) & 0xff) * w01 + ((p11 >> 16) & 0xff) * w11;
+				int ga = ((p00 >> 8) & 0xff) * w00 + ((p10 >> 8) & 0xff) * w10 + ((p01 >> 8) & 0xff) * w01 + ((p11 >> 8) & 0xff) * w11;
+				int ba = ((p00 >> 0) & 0xff) * w00 + ((p10 >> 0) & 0xff) * w10 + ((p01 >> 0) & 0xff) * w01 + ((p11 >> 0) & 0xff) * w11;
+				int aa = ((p00 >> 24) & 0xff) * w00 + ((p10 >> 24) & 0xff) * w10 + ((p01 >> 24) & 0xff) * w01 + ((p11 >> 24) & 0xff) * w11;
+				*p = ((aa >> 16) << 24) | ((ra >> 16) << 16) | ((ga >> 16) << 8) | (ba >> 16);
 				p++;
 			}
 			p += stride;
@@ -452,135 +457,7 @@ static inline void window_surface_blit_other(struct surface_t * s, struct region
 	}
 }
 
-struct window_t * window_alloc(const char * fb, const char * input, int orientation)
-{
-	struct window_t * w;
-	struct framebuffer_t * fbdev;
-	struct input_t * indev;
-	struct device_t * pos, * n;
-	char * r, * p;
-	int range[2];
-
-	if((orientation < 0) || (orientation > 7))
-		orientation = CONFIG_XSTAR_WINDOW_ORIENTATION & 0x7;
-
-	w = xos_mem_malloc(sizeof(struct window_t));
-	if(!w)
-		return NULL;
-
-	fbdev = search_framebuffer(fb);
-	if(!fbdev)
-	{
-		fbdev = search_first_framebuffer();
-		if(!fbdev)
-			fbdev = &fb_dummy;
-	}
-
-	w->fb = fbdev;
-	w->dpi = framebuffer_get_dpi(w->fb);
-	w->fbsurface = framebuffer_create_surface(w->fb, framebuffer_get_width(w->fb), framebuffer_get_height(w->fb));
-	if(orientation & 0x1)
-		w->surface = framebuffer_create_surface(w->fb, framebuffer_get_height(w->fb), framebuffer_get_width(w->fb));
-	else
-		w->surface = framebuffer_create_surface(w->fb, framebuffer_get_width(w->fb), framebuffer_get_height(w->fb));
-	switch(orientation)
-	{
-	case WINDOW_ORIENTATION_ROTATE_0:
-		matrix2d_init(&w->lmatrix, 1, 0, 0, 1, 0, 0);
-		break;
-	case WINDOW_ORIENTATION_ROTATE_90:
-		matrix2d_init(&w->lmatrix, 0, -1, 1, 0, 0, framebuffer_get_height(w->fb));
-		break;
-	case WINDOW_ORIENTATION_ROTATE_180:
-		matrix2d_init(&w->lmatrix, -1, 0, 0, -1, framebuffer_get_width(w->fb), framebuffer_get_height(w->fb));
-		break;
-	case WINDOW_ORIENTATION_ROTATE_270:
-		matrix2d_init(&w->lmatrix, 0, 1, -1, 0, framebuffer_get_width(w->fb), 0);
-		break;
-	case WINDOW_ORIENTATION_FLIP_H:
-		matrix2d_init(&w->lmatrix, -1, 0, 0, 1, framebuffer_get_width(w->fb), 0);
-		break;
-	case WINDOW_ORIENTATION_FLIP_MD:
-		matrix2d_init(&w->lmatrix, 0, 1, 1, 0, 0, 0);
-		break;
-	case WINDOW_ORIENTATION_FLIP_V:
-		matrix2d_init(&w->lmatrix, 1, 0, 0, -1, 0, framebuffer_get_height(w->fb));
-		break;
-	case WINDOW_ORIENTATION_FLIP_AD:
-		matrix2d_init(&w->lmatrix, 0, -1, -1, 0, framebuffer_get_width(w->fb), framebuffer_get_height(w->fb));
-		break;
-	default:
-		break;
-	}
-	window_set_matrix(w, &(struct matrix2d_t){ 1, 0, 0, 1, 0, 0 });
-
-	w->dirtylist = dirtylist_alloc(0);
-	w->event = fifo_alloc(sizeof(struct event_t) * 64);
-	if(input)
-	{
-		w->map = hmap_alloc(0, NULL);
-		p = xos_strdup(input);
-		if(p && (*p != '\0'))
-		{
-			while((r = xos_strsep(&p, ",;:|")) != NULL)
-			{
-				indev = search_input(r);
-				if(indev)
-				{
-					hmap_add(w->map, r, indev);
-					if(input_ioctl(indev, "mouse-get-range", &range[0]) >= 0)
-					{
-						range[0] = framebuffer_get_width(w->fb);
-						range[1] = framebuffer_get_height(w->fb);
-						input_ioctl(indev, "mouse-set-range", &range[0]);
-					}
-				}
-			}
-		}
-		xos_mem_free(p);
-	}
-	else
-	{
-		w->map = NULL;
-		list_for_each_entry_safe(pos, n, &__device_head[DEVICE_TYPE_INPUT], head)
-		{
-			if(input_ioctl(pos->priv, "mouse-get-range", &range[0]) >= 0)
-			{
-				range[0] = framebuffer_get_width(w->fb);
-				range[1] = framebuffer_get_height(w->fb);
-				input_ioctl(pos->priv, "mouse-set-range", &range[0]);
-			}
-		}
-	}
-	w->copyright = copyright_verify() ? 1 : 0;
-
-	xos_mutex_lock(&__window_lock);
-	list_add(&w->list, &__window_list);
-	xos_mutex_unlock(&__window_lock);
-
-	return w;
-}
-
-void window_free(struct window_t * w)
-{
-	if(w)
-	{
-		xos_mutex_lock(&__window_lock);
-		list_del(&w->list);
-		xos_mutex_unlock(&__window_lock);
-		window_present_wait(w);
-		if(w->fbsurface)
-			framebuffer_destroy_surface(w->fb, w->fbsurface);
-		if(w->surface)
-			framebuffer_destroy_surface(w->fb, w->surface);
-		dirtylist_free(w->dirtylist);
-		fifo_free(w->event);
-		hmap_free(w->map);
-		xos_mem_free(w);
-	}
-}
-
-void window_set_matrix(struct window_t * w, struct matrix2d_t * m)
+static void __window_set_matrix(struct window_t * w, struct matrix2d_t * m)
 {
 	if(w && m)
 	{
@@ -637,6 +514,253 @@ void window_set_matrix(struct window_t * w, struct matrix2d_t * m)
 	}
 }
 
+struct window_t * window_alloc(const char * fb, const char * input, int orientation)
+{
+	if((orientation < 0) || (orientation > 7))
+		orientation = CONFIG_XSTAR_WINDOW_ORIENTATION & 0x7;
+
+	struct window_t * w = xos_mem_malloc(sizeof(struct window_t));
+	if(!w)
+		return NULL;
+
+	struct framebuffer_t * fbdev = search_framebuffer(fb);
+	if(!fbdev)
+	{
+		fbdev = search_first_framebuffer();
+		if(!fbdev)
+			fbdev = &fb_dummy;
+	}
+
+	w->bufdbl = CONFIG_XSTAR_WINDOW_BUFFER_MODE;
+	w->bufidx = 0;
+	w->copyright = copyright_verify() ? 1 : 0;
+	w->fb = fbdev;
+	w->dpi = framebuffer_get_dpi(w->fb);
+	w->fbsurface[0] = framebuffer_create_surface(w->fb);
+	w->fbsurface[1] = w->bufdbl ? framebuffer_create_surface(w->fb) : NULL;
+	if(!w->fbsurface[0] || (w->bufdbl && !w->fbsurface[1]))
+	{
+		if(w->fbsurface[0])
+			framebuffer_destroy_surface(w->fb, w->fbsurface[0]);
+		if(w->fbsurface[1])
+			framebuffer_destroy_surface(w->fb, w->fbsurface[1]);
+		xos_mem_free(w);
+		return NULL;
+	}
+	if(orientation == WINDOW_ORIENTATION_ROTATE_0)
+	{
+		w->surface[0] = NULL;
+		w->surface[1] = NULL;
+	}
+	else
+	{
+		if(orientation & 0x1)
+		{
+			w->surface[0] = surface_alloc(framebuffer_get_height(w->fb), framebuffer_get_width(w->fb));
+			w->surface[1] = w->bufdbl ? surface_alloc(framebuffer_get_height(w->fb), framebuffer_get_width(w->fb)) : NULL;
+		}
+		else
+		{
+			w->surface[0] = surface_alloc(framebuffer_get_width(w->fb), framebuffer_get_height(w->fb));
+			w->surface[1] = w->bufdbl ? surface_alloc(framebuffer_get_width(w->fb), framebuffer_get_height(w->fb)) : NULL;
+		}
+		if((!w->surface[0] || (w->bufdbl && !w->surface[1])))
+		{
+			if(w->fbsurface[0])
+				framebuffer_destroy_surface(w->fb, w->fbsurface[0]);
+			if(w->fbsurface[1])
+				framebuffer_destroy_surface(w->fb, w->fbsurface[1]);
+			if(w->surface[0])
+				surface_free(w->surface[0]);
+			if(w->surface[1])
+				surface_free(w->surface[1]);
+			xos_mem_free(w);
+			return NULL;
+		}
+	}
+	switch(orientation)
+	{
+	case WINDOW_ORIENTATION_ROTATE_0:
+		matrix2d_init(&w->lmatrix, 1, 0, 0, 1, 0, 0);
+		break;
+	case WINDOW_ORIENTATION_ROTATE_90:
+		matrix2d_init(&w->lmatrix, 0, -1, 1, 0, 0, framebuffer_get_height(w->fb) - 1);
+		break;
+	case WINDOW_ORIENTATION_ROTATE_180:
+		matrix2d_init(&w->lmatrix, -1, 0, 0, -1, framebuffer_get_width(w->fb) - 1, framebuffer_get_height(w->fb) - 1);
+		break;
+	case WINDOW_ORIENTATION_ROTATE_270:
+		matrix2d_init(&w->lmatrix, 0, 1, -1, 0, framebuffer_get_width(w->fb) - 1, 0);
+		break;
+	case WINDOW_ORIENTATION_FLIP_H:
+		matrix2d_init(&w->lmatrix, -1, 0, 0, 1, framebuffer_get_width(w->fb) - 1, 0);
+		break;
+	case WINDOW_ORIENTATION_FLIP_MD:
+		matrix2d_init(&w->lmatrix, 0, 1, 1, 0, 0, 0);
+		break;
+	case WINDOW_ORIENTATION_FLIP_V:
+		matrix2d_init(&w->lmatrix, 1, 0, 0, -1, 0, framebuffer_get_height(w->fb) - 1);
+		break;
+	case WINDOW_ORIENTATION_FLIP_AD:
+		matrix2d_init(&w->lmatrix, 0, -1, -1, 0, framebuffer_get_width(w->fb) - 1, framebuffer_get_height(w->fb) - 1);
+		break;
+	default:
+		break;
+	}
+	__window_set_matrix(w, &(struct matrix2d_t){ 1, 0, 0, 1, 0, 0 });
+
+	w->pending = dirtylist_alloc(0);
+	w->inflight = dirtylist_alloc(0);
+	w->fbspace[0] = dirtylist_alloc(0);
+	w->fbspace[1] = w->bufdbl ? dirtylist_alloc(0) : NULL;
+	if(!w->pending || !w->inflight || !w->fbspace[0] || (w->bufdbl && !w->fbspace[1]))
+	{
+		if(w->fbsurface[0])
+			framebuffer_destroy_surface(w->fb, w->fbsurface[0]);
+		if(w->fbsurface[1])
+			framebuffer_destroy_surface(w->fb, w->fbsurface[1]);
+		if(w->surface[0])
+			surface_free(w->surface[0]);
+		if(w->surface[1])
+			surface_free(w->surface[1]);
+		if(w->pending)
+			dirtylist_free(w->pending);
+		if(w->inflight)
+			dirtylist_free(w->inflight);
+		if(w->fbspace[0])
+			dirtylist_free(w->fbspace[0]);
+		if(w->fbspace[1])
+			dirtylist_free(w->fbspace[1]);
+		xos_mem_free(w);
+		return NULL;
+	}
+	xos_mutex_init(&w->lock);
+
+	w->event = fifo_alloc(sizeof(struct event_t) * 64);
+	if(input)
+	{
+		char *p, *r;
+		int range[2];
+		w->map = hmap_alloc(0, NULL);
+		p = xos_strdup(input);
+		if(p && (*p != '\0'))
+		{
+			while((r = xos_strsep(&p, ",;:|")) != NULL)
+			{
+				struct input_t * indev = search_input(r);
+				if(indev)
+				{
+					hmap_add(w->map, r, indev);
+					if(input_ioctl(indev, "mouse-get-range", &range[0]) >= 0)
+					{
+						range[0] = framebuffer_get_width(w->fb);
+						range[1] = framebuffer_get_height(w->fb);
+						input_ioctl(indev, "mouse-set-range", &range[0]);
+					}
+				}
+			}
+		}
+		xos_mem_free(p);
+	}
+	else
+	{
+		struct device_t * pos, * n;
+		int range[2];
+		w->map = NULL;
+		list_for_each_entry_safe(pos, n, &__device_head[DEVICE_TYPE_INPUT], head)
+		{
+			if(input_ioctl(pos->priv, "mouse-get-range", &range[0]) >= 0)
+			{
+				range[0] = framebuffer_get_width(w->fb);
+				range[1] = framebuffer_get_height(w->fb);
+				input_ioctl(pos->priv, "mouse-set-range", &range[0]);
+			}
+		}
+	}
+
+	xos_mutex_lock(&__window_lock);
+	list_add(&w->list, &__window_list);
+	xos_mutex_unlock(&__window_lock);
+
+	return w;
+}
+
+void window_free(struct window_t * w)
+{
+	if(w)
+	{
+		xos_mutex_lock(&__window_lock);
+		list_del(&w->list);
+		xos_mutex_unlock(&__window_lock);
+		window_frame_wait(w);
+		if(w->fbsurface[0])
+			framebuffer_destroy_surface(w->fb, w->fbsurface[0]);
+		if(w->fbsurface[1])
+			framebuffer_destroy_surface(w->fb, w->fbsurface[1]);
+		if(w->surface[0])
+			surface_free(w->surface[0]);
+		if(w->surface[1])
+			surface_free(w->surface[1]);
+		if(w->pending)
+			dirtylist_free(w->pending);
+		if(w->inflight)
+			dirtylist_free(w->inflight);
+		if(w->fbspace[0])
+			dirtylist_free(w->fbspace[0]);
+		if(w->fbspace[1])
+			dirtylist_free(w->fbspace[1]);
+		xos_mutex_exit(&w->lock);
+		fifo_free(w->event);
+		hmap_free(w->map);
+		xos_mem_free(w);
+	}
+}
+
+void window_set_matrix(struct window_t * w, struct matrix2d_t * m)
+{
+	if(w && m)
+	{
+		xos_mutex_lock(&w->lock);
+		{
+			if(w->surface[0] == NULL)
+			{
+				struct surface_t * surface[2];
+				surface[0] = surface_alloc(framebuffer_get_width(w->fb), framebuffer_get_height(w->fb));
+				surface[1] = w->bufdbl ? surface_alloc(framebuffer_get_width(w->fb), framebuffer_get_height(w->fb)) : NULL;
+				if(surface[0] && (!w->bufdbl || surface[1]))
+				{
+					for(int i = 0; i < (w->bufdbl ? 2 : 1); i++)
+					{
+						struct surface_t * d = surface[i];
+						struct surface_t * s = w->fbsurface[i];
+						int ds = surface_get_stride(d) >> 2;
+						int ss = surface_get_stride(s) >> 2;
+						uint32_t * p = (uint32_t *)surface_get_pixels(d);
+						uint32_t * q = (uint32_t *)surface_get_pixels(s);
+						for(int y = 0; y < surface_get_height(d); y++)
+							xos_memcpy(p + y * ds, q + y * ss, surface_get_width(d) << 2);
+					}
+					w->surface[0] = surface[0];
+					w->surface[1] = surface[1];
+					__window_set_matrix(w, m);
+				}
+				else
+				{
+					if(surface[0])
+						surface_free(surface[0]);
+					if(surface[1])
+						surface_free(surface[1]);
+				}
+			}
+			else
+			{
+				__window_set_matrix(w, m);
+			}
+		}
+		xos_mutex_unlock(&w->lock);
+	}
+}
+
 void window_exit(struct window_t * w)
 {
 	struct event_t e;
@@ -650,51 +774,97 @@ void window_exit(struct window_t * w)
 	}
 }
 
-void window_dirtylist_clear(struct window_t * w)
+static inline struct surface_t * window_frame_surface(struct window_t * w, int idx)
 {
-	if(w)
-		dirtylist_clear(w->dirtylist);
+	return w->surface[idx] ? w->surface[idx] : w->fbsurface[idx];
 }
 
-void window_dirtylist_add(struct window_t * w, struct region_t * r)
+static inline void window_frame_retire(struct window_t * w)
+{
+	if(w->inflight->nitems > 0)
+	{
+		framebuffer_present_wait(w->fb);
+		dirtylist_clear(w->inflight);
+	}
+}
+
+static inline void window_frame_copy(struct surface_t * dst, struct surface_t * src, struct dirtylist_t * l)
+{
+	int ds = surface_get_stride(dst) >> 2;
+	int ss = surface_get_stride(src) >> 2;
+
+	for(int i = 0; i < l->nitems; i++)
+	{
+		struct region_t * r = &l->items[i];
+		uint32_t * d = (uint32_t *)surface_get_pixels(dst) + r->y * ds + r->x;
+		uint32_t * s = (uint32_t *)surface_get_pixels(src) + r->y * ss + r->x;
+		for(int y = 0; y < r->h; y++, d += ds, s += ss)
+			xos_memcpy(d, s, r->w << 2);
+	}
+}
+
+static inline void window_damage_add_clipped(struct dirtylist_t * l, struct region_t * r, struct surface_t * s)
+{
+	struct region_t region;
+	if(region_intersect(&region, &(struct region_t){ 0, 0, surface_get_width(s), surface_get_height(s) }, r))
+		dirtylist_add(l, &region);
+}
+
+struct surface_t * window_frame_acquire(struct window_t * w)
+{
+	struct surface_t * s = NULL;
+
+	if(w)
+	{
+		xos_mutex_lock(&w->lock);
+		{
+			if(!w->bufdbl)
+				window_frame_retire(w);
+			s = window_frame_surface(w, w->bufidx);
+		}
+		xos_mutex_unlock(&w->lock);
+	}
+	return s;
+}
+
+struct dirtylist_t * window_frame_damage_get(struct window_t * w)
+{
+	return w ? w->pending : NULL;
+}
+
+void window_frame_damage(struct window_t * w, struct region_t * r)
 {
 	struct region_t region;
 
-	if(w && r)
-	{
-		if(region_intersect(&region, &(struct region_t){ 0, 0, surface_get_width(w->surface), surface_get_height(w->surface) }, r))
-			dirtylist_add(w->dirtylist, &region);
-	}
-}
-
-void window_dirtylist_optimize(struct window_t * w, int n)
-{
-	if(w && (w->dirtylist->count > 0))
-		dirtylist_optimize(w->dirtylist, n);
-}
-
-void window_dirtylist_fullscreen(struct window_t * w)
-{
 	if(w)
 	{
-		dirtylist_clear(w->dirtylist);
-		dirtylist_add(w->dirtylist, &(struct region_t){ 0, 0, surface_get_width(w->surface), surface_get_height(w->surface) });
+		if(r)
+		{
+			if(region_intersect(&region, &(struct region_t){ 0, 0, window_get_width(w), window_get_height(w) }, r))
+				dirtylist_add(w->pending, &region);
+		}
+		else
+		{
+			dirtylist_clear(w->pending);
+			dirtylist_add(w->pending, &(struct region_t){ 0, 0, window_get_width(w), window_get_height(w) });
+		}
 	}
 }
 
-void window_present_clear(struct window_t * w)
+void window_frame_clear(struct window_t * w)
 {
-	if(w && (w->dirtylist->count > 0))
+	if(w && (w->pending->nitems > 0))
 	{
-		int l = w->surface->stride >> 2;
-		for(int i = 0; i < w->dirtylist->count; i++)
+		struct surface_t * s = window_frame_surface(w, w->bufidx);
+		int l = s->stride >> 2;
+		for(int i = 0; i < w->pending->nitems; i++)
 		{
-			struct region_t * r = &w->dirtylist->items[i].region;
+			struct region_t * r = &w->pending->items[i];
 			int x1 = r->x;
 			int y1 = r->y;
 			int x2 = r->x + r->w;
 			int y2 = r->y + r->h;
-			uint32_t * p, * q = (uint32_t *)w->surface->pixels + y1 * l + x1;
+			uint32_t * p, * q = (uint32_t *)s->pixels + y1 * l + x1;
 			int x, y;
 			for(y = y1; y < y2; y++, q += l)
 			{
@@ -710,288 +880,289 @@ void window_present_clear(struct window_t * w)
 	}
 }
 
-int window_present_submit(struct window_t * w, void (*cb)(void *), void * data)
+int window_frame_release(struct window_t * w, void (*cb)(void *), void * data)
 {
-	if(w && (w->dirtylist->count > 0))
+	if(w && (w->pending->nitems > 0))
 	{
-		if(!w->copyright)
+		int ret = 0;
+		xos_mutex_lock(&w->lock);
 		{
-			struct cg_ctx_t * cg = surface_get_cg_ctx(window_get_surface(w));
-			int ww = window_get_width(w);
-			int wh = window_get_height(w);
-			float sw = (float)ww / 256.0f * 0.618f;
-			float sh = (float)wh / 256.0f * 0.618f;
-			float scale = (sw < sh) ? sw : sh;
-			float tx = ((float)ww - scale * 256.0f) * 0.5f;
-			float ty = ((float)wh - scale * 256.0f) * 0.5f;
-			cg_save(cg);
-			cg_identity_matrix(cg);
-			cg_translate(cg, tx, ty);
-			cg_scale(cg, scale, scale);
-			cg_set_source_rgba(cg, 1.0, 0.0, 0.0, 0.5);
-			cg_move_to(cg, 127.64, 21.08);
-			cg_cubic_to(cg, 127.29, 21.08, 126.94, 21.21, 126.68, 21.47);
-			cg_cubic_to(cg, 121.05, 26.94, 90.33, 53.95, 26.25, 60.47);
-			cg_cubic_to(cg, 25.57, 60.53, 25.05, 61.07, 25.05, 61.71);
-			cg_line_to(cg, 25.05, 102.67);
-			cg_cubic_to(cg, 25.05, 223.51, 123.61, 233.13, 127.52, 233.46);
-			cg_line_to(cg, 127.75, 233.46);
-			cg_cubic_to(cg, 131.65, 233.13, 230.22, 223.51, 230.22, 102.67);
-			cg_line_to(cg, 230.22, 61.71);
-			cg_arc_to(cg, 1.3, 1.3, 0, 0, 0, 229.02, 60.46);
-			cg_cubic_to(cg, 164.94, 53.95, 134.22, 26.94, 128.6, 21.46);
-			cg_arc_to(cg, 1.4, 1.4, 0, 0, 0, 127.64, 21.08);
-			cg_move_to(cg, 127.64, 73.66);
-			cg_cubic_to(cg, 140.33, 73.66, 150.62, 83.3, 150.62, 95.2);
-			cg_line_to(cg, 150.62, 106.13);
-			cg_line_to(cg, 144.54, 106.13);
-			cg_line_to(cg, 144.54, 95.91);
-			cg_cubic_to(cg, 144.54, 91.67, 142.78, 87.69, 139.59, 84.7);
-			cg_arc_to(cg, 17.4, 17.4, 0, 0, 0, 127.64, 80.06);
-			cg_arc_to(cg, 17.4, 17.4, 0, 0, 0, 115.68, 84.7);
-			cg_cubic_to(cg, 112.48, 87.7, 110.73, 91.67, 110.73, 95.9);
-			cg_line_to(cg, 110.73, 106.13);
-			cg_line_to(cg, 104.65, 106.13);
-			cg_line_to(cg, 104.65, 95.2);
-			cg_cubic_to(cg, 104.65, 83.3, 114.95, 73.66, 127.64, 73.66);
-			cg_move_to(cg, 101.59, 109.54);
-			cg_line_to(cg, 153.68, 109.54);
-			cg_cubic_to(cg, 160.31, 109.54, 165.69, 114.58, 165.69, 120.8);
-			cg_line_to(cg, 165.69, 169.63);
-			cg_cubic_to(cg, 165.69, 175.85, 160.31, 180.89, 153.68, 180.89);
-			cg_line_to(cg, 101.59, 180.89);
-			cg_cubic_to(cg, 94.96, 180.89, 89.59, 175.85, 89.59, 169.63);
-			cg_line_to(cg, 89.59, 120.8);
-			cg_cubic_to(cg, 89.59, 114.58, 94.96, 109.54, 101.59, 109.54);
-			cg_move_to(cg, 127.64, 130.96);
-			cg_cubic_to(cg, 122.58, 130.96, 118.49, 134.81, 118.49, 139.54);
-			cg_arc_to(cg, 8.5, 8.5, 0, 0, 0, 123.54, 147.21);
-			cg_line_to(cg, 122.61, 155.89);
-			cg_cubic_to(cg, 122.4, 157.8, 124.01, 159.46, 126.05, 159.46);
-			cg_line_to(cg, 129.22, 159.46);
-			cg_cubic_to(cg, 131.27, 159.46, 132.87, 157.8, 132.66, 155.89);
-			cg_line_to(cg, 131.73, 147.21);
-			cg_cubic_to(cg, 134.73, 145.81, 136.79, 142.91, 136.79, 139.54);
-			cg_cubic_to(cg, 136.79, 134.81, 132.69, 130.96, 127.64, 130.96);
-			cg_fill(cg);
-			cg_set_source_rgba(cg, 1.0, 0.0, 0.0, 0.85);
-			cg_move_to(cg, 127.64, 15.16);
-			cg_cubic_to(cg, 127.02, 15.16, 126.39, 15.36, 125.9, 15.76);
-			cg_cubic_to(cg, 119.07, 21.35, 107.28, 29.64, 89.83, 37.49);
-			cg_cubic_to(cg, 69, 46.85, 45.43, 53.24, 19.72, 56.47);
-			cg_arc_to(cg, 2.53, 2.53, 0, 0, 0, 17.44, 58.9);
-			cg_line_to(cg, 17.44, 99.03);
-			cg_cubic_to(cg, 17.44, 128.51, 22.76, 154.21, 33.26, 175.42);
-			cg_arc_to(cg, 117, 117, 0, 0, 0, 68.39, 217.84);
-			cg_cubic_to(cg, 94.52, 237.34, 122.09, 241.21, 127.34, 241.79);
-			cg_quad_to(cg, 127.64, 241.82, 127.94, 241.79);
-			cg_cubic_to(cg, 133.19, 241.21, 160.74, 237.35, 186.88, 217.84);
-			cg_arc_to(cg, 117, 117, 0, 0, 0, 222.02, 175.42);
-			cg_cubic_to(cg, 232.51, 154.21, 237.83, 128.51, 237.83, 99.02);
-			cg_line_to(cg, 237.83, 58.9);
-			cg_cubic_to(cg, 237.83, 57.68, 236.85, 56.63, 235.56, 56.47);
-			cg_cubic_to(cg, 209.85, 53.24, 186.26, 46.85, 165.44, 37.49);
-			cg_cubic_to(cg, 148, 29.64, 136.2, 21.35, 129.37, 15.77);
-			cg_cubic_to(cg, 128.87, 15.37, 128.26, 15.17, 127.64, 15.17);
-			cg_move_to(cg, 127.64, 254.72);
-			cg_quad_to(cg, 126.68, 254.72, 125.74, 254.62);
-			cg_cubic_to(cg, 122.34, 254.25, 113.14, 252.96, 101.18, 249.12);
-			cg_arc_to(cg, 141, 141, 0, 0, 1, 59.81, 227.94);
-			cg_arc_to(cg, 130, 130, 0, 0, 1, 20.76, 180.86);
-			cg_cubic_to(cg, 9.42, 157.92, 3.67, 130.4, 3.67, 99.03);
-			cg_line_to(cg, 3.67, 58.9);
-			cg_cubic_to(cg, 3.67, 55.17, 5.11, 51.58, 7.73, 48.78);
-			cg_arc_to(cg, 16.7, 16.7, 0, 0, 1, 17.89, 43.66);
-			cg_cubic_to(cg, 42.16, 40.61, 64.36, 34.62, 83.87, 25.84);
-			cg_cubic_to(cg, 99.93, 18.62, 110.67, 11.08, 116.85, 6.03);
-			cg_arc_to(cg, 17, 17, 0, 0, 1, 127.64, 2.23);
-			cg_cubic_to(cg, 131.6, 2.23, 135.43, 3.58, 138.42, 6.03);
-			cg_cubic_to(cg, 144.6, 11.08, 155.34, 18.62, 171.4, 25.83);
-			cg_cubic_to(cg, 190.91, 34.62, 213.11, 40.61, 237.38, 43.66);
-			cg_cubic_to(cg, 241.32, 44.16, 244.93, 45.97, 247.55, 48.78);
-			cg_cubic_to(cg, 250.16, 51.58, 251.6, 55.18, 251.6, 58.9);
-			cg_line_to(cg, 251.6, 99.02);
-			cg_cubic_to(cg, 251.6, 130.39, 245.85, 157.92, 234.5, 180.84);
-			cg_arc_to(cg, 130, 130, 0, 0, 1, 195.46, 227.92);
-			cg_arc_to(cg, 141, 141, 0, 0, 1, 154.09, 249.1);
-			cg_arc_to(cg, 129, 129, 0, 0, 1, 129.53, 254.6);
-			cg_quad_to(cg, 128.59, 254.7, 127.63, 254.7);
-			cg_fill(cg);
-			cg_restore(cg);
-		}
-		switch(w->gmflag)
-		{
-		case GMFLAG_IDENTITY:
-		{
-			return framebuffer_present_submit(w->fb, w->surface, w->dirtylist, cb, data);
-		}
-		case GMFLAG_ROTATE_0:
-		{
-			struct matrix2d_t * gm = &w->gmatrix;
-			for(int i = 0; i < w->dirtylist->count; i++)
+			if(!w->bufdbl)
+				window_frame_retire(w);
+			dirtylist_optimize(w->pending, CONFIG_XSTAR_WINDOW_DIRTY_RECTANGLE_LIMIT);
+			struct surface_t * s = window_frame_surface(w, w->bufidx);
+			struct surface_t * fs = w->fbsurface[w->bufidx];
+			struct dirtylist_t * fl = w->fbspace[w->bufidx];
+			if(!w->copyright)
 			{
-				struct dirtylist_item_t * item = &w->dirtylist->items[i];
-				int rx = item->region.x;
-				int ry = item->region.y;
-				item->region.x = rx + gm->tx;
-				item->region.y = ry + gm->ty;
-				window_surface_blit_rotate_0(w->fbsurface, &item->region, &w->gmatrix, w->surface);
+				struct cg_ctx_t * cg = surface_get_cg_ctx(s);
+				int ww = window_get_width(w);
+				int wh = window_get_height(w);
+				float sw = (float)ww / 256.0f * 0.618f;
+				float sh = (float)wh / 256.0f * 0.618f;
+				float scale = (sw < sh) ? sw : sh;
+				float tx = ((float)ww - scale * 256.0f) * 0.5f;
+				float ty = ((float)wh - scale * 256.0f) * 0.5f;
+				cg_save(cg);
+				cg_identity_matrix(cg);
+				cg_new_path(cg);
+				for(int i = 0; i < w->pending->nitems; i++)
+				{
+					struct region_t * r = &w->pending->items[i];
+					cg_rectangle(cg, r->x, r->y, r->w, r->h);
+				}
+				cg_clip(cg);
+				cg_translate(cg, tx, ty);
+				cg_scale(cg, scale, scale);
+				cg_set_source_rgba(cg, 1.0, 0.0, 0.0, 0.5);
+				cg_move_to(cg, 127.64, 21.08);
+				cg_cubic_to(cg, 127.29, 21.08, 126.94, 21.21, 126.68, 21.47);
+				cg_cubic_to(cg, 121.05, 26.94, 90.33, 53.95, 26.25, 60.47);
+				cg_cubic_to(cg, 25.57, 60.53, 25.05, 61.07, 25.05, 61.71);
+				cg_line_to(cg, 25.05, 102.67);
+				cg_cubic_to(cg, 25.05, 223.51, 123.61, 233.13, 127.52, 233.46);
+				cg_line_to(cg, 127.75, 233.46);
+				cg_cubic_to(cg, 131.65, 233.13, 230.22, 223.51, 230.22, 102.67);
+				cg_line_to(cg, 230.22, 61.71);
+				cg_arc_to(cg, 1.3, 1.3, 0, 0, 0, 229.02, 60.46);
+				cg_cubic_to(cg, 164.94, 53.95, 134.22, 26.94, 128.6, 21.46);
+				cg_arc_to(cg, 1.4, 1.4, 0, 0, 0, 127.64, 21.08);
+				cg_move_to(cg, 127.64, 73.66);
+				cg_cubic_to(cg, 140.33, 73.66, 150.62, 83.3, 150.62, 95.2);
+				cg_line_to(cg, 150.62, 106.13);
+				cg_line_to(cg, 144.54, 106.13);
+				cg_line_to(cg, 144.54, 95.91);
+				cg_cubic_to(cg, 144.54, 91.67, 142.78, 87.69, 139.59, 84.7);
+				cg_arc_to(cg, 17.4, 17.4, 0, 0, 0, 127.64, 80.06);
+				cg_arc_to(cg, 17.4, 17.4, 0, 0, 0, 115.68, 84.7);
+				cg_cubic_to(cg, 112.48, 87.7, 110.73, 91.67, 110.73, 95.9);
+				cg_line_to(cg, 110.73, 106.13);
+				cg_line_to(cg, 104.65, 106.13);
+				cg_line_to(cg, 104.65, 95.2);
+				cg_cubic_to(cg, 104.65, 83.3, 114.95, 73.66, 127.64, 73.66);
+				cg_move_to(cg, 101.59, 109.54);
+				cg_line_to(cg, 153.68, 109.54);
+				cg_cubic_to(cg, 160.31, 109.54, 165.69, 114.58, 165.69, 120.8);
+				cg_line_to(cg, 165.69, 169.63);
+				cg_cubic_to(cg, 165.69, 175.85, 160.31, 180.89, 153.68, 180.89);
+				cg_line_to(cg, 101.59, 180.89);
+				cg_cubic_to(cg, 94.96, 180.89, 89.59, 175.85, 89.59, 169.63);
+				cg_line_to(cg, 89.59, 120.8);
+				cg_cubic_to(cg, 89.59, 114.58, 94.96, 109.54, 101.59, 109.54);
+				cg_move_to(cg, 127.64, 130.96);
+				cg_cubic_to(cg, 122.58, 130.96, 118.49, 134.81, 118.49, 139.54);
+				cg_arc_to(cg, 8.5, 8.5, 0, 0, 0, 123.54, 147.21);
+				cg_line_to(cg, 122.61, 155.89);
+				cg_cubic_to(cg, 122.4, 157.8, 124.01, 159.46, 126.05, 159.46);
+				cg_line_to(cg, 129.22, 159.46);
+				cg_cubic_to(cg, 131.27, 159.46, 132.87, 157.8, 132.66, 155.89);
+				cg_line_to(cg, 131.73, 147.21);
+				cg_cubic_to(cg, 134.73, 145.81, 136.79, 142.91, 136.79, 139.54);
+				cg_cubic_to(cg, 136.79, 134.81, 132.69, 130.96, 127.64, 130.96);
+				cg_fill(cg);
+				cg_set_source_rgba(cg, 1.0, 0.0, 0.0, 0.85);
+				cg_move_to(cg, 127.64, 15.16);
+				cg_cubic_to(cg, 127.02, 15.16, 126.39, 15.36, 125.9, 15.76);
+				cg_cubic_to(cg, 119.07, 21.35, 107.28, 29.64, 89.83, 37.49);
+				cg_cubic_to(cg, 69, 46.85, 45.43, 53.24, 19.72, 56.47);
+				cg_arc_to(cg, 2.53, 2.53, 0, 0, 0, 17.44, 58.9);
+				cg_line_to(cg, 17.44, 99.03);
+				cg_cubic_to(cg, 17.44, 128.51, 22.76, 154.21, 33.26, 175.42);
+				cg_arc_to(cg, 117, 117, 0, 0, 0, 68.39, 217.84);
+				cg_cubic_to(cg, 94.52, 237.34, 122.09, 241.21, 127.34, 241.79);
+				cg_quad_to(cg, 127.64, 241.82, 127.94, 241.79);
+				cg_cubic_to(cg, 133.19, 241.21, 160.74, 237.35, 186.88, 217.84);
+				cg_arc_to(cg, 117, 117, 0, 0, 0, 222.02, 175.42);
+				cg_cubic_to(cg, 232.51, 154.21, 237.83, 128.51, 237.83, 99.02);
+				cg_line_to(cg, 237.83, 58.9);
+				cg_cubic_to(cg, 237.83, 57.68, 236.85, 56.63, 235.56, 56.47);
+				cg_cubic_to(cg, 209.85, 53.24, 186.26, 46.85, 165.44, 37.49);
+				cg_cubic_to(cg, 148, 29.64, 136.2, 21.35, 129.37, 15.77);
+				cg_cubic_to(cg, 128.87, 15.37, 128.26, 15.17, 127.64, 15.17);
+				cg_move_to(cg, 127.64, 254.72);
+				cg_quad_to(cg, 126.68, 254.72, 125.74, 254.62);
+				cg_cubic_to(cg, 122.34, 254.25, 113.14, 252.96, 101.18, 249.12);
+				cg_arc_to(cg, 141, 141, 0, 0, 1, 59.81, 227.94);
+				cg_arc_to(cg, 130, 130, 0, 0, 1, 20.76, 180.86);
+				cg_cubic_to(cg, 9.42, 157.92, 3.67, 130.4, 3.67, 99.03);
+				cg_line_to(cg, 3.67, 58.9);
+				cg_cubic_to(cg, 3.67, 55.17, 5.11, 51.58, 7.73, 48.78);
+				cg_arc_to(cg, 16.7, 16.7, 0, 0, 1, 17.89, 43.66);
+				cg_cubic_to(cg, 42.16, 40.61, 64.36, 34.62, 83.87, 25.84);
+				cg_cubic_to(cg, 99.93, 18.62, 110.67, 11.08, 116.85, 6.03);
+				cg_arc_to(cg, 17, 17, 0, 0, 1, 127.64, 2.23);
+				cg_cubic_to(cg, 131.6, 2.23, 135.43, 3.58, 138.42, 6.03);
+				cg_cubic_to(cg, 144.6, 11.08, 155.34, 18.62, 171.4, 25.83);
+				cg_cubic_to(cg, 190.91, 34.62, 213.11, 40.61, 237.38, 43.66);
+				cg_cubic_to(cg, 241.32, 44.16, 244.93, 45.97, 247.55, 48.78);
+				cg_cubic_to(cg, 250.16, 51.58, 251.6, 55.18, 251.6, 58.9);
+				cg_line_to(cg, 251.6, 99.02);
+				cg_cubic_to(cg, 251.6, 130.39, 245.85, 157.92, 234.5, 180.84);
+				cg_arc_to(cg, 130, 130, 0, 0, 1, 195.46, 227.92);
+				cg_arc_to(cg, 141, 141, 0, 0, 1, 154.09, 249.1);
+				cg_arc_to(cg, 129, 129, 0, 0, 1, 129.53, 254.6);
+				cg_quad_to(cg, 128.59, 254.7, 127.63, 254.7);
+				cg_fill(cg);
+				cg_restore(cg);
 			}
-			return framebuffer_present_submit(w->fb, w->fbsurface, w->dirtylist, cb, data);
-		}
-		case GMFLAG_ROTATE_90:
-		{
-			struct matrix2d_t * gm = &w->gmatrix;
-			for(int i = 0; i < w->dirtylist->count; i++)
+			if(w->surface[0])
 			{
-				struct dirtylist_item_t * item = &w->dirtylist->items[i];
-				int rx = item->region.x;
-				int ry = item->region.y;
-				int rw = item->region.w;
-				int rh = item->region.h;
-				item->region.x = ry + gm->tx;
-				item->region.y = gm->ty - rx - rw;
-				item->region.w = rh;
-				item->region.h = rw;
-				window_surface_blit_rotate_90(w->fbsurface, &item->region, &w->gmatrix, w->surface);
+				dirtylist_clear(fl);
+				switch(w->gmflag)
+				{
+				case GMFLAG_IDENTITY:
+				case GMFLAG_ROTATE_0:
+				{
+					struct matrix2d_t * gm = &w->gmatrix;
+					for(int i = 0; i < w->pending->nitems; i++)
+					{
+						struct region_t * r = &w->pending->items[i];
+						struct region_t d = { r->x + (int)gm->tx, r->y + (int)gm->ty, r->w, r->h };
+						window_surface_blit_rotate_0(fs, &d, &w->gmatrix, s);
+						window_damage_add_clipped(fl, &d, fs);
+					}
+					break;
+				}
+				case GMFLAG_ROTATE_90:
+				{
+					struct matrix2d_t * gm = &w->gmatrix;
+					for(int i = 0; i < w->pending->nitems; i++)
+					{
+						struct region_t * r = &w->pending->items[i];
+						struct region_t d = { r->y + (int)gm->tx, (int)gm->ty - r->x - r->w + 1, r->h, r->w };
+						window_surface_blit_rotate_90(fs, &d, &w->gmatrix, s);
+						window_damage_add_clipped(fl, &d, fs);
+					}
+					break;
+				}
+				case GMFLAG_ROTATE_180:
+				{
+					struct matrix2d_t * gm = &w->gmatrix;
+					for(int i = 0; i < w->pending->nitems; i++)
+					{
+						struct region_t * r = &w->pending->items[i];
+						struct region_t d = { (int)gm->tx - r->x - r->w + 1, (int)gm->ty - r->y - r->h + 1, r->w, r->h };
+						window_surface_blit_rotate_180(fs, &d, &w->gmatrix, s);
+						window_damage_add_clipped(fl, &d, fs);
+					}
+					break;
+				}
+				case GMFLAG_ROTATE_270:
+				{
+					struct matrix2d_t * gm = &w->gmatrix;
+					for(int i = 0; i < w->pending->nitems; i++)
+					{
+						struct region_t * r = &w->pending->items[i];
+						struct region_t d = { (int)gm->tx - r->y - r->h + 1, r->x + (int)gm->ty, r->h, r->w };
+						window_surface_blit_rotate_270(fs, &d, &w->gmatrix, s);
+						window_damage_add_clipped(fl, &d, fs);
+					}
+					break;
+				}
+				case GMFLAG_FLIP_H:
+				{
+					struct matrix2d_t * gm = &w->gmatrix;
+					for(int i = 0; i < w->pending->nitems; i++)
+					{
+						struct region_t * r = &w->pending->items[i];
+						struct region_t d = { (int)gm->tx - r->x - r->w + 1, r->y + (int)gm->ty, r->w, r->h };
+						window_surface_blit_flip_h(fs, &d, &w->gmatrix, s);
+						window_damage_add_clipped(fl, &d, fs);
+					}
+					break;
+				}
+				case GMFLAG_FLIP_MD:
+				{
+					struct matrix2d_t * gm = &w->gmatrix;
+					for(int i = 0; i < w->pending->nitems; i++)
+					{
+						struct region_t * r = &w->pending->items[i];
+						struct region_t d = { r->y + (int)gm->tx, r->x + (int)gm->ty, r->h, r->w };
+						window_surface_blit_flip_md(fs, &d, &w->gmatrix, s);
+						window_damage_add_clipped(fl, &d, fs);
+					}
+					break;
+				}
+				case GMFLAG_FLIP_V:
+				{
+					struct matrix2d_t * gm = &w->gmatrix;
+					for(int i = 0; i < w->pending->nitems; i++)
+					{
+						struct region_t * r = &w->pending->items[i];
+						struct region_t d = { r->x + (int)gm->tx, (int)gm->ty - r->y - r->h + 1, r->w, r->h };
+						window_surface_blit_flip_v(fs, &d, &w->gmatrix, s);
+						window_damage_add_clipped(fl, &d, fs);
+					}
+					break;
+				}
+				case GMFLAG_FLIP_AD:
+				{
+					struct matrix2d_t * gm = &w->gmatrix;
+					for(int i = 0; i < w->pending->nitems; i++)
+					{
+						struct region_t * r = &w->pending->items[i];
+						struct region_t d = { (int)gm->tx - r->y - r->h + 1, (int)gm->ty - r->x - r->w + 1, r->h, r->w };
+						window_surface_blit_flip_ad(fs, &d, &w->gmatrix, s);
+						window_damage_add_clipped(fl, &d, fs);
+					}
+					break;
+				}
+				case GMFLAG_OTHER:
+				{
+					for(int i = 0; i < w->pending->nitems; i++)
+					{
+						struct region_t * r = &w->pending->items[i];
+						float x1 = r->x;
+						float y1 = r->y;
+						float x2 = r->x + r->w;
+						float y2 = r->y + r->h;
+						struct region_t d;
+						matrix2d_transform_bounds(&w->gmatrix, &x1, &y1, &x2, &y2);
+						d.x = x1;
+						d.y = y1;
+						d.w = x2 - x1;
+						d.h = y2 - y1;
+						window_surface_blit_other(fs, &d, &w->gmatrix, s);
+						window_damage_add_clipped(fl, &d, fs);
+					}
+					break;
+				}
+				default:
+					break;
+				}
 			}
-			return framebuffer_present_submit(w->fb, w->fbsurface, w->dirtylist, cb, data);
-		}
-		case GMFLAG_ROTATE_180:
-		{
-			struct matrix2d_t * gm = &w->gmatrix;
-			for(int i = 0; i < w->dirtylist->count; i++)
+			if(w->bufdbl)
 			{
-				struct dirtylist_item_t * item = &w->dirtylist->items[i];
-				int rx = item->region.x;
-				int ry = item->region.y;
-				int rw = item->region.w;
-				int rh = item->region.h;
-				item->region.x = gm->tx - rx - rw;
-				item->region.y = gm->ty - ry - rh;
-				window_surface_blit_rotate_180(w->fbsurface, &item->region, &w->gmatrix, w->surface);
+				window_frame_retire(w);
+				window_frame_copy(window_frame_surface(w, w->bufidx ^ 1), s, w->pending);
+				if(w->surface[0])
+					window_frame_copy(w->fbsurface[w->bufidx ^ 1], fs, fl);
 			}
-			return framebuffer_present_submit(w->fb, w->fbsurface, w->dirtylist, cb, data);
+			struct dirtylist_t * tmp = w->pending;
+			w->pending = w->inflight;
+			w->inflight = tmp;
+			ret = framebuffer_present_submit(w->fb, fs, w->surface[0] ? fl : w->inflight, cb, data);
+			if(!ret)
+				dirtylist_clear(w->inflight);
+			if(w->bufdbl)
+				w->bufidx ^= 1;
 		}
-		case GMFLAG_ROTATE_270:
-		{
-			struct matrix2d_t * gm = &w->gmatrix;
-			for(int i = 0; i < w->dirtylist->count; i++)
-			{
-				struct dirtylist_item_t * item = &w->dirtylist->items[i];
-				int rx = item->region.x;
-				int ry = item->region.y;
-				int rw = item->region.w;
-				int rh = item->region.h;
-				item->region.x = gm->tx - ry - rh;
-				item->region.y = rx + gm->ty;
-				item->region.w = rh;
-				item->region.h = rw;
-				window_surface_blit_rotate_270(w->fbsurface, &item->region, &w->gmatrix, w->surface);
-			}
-			return framebuffer_present_submit(w->fb, w->fbsurface, w->dirtylist, cb, data);
-		}
-		case GMFLAG_FLIP_H:
-		{
-			struct matrix2d_t * gm = &w->gmatrix;
-			for(int i = 0; i < w->dirtylist->count; i++)
-			{
-				struct dirtylist_item_t * item = &w->dirtylist->items[i];
-				int rx = item->region.x;
-				int ry = item->region.y;
-				int rw = item->region.w;
-				item->region.x = gm->tx - rx - rw;
-				item->region.y = ry + gm->ty;
-				window_surface_blit_flip_h(w->fbsurface, &item->region, &w->gmatrix, w->surface);
-			}
-			return framebuffer_present_submit(w->fb, w->fbsurface, w->dirtylist, cb, data);
-		}
-		case GMFLAG_FLIP_MD:
-		{
-			struct matrix2d_t * gm = &w->gmatrix;
-			for(int i = 0; i < w->dirtylist->count; i++)
-			{
-				struct dirtylist_item_t * item = &w->dirtylist->items[i];
-				int rx = item->region.x;
-				int ry = item->region.y;
-				int rw = item->region.w;
-				int rh = item->region.h;
-				item->region.x = ry + gm->tx;
-				item->region.y = rx + gm->ty;
-				item->region.w = rh;
-				item->region.h = rw;
-				window_surface_blit_flip_md(w->fbsurface, &item->region, &w->gmatrix, w->surface);
-			}
-			return framebuffer_present_submit(w->fb, w->fbsurface, w->dirtylist, cb, data);
-		}
-		case GMFLAG_FLIP_V:
-		{
-			struct matrix2d_t * gm = &w->gmatrix;
-			for(int i = 0; i < w->dirtylist->count; i++)
-			{
-				struct dirtylist_item_t * item = &w->dirtylist->items[i];
-				int rx = item->region.x;
-				int ry = item->region.y;
-				int rh = item->region.h;
-				item->region.x = rx + gm->tx;
-				item->region.y = gm->ty - ry - rh;
-				window_surface_blit_flip_v(w->fbsurface, &item->region, &w->gmatrix, w->surface);
-			}
-			return framebuffer_present_submit(w->fb, w->fbsurface, w->dirtylist, cb, data);
-		}
-		case GMFLAG_FLIP_AD:
-		{
-			struct matrix2d_t * gm = &w->gmatrix;
-			for(int i = 0; i < w->dirtylist->count; i++)
-			{
-				struct dirtylist_item_t * item = &w->dirtylist->items[i];
-				int rx = item->region.x;
-				int ry = item->region.y;
-				int rw = item->region.w;
-				int rh = item->region.h;
-				item->region.x = gm->tx - ry - rh;
-				item->region.y = gm->ty - rx - rw;
-				item->region.w = rh;
-				item->region.h = rw;
-				window_surface_blit_flip_ad(w->fbsurface, &item->region, &w->gmatrix, w->surface);
-			}
-			return framebuffer_present_submit(w->fb, w->fbsurface, w->dirtylist, cb, data);
-		}
-		case GMFLAG_OTHER:
-		{
-			for(int i = 0; i < w->dirtylist->count; i++)
-			{
-				struct dirtylist_item_t * item = &w->dirtylist->items[i];
-				float x1 = item->region.x;
-				float y1 = item->region.y;
-				float x2 = item->region.x + item->region.w;
-				float y2 = item->region.y + item->region.h;
-				matrix2d_transform_bounds(&w->gmatrix, &x1, &y1, &x2, &y2);
-				item->region.x = x1;
-				item->region.y = y1;
-				item->region.w = x2 - x1;
-				item->region.h = y2 - y1;
-				item->area = item->region.w * item->region.h;
-				window_surface_blit_other(w->fbsurface, &item->region, &w->gmatrix, w->surface);
-			}
-			return framebuffer_present_submit(w->fb, w->fbsurface, w->dirtylist, cb, data);
-		}
-		default:
-			break;
-		}
+		xos_mutex_unlock(&w->lock);
+		return ret;
 	}
 	return 0;
 }
 
-void window_present_wait(struct window_t * w)
+void window_frame_wait(struct window_t * w)
 {
 	if(w)
-		framebuffer_present_wait(w->fb);
-}
-
-void window_present_commit(struct window_t * w)
-{
-	window_present_submit(w, NULL, NULL);
+	{
+		xos_mutex_lock(&w->lock);
+		{
+			window_frame_retire(w);
+		}
+		xos_mutex_unlock(&w->lock);
+	}
 }
 
 static void global_to_local_point(struct window_t * w , int x, int y, int * nx, int * ny)

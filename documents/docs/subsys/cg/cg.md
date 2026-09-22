@@ -331,7 +331,7 @@ Paint 是可复用的绘制源，支持纯色、渐变和纹理三种类型，�
 ## 使用示例
 
 ```c
-struct surface_t * s = window_get_surface(w);
+struct surface_t * s = window_frame_acquire(w);
 struct cg_ctx_t * cg = surface_get_cg_ctx(s);
 
 cg_save(cg);

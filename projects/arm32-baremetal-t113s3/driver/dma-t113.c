@@ -245,7 +245,7 @@ static void dma_t113_start(struct dmachip_t * chip, int offset)
 	desc->para = get_t113_para(ch);
 	desc->link = 0xfffff800;
 	smp_mb();
-	xos_dma_sync(desc, sizeof(struct dma_f101_desc_t), DMA_SYNC_TO_DEVICE);
+	xos_dma_sync(desc, sizeof(struct dma_t113_desc_t), DMA_SYNC_TO_DEVICE);
 	if(ch->src != ch->dst)
 	{
 		xos_dma_sync(ch->src, ch->size, DMA_SYNC_TO_DEVICE);

@@ -5,15 +5,11 @@ Track regions that need updating, optimizing incremental rendering.
 ## Struct
 
 ```c
-struct dirtylist_item_t {
-    struct region_t region;
-    int area;
-};
-
 struct dirtylist_t {
-    struct dirtylist_item_t * items;
+    struct region_t * items;
+    unsigned int nitems;
     unsigned int size;
-    unsigned int count;
+    void * priv;
 };
 ```
 
@@ -21,7 +17,7 @@ struct dirtylist_t {
 
 | Function | Description |
 |------|------|
-| `dirtylist_alloc(size)` | Allocate dirty rectangle list |
+| `dirtylist_alloc(size)` | Allocate a dirty rectangle list; capacity is at least 16 and rounded up to a power of two |
 | `dirtylist_free(l)` | Free |
 | `dirtylist_clone(l, o)` | Clone |
 | `dirtylist_merge(l, o)` | Merge |
@@ -31,4 +27,6 @@ struct dirtylist_t {
 
 ## Description
 
-The dirty rectangle list tracks regions that need redrawing. `dirtylist_add()` is a plain O(1) append with no merging; once regions have been accumulated, call `dirtylist_optimize()` to optimize in a single pass: it first rebuilds the list as a pixel-exact, pairwise non-overlapping union via a y-axis band sweep, then repeatedly merges the pair with the least bounding-box penalty until at most n rects remain. When `n <= 0`, compression is skipped and only the exact union is kept (suitable for present paths with no per-rect transaction overhead).
+The dirty rectangle list tracks regions that need redrawing. `dirtylist_add()` is a plain O(1) append with no merging. The list and its workspace grow with a minimum capacity of 16 and power-of-two capacities, allowing storage to be reused while avoiding frequent reallocations.
+
+Once regions have been accumulated, call `dirtylist_optimize()` to optimize them in one operation. It first rebuilds the list as a pixel-exact, pairwise non-overlapping union via a y-axis band sweep, then repeatedly merges the pair with the least bounding-box penalty until at most `n` rectangles remain. The penalty accounts for the intersection of the two rectangles and therefore represents the pixel area added by that merge. When `n <= 0`, compression is skipped and only the exact union is kept, which is suitable for present paths with no per-rectangle transaction overhead. To bound the subsequent merge cost in extremely fragmented cases, an exact union containing more than 32 rectangles first falls back to one bounding rectangle covering all damage.

@@ -140,9 +140,9 @@ static int fb_getbl(struct framebuffer_t * fb)
 	return pdat->brightness;
 }
 
-static struct surface_t * fb_create(struct framebuffer_t * fb, int width, int height)
+static struct surface_t * fb_create(struct framebuffer_t * fb)
 {
-	return surface_alloc(width, height);
+	return surface_alloc(fb->width, fb->height);
 }
 
 static void fb_destroy(struct framebuffer_t * fb, struct surface_t * s)

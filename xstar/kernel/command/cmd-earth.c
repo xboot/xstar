@@ -16027,11 +16027,10 @@ static int do_earth(int argc, char ** argv)
 				ctx.view_theta += ctx.auto_hspeed;
 				ctx.view_phi += ctx.auto_vspeed;
 			}
-			window_dirtylist_fullscreen(w);
-			{
-				render_earth(window_get_surface(w), ctx.tex, ctx.view_theta, ctx.view_phi, ctx.globe_scale);
-			}
-			window_present_commit(w);
+			struct surface_t * s = window_frame_acquire(w);
+			window_frame_damage(w, NULL);
+			render_earth(s, ctx.tex, ctx.view_theta, ctx.view_phi, ctx.globe_scale);
+			window_frame_release(w, NULL, NULL);
 		}
 		if(shell_ctrlc())
 			break;

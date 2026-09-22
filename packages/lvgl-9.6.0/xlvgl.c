@@ -25,32 +25,27 @@
 #include <xstar.h>
 #include <xlvgl.h>
 
-static void xlvgl_disp_flush_ready(void * data)
+static void xlvgl_disp_present_done(void * data)
 {
-	lv_display_flush_ready((lv_display_t *)data);
 }
 
 static void xlvgl_disp_flush(lv_display_t * disp, const lv_area_t * area, uint8_t * px_map)
 {
 	struct xlvgl_context_t * ctx = (struct xlvgl_context_t *)lv_display_get_driver_data(disp);
 
-	window_dirtylist_add(ctx->win, &(struct region_t){ area->x1, area->y1, area->x2 - area->x1 + 1, area->y2 - area->y1 + 1 });
+	window_frame_damage(ctx->win, &(struct region_t){ area->x1, area->y1, area->x2 - area->x1 + 1, area->y2 - area->y1 + 1 });
 	if(lv_display_flush_is_last(disp))
-	{
-		if(!window_present_submit(ctx->win, xlvgl_disp_flush_ready, disp))
-			xlvgl_disp_flush_ready(disp);
-		window_dirtylist_clear(ctx->win);
-	}
-	else
-	{
-		lv_display_flush_ready(disp);
-	}
+		window_frame_release(ctx->win, xlvgl_disp_present_done, NULL);
+	lv_display_flush_ready(disp);
 }
 
-static void xlvgl_disp_flush_wait(lv_display_t * disp)
+static void xlvgl_disp_render_start(lv_event_t * e)
 {
+	lv_display_t * disp = (lv_display_t *)lv_event_get_target(e);
 	struct xlvgl_context_t * ctx = (struct xlvgl_context_t *)lv_display_get_driver_data(disp);
-	window_present_wait(ctx->win);
+	struct surface_t * s = window_frame_acquire(ctx->win);
+
+	lv_draw_buf_init(&ctx->drawbuf, surface_get_width(s), surface_get_height(s), lv_display_get_color_format(disp), surface_get_stride(s), surface_get_pixels(s), surface_get_stride(s) * surface_get_height(s));
 }
 
 static uint32_t xlvgl_tick_get(void)
@@ -229,8 +224,13 @@ struct xlvgl_context_t * xlvgl_context_alloc(const char * fb, const char * input
 	lv_display_set_driver_data(ctx->disp, ctx);
 	lv_display_set_dpi(ctx->disp, window_get_dpi(ctx->win));
 	lv_display_set_flush_cb(ctx->disp, xlvgl_disp_flush);
-	lv_display_set_flush_wait_cb(ctx->disp, xlvgl_disp_flush_wait);
-	lv_display_set_buffers(ctx->disp, ctx->win->surface->pixels, NULL, window_get_width(ctx->win) * window_get_height(ctx->win) * 4, LV_DISPLAY_RENDER_MODE_DIRECT);
+	lv_display_add_event_cb(ctx->disp, xlvgl_disp_render_start, LV_EVENT_RENDER_START, NULL);
+	{
+		struct surface_t * s = window_frame_acquire(ctx->win);
+		lv_draw_buf_init(&ctx->drawbuf, surface_get_width(s), surface_get_height(s), lv_display_get_color_format(ctx->disp), surface_get_stride(s), surface_get_pixels(s), surface_get_stride(s) * surface_get_height(s));
+	}
+	lv_display_set_draw_buffers(ctx->disp, &ctx->drawbuf, NULL);
+	lv_display_set_render_mode(ctx->disp, LV_DISPLAY_RENDER_MODE_DIRECT);
 
 	lv_tick_set_cb(xlvgl_tick_get);
 	lv_delay_set_cb(xstar_feature_thread() ? xlvgl_sleep_cb : xlvgl_delay_cb);

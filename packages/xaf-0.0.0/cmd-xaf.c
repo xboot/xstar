@@ -261,20 +261,21 @@ static int do_xaf(int argc, char ** argv)
 								xos_memcpy(surface_get_pixels(ctx->surface) + y * sstride, (uint8_t *)frame + y * fstride, fstride);
 						}
 
-						window_dirtylist_fullscreen(ctx->window);
+						struct surface_t * ws = window_frame_acquire(ctx->window);
+						window_frame_damage(ctx->window, NULL);
 						{
-							surface_clear(window_get_surface(ctx->window), &color, 0, 0, 0, 0);
-							surface_blit(window_get_surface(ctx->window), NULL, &ctx->matrix, ctx->surface);
+							surface_clear(ws, &color, 0, 0, 0, 0);
+							surface_blit(ws, NULL, &ctx->matrix, ctx->surface);
 							if(!hide)
 							{
 								int w = window_get_width(ctx->window) - 20;
 								int p = XCLAMP((int)(w * (xaf_get_findex(ctx->xaf) + 1) / xaf_get_nframes(ctx->xaf)), 1, w);
-								surface_clear(window_get_surface(ctx->window), &(struct color_t){0xf5, 0xf5, 0xf5, 0xff}, 10, window_get_height(ctx->window) - 10, p, 2);
+								surface_clear(ws, &(struct color_t){0xf5, 0xf5, 0xf5, 0xff}, 10, window_get_height(ctx->window) - 10, p, 2);
 								if(w > p)
-									surface_clear(window_get_surface(ctx->window), &(struct color_t){0x85, 0x85, 0x85, 0xff}, 10 + p, window_get_height(ctx->window) - 10, w - p, 2);
+									surface_clear(ws, &(struct color_t){0x85, 0x85, 0x85, 0xff}, 10 + p, window_get_height(ctx->window) - 10, w - p, 2);
 							}
 						}
-						window_present_commit(ctx->window);
+						window_frame_release(ctx->window, NULL, NULL);
 					}
 					else
 					{

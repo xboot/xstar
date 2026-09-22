@@ -96,20 +96,21 @@ static void plmpeg_on_video(plm_t * player, plm_frame_t * frame, void * user)
 	struct plmpeg_context_t * ctx = (struct plmpeg_context_t *)user;
 	plm_frame_to_bgra(frame, surface_get_pixels(ctx->surface), surface_get_stride(ctx->surface));
 
-	window_dirtylist_fullscreen(ctx->window);
+	struct surface_t * ws = window_frame_acquire(ctx->window);
+	window_frame_damage(ctx->window, NULL);
 	{
-		surface_clear(window_get_surface(ctx->window), &ctx->color, 0, 0, 0, 0);
-		surface_blit(window_get_surface(ctx->window), NULL, &ctx->matrix, ctx->surface);
+		surface_clear(ws, &ctx->color, 0, 0, 0, 0);
+		surface_blit(ws, NULL, &ctx->matrix, ctx->surface);
 		if(!ctx->hide)
 		{
 			int w = window_get_width(ctx->window) - 20;
 			int p = XCLAMP((int)(w * (plm_get_time(ctx->plm) / plm_get_duration(ctx->plm))), 1, w);
-			surface_clear(window_get_surface(ctx->window), &(struct color_t){0xf5, 0xf5, 0xf5, 0xff}, 10, window_get_height(ctx->window) - 10, p, 2);
+			surface_clear(ws, &(struct color_t){0xf5, 0xf5, 0xf5, 0xff}, 10, window_get_height(ctx->window) - 10, p, 2);
 			if(w > p)
-				surface_clear(window_get_surface(ctx->window), &(struct color_t){0x85, 0x85, 0x85, 0xff}, 10 + p, window_get_height(ctx->window) - 10, w - p, 2);
+				surface_clear(ws, &(struct color_t){0x85, 0x85, 0x85, 0xff}, 10 + p, window_get_height(ctx->window) - 10, w - p, 2);
 		}
 	}
-	window_present_commit(ctx->window);
+	window_frame_release(ctx->window, NULL, NULL);
 }
 
 static void plmpeg_on_audio(plm_t * player, plm_samples_t * samples, void * user)

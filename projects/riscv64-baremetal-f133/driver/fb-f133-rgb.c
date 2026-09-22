@@ -277,14 +277,37 @@ static int fb_getbl(struct framebuffer_t * fb)
 	return led_get_brightness(pdat->backlight);
 }
 
-static struct surface_t * fb_create(struct framebuffer_t * fb, int width, int height)
+static struct surface_t * fb_create(struct framebuffer_t * fb)
 {
-	return surface_alloc(width, height);
+	return surface_alloc(fb->width, fb->height);
 }
 
 static void fb_destroy(struct framebuffer_t * fb, struct surface_t * s)
 {
 	surface_free(s);
+}
+
+static inline void present_surface(void * vram, struct surface_t * s, struct dirtylist_t * l)
+{
+	struct region_t * r;
+	unsigned char * p, * q;
+	int count = l->nitems;
+	int stride = s->stride;
+	int offset, line, height;
+	int i, j;
+
+	for(i = 0; i < count; i++)
+	{
+		r = &l->items[i];
+		offset = r->y * stride + (r->x << 2);
+		line = r->w << 2;
+		height = r->h;
+
+		p = (unsigned char *)vram + offset;
+		q = (unsigned char *)s->pixels + offset;
+		for(j = 0; j < height; j++, p += stride, q += stride)
+			xos_memcpy(p, q, line);
+	}
 }
 
 static int fb_present(struct framebuffer_t * fb, struct surface_t * s, struct dirtylist_t * l, void (*cb)(void *), void * data)

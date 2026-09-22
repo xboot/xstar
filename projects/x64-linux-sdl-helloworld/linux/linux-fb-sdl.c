@@ -86,9 +86,10 @@ int linux_fb_sdl_get_pheight(void * context)
 	return 0;
 }
 
-int linux_fb_sdl_surface_create(void * context, struct linux_fb_surface_t * surface, int width, int height)
+int linux_fb_sdl_surface_create(void * context, struct linux_fb_surface_t * surface)
 {
-	SDL_Surface * face = SDL_CreateSurface(width, height, SDL_PIXELFORMAT_ARGB8888);
+	struct linux_fb_sdl_context_t * ctx = (struct linux_fb_sdl_context_t *)context;
+	SDL_Surface * face = SDL_CreateSurface(ctx->width, ctx->height, SDL_PIXELFORMAT_ARGB8888);
 	if(!face)
 		return 0;
 
@@ -115,11 +116,11 @@ int linux_fb_sdl_surface_present(void * context, struct linux_fb_surface_t * sur
 	struct region_t * r;
 	int i;
 
-	if(l && (l->count > 0))
+	if(l && (l->nitems > 0))
 	{
-		for(i = 0; i < l->count; i++)
+		for(i = 0; i < l->nitems; i++)
 		{
-			r = &l->items[i].region;
+			r = &l->items[i];
 			SDL_BlitSurface(surface->priv, (SDL_Rect *)r, ctx->screen, (SDL_Rect *)r);
 		}
 		SDL_UpdateWindowSurface(ctx->window);

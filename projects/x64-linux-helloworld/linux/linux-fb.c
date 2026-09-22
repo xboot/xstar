@@ -113,12 +113,12 @@ int linux_fb_get_pheight(void * context)
 	return 0;
 }
 
-int linux_fb_surface_create(void * context, struct linux_fb_surface_t * surface, int width, int height)
+int linux_fb_surface_create(void * context, struct linux_fb_surface_t * surface)
 {
 	struct linux_fb_context_t * ctx = (struct linux_fb_context_t *)context;
-	surface->width = width;
-	surface->height = height;
-	surface->stride = width << 2;
+	surface->width = ctx->vi.xres;
+	surface->height = ctx->vi.yres;
+	surface->stride = ctx->fi.line_length;
 	surface->pixlen = ctx->vramsz;
 	surface->pixels = memalign(4, ctx->vramsz);
 	return 1;
@@ -141,11 +141,11 @@ int linux_fb_surface_present(void * context, struct linux_fb_surface_t * surface
 	int offset, line, height;
 	int i, j;
 
-	if(l && (l->count > 0))
+	if(l && (l->nitems > 0))
 	{
-		for(i = 0; i < l->count; i++)
+		for(i = 0; i < l->nitems; i++)
 		{
-			r = &l->items[i].region;
+			r = &l->items[i];
 			offset = r->y * stride + r->x * bytes;
 			line = r->w * bytes;
 			height = r->h;

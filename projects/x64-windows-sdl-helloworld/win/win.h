@@ -67,7 +67,7 @@ int win_fb_sdl_get_width(void * context);
 int win_fb_sdl_get_height(void * context);
 int win_fb_sdl_get_pwidth(void * context);
 int win_fb_sdl_get_pheight(void * context);
-int win_fb_sdl_surface_create(void * context, struct win_fb_surface_t * surface, int width, int height);
+int win_fb_sdl_surface_create(void * context, struct win_fb_surface_t * surface);
 int win_fb_sdl_surface_destroy(void * context, struct win_fb_surface_t * surface);
 int win_fb_sdl_surface_present(void * context, struct win_fb_surface_t * surface, struct dirtylist_t * l, void (*cb)(void *), void * data);
 void win_fb_sdl_surface_wait(void * context);

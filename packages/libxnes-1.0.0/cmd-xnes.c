@@ -108,8 +108,10 @@ static void window_context_reload(struct window_context_t * wctx, const char * f
 
 static void window_context_screen_refresh(struct window_context_t * wctx)
 {
-	window_dirtylist_fullscreen(wctx->window);
-	window_present_clear(wctx->window);
+	struct surface_t * s = window_frame_acquire(wctx->window);
+
+	window_frame_damage(wctx->window, NULL);
+	window_frame_clear(wctx->window);
 	{
 		for(int y = 0; y < 240; y++)
 		{
@@ -118,11 +120,11 @@ static void window_context_screen_refresh(struct window_context_t * wctx)
 				uint32_t c = xnes_get_pixel(wctx->nes, x, y);
 				struct color_t col;
 				color_set_premult(&col, c);
-				surface_set_pixel(wctx->window->surface, x, y, &col);
+				surface_set_pixel(s, x, y, &col);
 			}
 		}
 	}
-	window_present_commit(wctx->window);
+	window_frame_release(wctx->window, NULL, NULL);
 }
 
 static void window_context_update(struct window_context_t * wctx)

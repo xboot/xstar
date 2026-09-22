@@ -8,15 +8,11 @@ extern "C" {
 #include <xos/xos.h>
 #include <kernel/graphic/region.h>
 
-struct dirtylist_item_t {
-	struct region_t region;
-	int area;
-};
-
 struct dirtylist_t {
-	struct dirtylist_item_t * items;
+	struct region_t * items;
+	unsigned int nitems;
 	unsigned int size;
-	unsigned int count;
+	void * priv;
 };
 
 struct dirtylist_t * dirtylist_alloc(unsigned int size);

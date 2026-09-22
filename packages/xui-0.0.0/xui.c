@@ -340,7 +340,6 @@ void xui_end(struct xui_context_t * ctx)
 			}
 		}
 	}
-	window_dirtylist_clear(ctx->w);
 	for(y = 0; y < ctx->cheight; y++)
 	{
 		for(x = 0; x < ctx->cwidth; x++)
@@ -350,7 +349,7 @@ void xui_end(struct xui_context_t * ctx)
 			{
 				region_init(&r, x << ctx->cpshift, y << ctx->cpshift, 1 << ctx->cpshift, 1 << ctx->cpshift);
 				if(region_intersect(&r, &r, &ctx->screen))
-					window_dirtylist_add(ctx->w, &r);
+					window_frame_damage(ctx->w, &r);
 			}
 			ocell[i] = 5381;
 		}
@@ -2451,19 +2450,20 @@ void xui_loop(struct xui_context_t * ctx, void (*func)(struct xui_context_t *))
 				break;
 			}
 		}
+		struct surface_t * s = window_frame_acquire(ctx->w);
 		if(func)
 			func(ctx);
-		window_present_clear(ctx->w);
 		{
-			struct surface_t * s = window_get_surface(ctx->w);
+			struct dirtylist_t * dl = window_frame_damage_get(ctx->w);
 			struct region_t * clip = &ctx->clip;
 
-			int count = ctx->w->dirtylist->count;
+			window_frame_clear(ctx->w);
+			int count = dl->nitems;
 			if(count > 0)
 			{
 				for(int i = 0; i < count; i++)
 				{
-					struct region_t * r = &ctx->w->dirtylist->items[i].region;
+					struct region_t * r = &dl->items[i];
 					region_clone(clip, r);
 
 					union xui_cmd_t * cmd = NULL;
@@ -2533,7 +2533,6 @@ void xui_loop(struct xui_context_t * ctx, void (*func)(struct xui_context_t *))
 				}
 			}
 		}
-		window_dirtylist_optimize(ctx->w, 3);
-		window_present_commit(ctx->w);
+		window_frame_release(ctx->w, NULL, NULL);
 	}
 }

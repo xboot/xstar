@@ -331,7 +331,7 @@ Matrix functions are independent of the context and operate directly on `cg_matr
 ## Usage Example
 
 ```c
-struct surface_t * s = window_get_surface(w);
+struct surface_t * s = window_frame_acquire(w);
 struct cg_ctx_t * cg = surface_get_cg_ctx(s);
 
 cg_save(cg);

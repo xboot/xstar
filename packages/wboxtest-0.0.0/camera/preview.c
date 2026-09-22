@@ -106,17 +106,18 @@ static void preview_run(struct wboxtest_t * wbt, void * data)
 		while(frame-- > 0)
 		{
 			ktime_t timeout = ktime_add_ms(ktime_get(), 16);
-			window_dirtylist_fullscreen(pdat->w);
-			window_present_clear(pdat->w);
+			struct surface_t * s = window_frame_acquire(pdat->w);
+			window_frame_damage(pdat->w, NULL);
+			window_frame_clear(pdat->w);
 			{
 				if(camera_capture(pdat->c, &pdat->frame, 0))
 					camera_frame_to_argb(&pdat->frame, pdat->s->pixels);
 				struct matrix2d_t m;
 				matrix2d_init_identity(&m);
 				matrix2d_init_translate(&m, (window_get_width(pdat->w) - surface_get_width(pdat->s)) / 2, (window_get_height(pdat->w) - surface_get_height(pdat->s)) / 2);
-				surface_blit(window_get_surface(pdat->w), NULL, &m, pdat->s);
+				surface_blit(s, NULL, &m, pdat->s);
 			}
-			window_present_commit(pdat->w);
+			window_frame_release(pdat->w, NULL, NULL);
 			while(ktime_before(ktime_get(), timeout));
 		}
 	}

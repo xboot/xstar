@@ -20,7 +20,7 @@ static int fb_getbl(struct framebuffer_t * fb)
 	return linux_fb_get_backlight(pdat->priv);
 }
 
-static struct surface_t * fb_create(struct framebuffer_t * fb, int width, int height)
+static struct surface_t * fb_create(struct framebuffer_t * fb)
 {
 	struct fb_linux_pdata_t * pdat = (struct fb_linux_pdata_t *)fb->priv;
 	struct linux_fb_surface_t * surface;
@@ -30,7 +30,7 @@ static struct surface_t * fb_create(struct framebuffer_t * fb, int width, int he
 	if(!surface)
 		return NULL;
 
-	if(!linux_fb_surface_create(pdat->priv, surface, width, height))
+	if(!linux_fb_surface_create(pdat->priv, surface))
 	{
 		xos_mem_free(surface);
 		return NULL;

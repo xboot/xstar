@@ -366,8 +366,9 @@ static void do_show_logo(void)
 				struct window_t * w = window_alloc(fb->name, "", -1);
 				if(w)
 				{
-					window_dirtylist_fullscreen(w);
-					window_present_clear(w);
+					struct surface_t * ws = window_frame_acquire(w);
+					window_frame_damage(w, NULL);
+					window_frame_clear(w);
 					{
 						struct surface_t * logo = NULL;
 						struct xfs_context_t * ctx = xfs_alloc();
@@ -380,14 +381,14 @@ static void do_show_logo(void)
 						{
 							struct matrix2d_t m;
 							matrix2d_init_identity(&m);
-							surface_fill(window_get_surface(w), NULL, &m, window_get_width(w), window_get_height(w), &(struct color_t){0x00, 0x00, 0x00, 0xff});
+							surface_fill(ws, NULL, &m, window_get_width(w), window_get_height(w), &(struct color_t){0x00, 0x00, 0x00, 0xff});
 							matrix2d_init_translate(&m, ((window_get_width(w) - surface_get_width(logo)) >> 1), ((window_get_height(w) - surface_get_height(logo)) >> 1));
-							surface_blit(window_get_surface(w), NULL, &m, logo);
+							surface_blit(ws, NULL, &m, logo);
 							surface_free(logo);
 						}
 						else
 						{
-							struct cg_ctx_t * cg = surface_get_cg_ctx(window_get_surface(w));
+							struct cg_ctx_t * cg = surface_get_cg_ctx(ws);
 							int ww = window_get_width(w);
 							int wh = window_get_height(w);
 							float sw = (float)ww / 256.0f * 0.382f;
@@ -678,7 +679,7 @@ static void do_show_logo(void)
 							cg_restore(cg);
 						}
 					}
-					window_present_commit(w);
+					window_frame_release(w, NULL, NULL);
 					char key[256];
 					xos_sprintf(key, "backlight(%s)", w->fb->name);
 					int brightness = xos_strtol(setting_get(key, "-1"), NULL, 0);

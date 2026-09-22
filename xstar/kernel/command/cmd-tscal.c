@@ -177,13 +177,13 @@ static int do_tscal(int argc, char ** argv)
 					}
 				}
 			}
-			window_dirtylist_fullscreen(w);
-			window_present_clear(w);
+			struct surface_t * s = window_frame_acquire(w);
+			window_frame_damage(w, NULL);
+			window_frame_clear(w);
 			{
 				int x = cal.xfb[cal.index];
 				int y = cal.yfb[cal.index];
 
-				struct surface_t * s = window_get_surface(w);
 				struct cg_ctx_t * cg = surface_get_cg_ctx(s);
 				cg_save(cg);
 				cg_set_source_rgba(cg, 1.0, 1.0, 0.0, 1.0);
@@ -200,9 +200,9 @@ static int do_tscal(int argc, char ** argv)
 				cg_stroke(cg);
 				cg_restore(cg);
 			}
-			window_present_commit(w);
+			window_frame_release(w, NULL, NULL);
 			if(shell_ctrlc())
-				running = 0;
+					running = 0;
 		}
 		window_free(w);
 	}

@@ -851,12 +851,12 @@ int linux_fb_drm_get_pheight(void * context)
 	return ctx->pheight;
 }
 
-int linux_fb_drm_surface_create(void * context, struct linux_fb_surface_t * surface, int width, int height)
+int linux_fb_drm_surface_create(void * context, struct linux_fb_surface_t * surface)
 {
 	struct linux_fb_drm_context_t * ctx = (struct linux_fb_drm_context_t *)context;
-	surface->width = width;
-	surface->height = height;
-	surface->stride = width << 2;
+	surface->width = ctx->width;
+	surface->height = ctx->height;
+	surface->stride = ctx->stride;
 	surface->pixlen = ctx->pixlen;
 	surface->pixels = memalign(4, ctx->pixlen);
 	return 1;
@@ -887,11 +887,11 @@ int linux_fb_drm_surface_present(void * context, struct linux_fb_surface_t * sur
 
 	ctx->index = (ctx->index + 1) & 0x1;
 	drmbuf = ctx->drmbuf[ctx->index];
-	if(nl && (nl->count > 0))
+	if(nl && (nl->nitems > 0))
 	{
-		for(i = 0; i < nl->count; i++)
+		for(i = 0; i < nl->nitems; i++)
 		{
-			r = &nl->items[i].region;
+			r = &nl->items[i];
 			offset = r->y * stride + (r->x << 2);
 			line = r->w << 2;
 			height = r->h;

@@ -77,8 +77,9 @@ static void display(struct window_t * w, const char * path, int ms, enum iplay_m
 				struct surface_t * s = surface_alloc_from_xfs(shell_getxfs(), e->key);
 				if(s)
 				{
-					window_dirtylist_fullscreen(w);
-					window_present_clear(w);
+					struct surface_t * ws = window_frame_acquire(w);
+					window_frame_damage(w, NULL);
+					window_frame_clear(w);
 					{
 						struct matrix2d_t m;
 						float sx, sy;
@@ -116,10 +117,10 @@ static void display(struct window_t * w, const char * path, int ms, enum iplay_m
 						matrix2d_init_translate(&m, 0 + window_get_width(w) / 2, 0 + window_get_height(w) / 2);
 						matrix2d_translate(&m, -surface_get_width(s) / 2 * sx, -surface_get_height(s) / 2 * sy);
 						matrix2d_scale(&m, sx, sy);
-						surface_fill(window_get_surface(w), NULL, &(struct matrix2d_t){1, 0, 0, 1, 0, 0}, window_get_width(w), window_get_height(w), c);
-						surface_blit(window_get_surface(w), NULL, &m, s);
+						surface_fill(ws, NULL, &(struct matrix2d_t){1, 0, 0, 1, 0, 0}, window_get_width(w), window_get_height(w), c);
+						surface_blit(ws, NULL, &m, s);
 					}
-					window_present_commit(w);
+					window_frame_release(w, NULL, NULL);
 					surface_free(s);
 					while(ktime_before(ktime_get(), timeout));
 				}

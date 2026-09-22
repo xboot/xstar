@@ -580,9 +580,9 @@ static int fb_getbl(struct framebuffer_t * fb)
 	return led_get_brightness(pdat->backlight);
 }
 
-static struct surface_t * fb_create(struct framebuffer_t * fb, int width, int height)
+static struct surface_t * fb_create(struct framebuffer_t * fb)
 {
-	return surface_alloc(width, height);
+	return surface_alloc(fb->width, fb->height);
 }
 
 static void fb_destroy(struct framebuffer_t * fb, struct surface_t * s)
@@ -594,11 +594,11 @@ static int fb_present(struct framebuffer_t * fb, struct surface_t * s, struct di
 {
 	struct fb_st77912_pdata_t * pdat = (struct fb_st77912_pdata_t *)fb->priv;
 
-	if(l && (l->count > 0))
+	if(l && (l->nitems > 0))
 	{
-		for(int i = 0; i < l->count; i++)
+		for(int i = 0; i < l->nitems; i++)
 		{
-			struct region_t * r = &l->items[i].region;
+			struct region_t * r = &l->items[i];
 			uint8_t * q = pdat->txbuf;
 			for(int y = 0; y < r->h; y++)
 			{

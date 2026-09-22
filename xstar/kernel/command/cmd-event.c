@@ -146,12 +146,12 @@ static int do_event(int argc, char ** argv)
 			if(ktime_after(ktime_get(), ktime_add_ms(timestamp, 20)))
 			{
 				timestamp = ktime_get();
-				window_dirtylist_fullscreen(w);
-				window_present_clear(w);
+				struct surface_t * s = window_frame_acquire(w);
+				window_frame_damage(w, NULL);
+				window_frame_clear(w);
 				{
 					if(ectx->index > 0)
 					{
-						struct surface_t * s = window_get_surface(w);
 						struct cg_ctx_t * cg = surface_get_cg_ctx(s);
 						cg_save(cg);
 						cg_set_line_width(cg, 1);
@@ -185,7 +185,7 @@ static int do_event(int argc, char ** argv)
 						}
 					}
 				}
-				window_present_commit(w);
+				window_frame_release(w, NULL, NULL);
 			}
 			if(shell_ctrlc())
 				running = 0;
