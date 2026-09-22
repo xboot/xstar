@@ -42,9 +42,8 @@ struct fb_t113_rgb_pdata_t {
 	int bits_per_pixel;
 	int bytes_per_pixel;
 	int pixlen;
-	int index;
-	void * vram[2];
-	struct dirtylist_t * nl, * ol;
+	void * pixbuf;
+	void * scanout;
 
 	struct {
 		int pixel_clock_hz;
@@ -70,10 +69,11 @@ static void inline t113_de_enable(struct fb_t113_rgb_pdata_t * pdat)
 	xos_io_write32((io_addr_t)&glb->dbuff, 1);
 }
 
-static inline void t113_de_set_address(struct fb_t113_rgb_pdata_t * pdat, void * vram)
+static inline void t113_de_set_address(struct fb_t113_rgb_pdata_t * pdat, void * pixbuf)
 {
 	struct de_ui_t * ui = (struct de_ui_t *)(pdat->addr_de + T113_DE_MUX_CHAN + 0x1000 * 1);
-	xos_io_write32((io_addr_t)&ui->cfg[0].top_laddr, (uint32_t)(unsigned long)vram);
+	xos_io_write32((io_addr_t)&ui->cfg[0].top_laddr, (uint32_t)(unsigned long)pixbuf);
+	pdat->scanout = pixbuf;
 }
 
 static inline void t113_de_set_mode(struct fb_t113_rgb_pdata_t * pdat)
@@ -145,7 +145,7 @@ static inline void t113_de_set_mode(struct fb_t113_rgb_pdata_t * pdat)
 	xos_io_write32((io_addr_t)&ui->cfg[0].size, size);
 	xos_io_write32((io_addr_t)&ui->cfg[0].coord, 0);
 	xos_io_write32((io_addr_t)&ui->cfg[0].pitch, 4 * pdat->width);
-	xos_io_write32((io_addr_t)&ui->cfg[0].top_laddr, (uint32_t)(unsigned long)pdat->vram[pdat->index]);
+	xos_io_write32((io_addr_t)&ui->cfg[0].top_laddr, (uint32_t)(unsigned long)pdat->pixbuf);
 	xos_io_write32((io_addr_t)&ui->ovl_size, size);
 }
 
@@ -261,7 +261,7 @@ static void fb_t113_rgb_init(struct fb_t113_rgb_pdata_t * pdat)
 	t113_tconlcd_enable(pdat);
 	t113_de_set_mode(pdat);
 	t113_de_enable(pdat);
-	t113_de_set_address(pdat, pdat->vram[pdat->index]);
+	t113_de_set_address(pdat, pdat->pixbuf);
 	t113_de_enable(pdat);
 }
 
@@ -284,46 +284,24 @@ static struct surface_t * fb_create(struct framebuffer_t * fb)
 
 static void fb_destroy(struct framebuffer_t * fb, struct surface_t * s)
 {
-	surface_free(s);
-}
+	struct fb_t113_rgb_pdata_t * pdat = (struct fb_t113_rgb_pdata_t *)fb->priv;
 
-static inline void present_surface(void * vram, struct surface_t * s, struct dirtylist_t * l)
-{
-	struct region_t * r;
-	unsigned char * p, * q;
-	int count = l->nitems;
-	int stride = s->stride;
-	int offset, line, height;
-	int i, j;
-
-	for(i = 0; i < count; i++)
+	if(pdat->scanout == surface_get_pixels(s))
 	{
-		r = &l->items[i];
-		offset = r->y * stride + (r->x << 2);
-		line = r->w << 2;
-		height = r->h;
-
-		p = (unsigned char *)vram + offset;
-		q = (unsigned char *)s->pixels + offset;
-		for(j = 0; j < height; j++, p += stride, q += stride)
-			xos_memcpy(p, q, line);
+		xos_memcpy(pdat->pixbuf, surface_get_pixels(s), pdat->pixlen);
+		xos_dma_sync(pdat->pixbuf, pdat->pixlen, DMA_SYNC_TO_DEVICE);
+		t113_de_set_address(pdat, pdat->pixbuf);
+		t113_de_enable(pdat);
 	}
+	surface_free(s);
 }
 
 static int fb_present(struct framebuffer_t * fb, struct surface_t * s, struct dirtylist_t * l, void (*cb)(void *), void * data)
 {
 	struct fb_t113_rgb_pdata_t * pdat = (struct fb_t113_rgb_pdata_t *)fb->priv;
-	struct dirtylist_t * nl = pdat->nl;
 
-	dirtylist_clear(nl);
-	dirtylist_merge(nl, pdat->ol);
-	dirtylist_merge(nl, l);
-	dirtylist_clone(pdat->ol, l);
-
-	pdat->index = (pdat->index + 1) & 0x1;
-	present_surface(pdat->vram[pdat->index], s, nl);
-	xos_dma_sync(pdat->vram[pdat->index], pdat->pixlen, DMA_SYNC_TO_DEVICE);
-	t113_de_set_address(pdat, pdat->vram[pdat->index]);
+	xos_dma_sync(surface_get_pixels(s), surface_get_pixlen(s), DMA_SYNC_TO_DEVICE);
+	t113_de_set_address(pdat, surface_get_pixels(s));
 	t113_de_enable(pdat);
 	return 0;
 }
@@ -368,13 +346,9 @@ static struct device_t * fb_t113_rgb_probe(struct driver_t * drv, struct dtnode_
 	pdat->bits_per_pixel = dt_read_int(n, "bits-per-pixel", 18);
 	pdat->bytes_per_pixel = 4;
 	pdat->pixlen = pdat->width * pdat->height * pdat->bytes_per_pixel;
-	pdat->index = 0;
-	pdat->vram[0] = xos_dma_alloc_noncoherent(pdat->pixlen);
-	pdat->vram[1] = xos_dma_alloc_noncoherent(pdat->pixlen);
-	pdat->nl = dirtylist_alloc(0);
-	pdat->ol = dirtylist_alloc(0);
-	xos_memset(pdat->vram[0], 0, pdat->pixlen);
-	xos_memset(pdat->vram[1], 0, pdat->pixlen);
+	pdat->pixbuf = xos_mem_malloc(pdat->pixlen);
+	pdat->scanout = pdat->pixbuf;
+	xos_memset(pdat->pixbuf, 0, pdat->pixlen);
 
 	pdat->timing.pixel_clock_hz = dt_read_long(n, "clock-frequency", 33000000);
 	pdat->timing.h_front_porch = dt_read_int(n, "hfront-porch", 40);
@@ -416,10 +390,7 @@ static struct device_t * fb_t113_rgb_probe(struct driver_t * drv, struct dtnode_
 		clk_disable(pdat->clk_tconlcd);
 		xos_mem_free(pdat->clk_de);
 		xos_mem_free(pdat->clk_tconlcd);
-		xos_dma_free_noncoherent(pdat->vram[0]);
-		xos_dma_free_noncoherent(pdat->vram[1]);
-		dirtylist_free(pdat->nl);
-		dirtylist_free(pdat->ol);
+		xos_mem_free(pdat->pixbuf);
 		free_device_name(fb->name);
 		xos_mem_free(fb->priv);
 		xos_mem_free(fb);
@@ -440,10 +411,7 @@ static void fb_t113_rgb_remove(struct device_t * dev)
 		clk_disable(pdat->clk_tconlcd);
 		xos_mem_free(pdat->clk_de);
 		xos_mem_free(pdat->clk_tconlcd);
-		xos_dma_free_noncoherent(pdat->vram[0]);
-		xos_dma_free_noncoherent(pdat->vram[1]);
-		dirtylist_free(pdat->nl);
-		dirtylist_free(pdat->ol);
+		xos_mem_free(pdat->pixbuf);
 		free_device_name(fb->name);
 		xos_mem_free(fb->priv);
 		xos_mem_free(fb);
