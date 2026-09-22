@@ -332,25 +332,6 @@ static int fb_present(struct framebuffer_t * fb, struct surface_t * s, struct di
 			spi_device_deselect(pdat->dev);
 		}
 	}
-	else
-	{
-		uint32_t * p = s->pixels;
-		uint8_t * q = pdat->txbuf;
-		for(int y = 0; y < pdat->height; y++)
-		{
-			for(int x = 0; x < pdat->width; x++)
-			{
-				uint32_t v = *p++;
-				*q++ = ((v >> 16) & 0xf8) | ((v >> 13) & 0x07);
-				*q++ = ((v >> 5) & 0xe0) | ((v >> 3) & 0x1f);
-			}
-		}
-		gc9107_set_window(pdat, 0, 0, pdat->width, pdat->height);
-		gc9107_write_command(pdat, 0x2c);
-		spi_device_select(pdat->dev);
-		spi_device_write_then_read(pdat->dev, pdat->txbuf, pdat->width * pdat->height * 2, 0, 0);
-		spi_device_deselect(pdat->dev);
-	}
 	return 0;
 }
 
