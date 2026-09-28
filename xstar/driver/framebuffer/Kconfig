@@ -20,6 +20,11 @@ config DRV_FRAMEBUFFER_GC9D01
 	bool
 	default n
 
+config DRV_FRAMEBUFFER_JD9851
+	prompt "Enable JD9851 framebuffer driver"
+	bool
+	default n
+
 config DRV_FRAMEBUFFER_NV3031B
 	prompt "Enable NV3031B framebuffer driver"
 	bool
