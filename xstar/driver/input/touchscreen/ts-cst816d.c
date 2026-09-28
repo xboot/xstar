@@ -68,6 +68,7 @@ struct ts_cst816d_pdata_t {
 	int swapxy;
 	int x, y;
 	int press;
+	struct timer_t timer;
 };
 
 static int cst816d_read(struct i2c_device_t * dev, uint8_t reg, uint8_t * buf, int len)
@@ -129,13 +130,11 @@ static int cst816d_initial(struct i2c_device_t * dev)
 	return TRUE;
 }
 
-static void cst816d_interrupt(void * data)
+static void cst816d_report(struct input_t * input)
 {
-	struct input_t * input = (struct input_t *)data;
 	struct ts_cst816d_pdata_t * pdat = (struct ts_cst816d_pdata_t *)input->priv;
 	uint8_t buf[6];
 
-	disable_irq(pdat->irq);
 	if(cst816d_read(pdat->dev, CST816D_GESTURE_ID, buf, 6))
 	{
 		if(buf[1] == 1)
@@ -176,7 +175,25 @@ static void cst816d_interrupt(void * data)
 			}
 		}
 	}
+}
+
+static void cst816d_interrupt(void * data)
+{
+	struct input_t * input = (struct input_t *)data;
+	struct ts_cst816d_pdata_t * pdat = (struct ts_cst816d_pdata_t *)input->priv;
+
+	disable_irq(pdat->irq);
+	cst816d_report(input);
 	enable_irq(pdat->irq);
+}
+
+static int cst816d_timer_function(struct timer_t * timer, void * data)
+{
+	struct input_t * input = (struct input_t *)data;
+
+	cst816d_report(input);
+	timer_forward(timer, ms_to_ktime(20));
+	return 1;
 }
 
 static int ts_cst816d_ioctl(struct input_t * input, const char * cmd, void * arg)
@@ -196,13 +213,16 @@ static struct device_t * ts_cst816d_probe(struct driver_t * drv, struct dtnode_t
 	int rst = dt_read_int(n, "reset-gpio", -1);
 	int rstcfg = dt_read_int(n, "reset-gpio-config", -1);
 
-	if(!gpio_is_valid(gpio) || !irq_is_valid(irq))
-		return NULL;
-
 	i2cdev = i2c_device_alloc(dt_read_string(n, "i2c-bus", NULL), dt_read_int(n, "slave-address", 0x15), 0);
 	if(!i2cdev)
 		return NULL;
 
+	if(gpio >= 0)
+	{
+		if(gpiocfg >= 0)
+			gpio_set_cfg(gpio, gpiocfg);
+		gpio_set_pull(gpio, GPIO_PULL_UP);
+	}
 	if(rst >= 0)
 	{
 		if(rstcfg >= 0)
@@ -239,7 +259,7 @@ static struct device_t * ts_cst816d_probe(struct driver_t * drv, struct dtnode_t
 	pdat->dev = i2cdev;
 	pdat->irq = irq;
 	pdat->sizex = dt_read_int(n, "max-size-x", 320);
-	pdat->sizey = dt_read_int(n, "max-size-y", 170);
+	pdat->sizey = dt_read_int(n, "max-size-y", 320);
 	pdat->invertx = dt_read_bool(n, "invert-x", 0);
 	pdat->inverty = dt_read_bool(n, "invert-y", 0);
 	pdat->swapxy = dt_read_bool(n, "swap-xy", 0);
@@ -248,17 +268,22 @@ static struct device_t * ts_cst816d_probe(struct driver_t * drv, struct dtnode_t
 	input->ioctl = ts_cst816d_ioctl;
 	input->priv = pdat;
 
-	if(gpio >= 0)
+	if(irq_is_valid(irq))
 	{
-		if(gpiocfg >= 0)
-			gpio_set_cfg(gpio, gpiocfg);
-		gpio_set_pull(gpio, GPIO_PULL_UP);
+		request_irq(pdat->irq, cst816d_interrupt, IRQ_TYPE_EDGE_FALLING, input);
 	}
-	request_irq(pdat->irq, cst816d_interrupt, IRQ_TYPE_EDGE_FALLING, input);
+	else
+	{
+		timer_init(&pdat->timer, cst816d_timer_function, input);
+		timer_start(&pdat->timer, ms_to_ktime(20));
+	}
 
 	if(!(dev = register_input(input, drv)))
 	{
-		free_irq(pdat->irq);
+		if(irq_is_valid(irq))
+			free_irq(pdat->irq);
+		else
+			timer_cancel(&pdat->timer);
 		i2c_device_free(pdat->dev);
 		free_device_name(input->name);
 		xos_mem_free(input->priv);
@@ -276,7 +301,10 @@ static void ts_cst816d_remove(struct device_t * dev)
 	if(input)
 	{
 		unregister_input(input);
-		free_irq(pdat->irq);
+		if(irq_is_valid(pdat->irq))
+			free_irq(pdat->irq);
+		else
+			timer_cancel(&pdat->timer);
 		i2c_device_free(pdat->dev);
 		free_device_name(input->name);
 		xos_mem_free(input->priv);
