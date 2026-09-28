@@ -32,17 +32,17 @@ enum {
 };
 
 enum {
-	STBTT_PLATFORM_ID_UNICODE = 0,
-	STBTT_PLATFORM_ID_MAC = 1,
-	STBTT_PLATFORM_ID_ISO = 2,
-	STBTT_PLATFORM_ID_MICROSOFT = 3,
+	TRUETYPE_PLATFORM_ID_UNICODE = 0,
+	TRUETYPE_PLATFORM_ID_MAC = 1,
+	TRUETYPE_PLATFORM_ID_ISO = 2,
+	TRUETYPE_PLATFORM_ID_MICROSOFT = 3,
 };
 
 enum {
-	STBTT_MS_EID_SYMBOL = 0,
-	STBTT_MS_EID_UNICODE_BMP = 1,
-	STBTT_MS_EID_SHIFTJIS = 2,
-	STBTT_MS_EID_UNICODE_FULL = 10,
+	TRUETYPE_MS_EID_SYMBOL = 0,
+	TRUETYPE_MS_EID_UNICODE_BMP = 1,
+	TRUETYPE_MS_EID_SHIFTJIS = 2,
+	TRUETYPE_MS_EID_UNICODE_FULL = 10,
 };
 
 struct truetype_point_t {
@@ -370,16 +370,16 @@ static int truetype_init_font_internal(struct truetype_fontinfo_t * info, unsign
 		uint32_t encoding_record = cmap + 4 + 8 * i;
 		switch(truetype_ushort(data + encoding_record))
 		{
-		case STBTT_PLATFORM_ID_MICROSOFT:
+		case TRUETYPE_PLATFORM_ID_MICROSOFT:
 			switch(truetype_ushort(data + encoding_record + 2))
 			{
-			case STBTT_MS_EID_UNICODE_BMP:
-			case STBTT_MS_EID_UNICODE_FULL:
+			case TRUETYPE_MS_EID_UNICODE_BMP:
+			case TRUETYPE_MS_EID_UNICODE_FULL:
 				info->index_map = cmap + truetype_ulong(data + encoding_record + 4);
 				break;
 			}
 			break;
-		case STBTT_PLATFORM_ID_UNICODE:
+		case TRUETYPE_PLATFORM_ID_UNICODE:
 			info->index_map = cmap + truetype_ulong(data + encoding_record + 4);
 			break;
 		}
