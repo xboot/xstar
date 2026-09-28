@@ -685,10 +685,10 @@
 		"clock-name": "twi0",
 		"clock-frequency": 400000,
 		"reset": 496,
-		"sda-gpio": -1,
-		"sda-gpio-config": -1,
-		"scl-gpio": -1,
-		"scl-gpio-config": -1,
+		"sda-gpio": 131,
+		"sda-gpio-config": 4,
+		"scl-gpio": 130,
+		"scl-gpio-config": 4,
 		"status": "okay"
 	},
 
@@ -802,6 +802,16 @@
 	"ledtrigger-heartbeat": {
 		"led-name": "led-gpio.0",
 		"status": "okay"
+	},
+
+	"ts-cst816d:0": {
+		"i2c-bus": "i2c-f101.0",
+		"slave-address": 21,
+		"max-size-x": 240,
+		"max-size-y": 240,
+		"invert-x": false,
+		"invert-y": false,
+		"swap-xy": false
 	},
 
 	"fb-jd9851:0": {
