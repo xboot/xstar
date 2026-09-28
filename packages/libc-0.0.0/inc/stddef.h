@@ -13,6 +13,11 @@ extern "C" {
 #endif
 #endif
 
+#if !defined(__cplusplus) && !defined(_WCHAR_T)
+#define _WCHAR_T
+typedef __WCHAR_TYPE__ wchar_t;
+#endif
+
 #ifdef __cplusplus
 }
 #endif
