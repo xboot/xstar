@@ -208,6 +208,11 @@ CONFIG_DRV_GPIO_PCF8574=y
 # end of Gyroscope Support
 
 #
+# Hwspinlock Support
+#
+# end of Hwspinlock Support
+
+#
 # Hygrometer Support
 #
 CONFIG_DRV_HYGROMETER_AHT20=y
