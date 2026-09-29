@@ -618,8 +618,12 @@ static int do_tinyui(int argc, char ** argv)
 	if(ctx)
 	{
 		tinyui_create();
-		while(!shell_ctrlc())
+		while(1)
+		{
 			xlvgl_context_step(ctx);
+			if(shell_ctrlc())
+				break;
+		}
 		lv_timer_delete(tinyui.timer);
 		xlvgl_context_free(ctx);
 	}
