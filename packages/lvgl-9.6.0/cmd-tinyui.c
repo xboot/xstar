@@ -292,15 +292,7 @@ static void tinyui_create_app_page(int index)
 	lv_obj_set_flex_grow(page, 0);
 	lv_obj_set_event_bubble(page, 1);
 	icon = tinyui_box(page, 72, 24, 96, 96, app->color, 24);
-	lv_obj_set_style_bg_grad_color(icon, lv_color_darken(lv_color_hex(app->color), 70), 0);
-	lv_obj_set_style_bg_grad_dir(icon, LV_GRAD_DIR_VER, 0);
-	lv_obj_set_style_shadow_color(icon, lv_color_hex(app->color), 0);
-	lv_obj_set_style_shadow_opa(icon, LV_OPA_20, 0);
-	lv_obj_set_style_shadow_width(icon, 18, 0);
-	lv_obj_set_style_shadow_ofs_y(icon, 6, 0);
-	lv_obj_set_style_transform_pivot_x(icon, lv_pct(50), 0);
-	lv_obj_set_style_transform_pivot_y(icon, lv_pct(50), 0);
-	lv_obj_set_style_transform_scale(icon, 225, LV_STATE_PRESSED);
+	lv_obj_set_style_bg_color(icon, lv_color_darken(lv_color_hex(app->color), 70), LV_STATE_PRESSED);
 	lv_obj_set_clickable(icon, 1);
 	lv_obj_add_event_cb(icon, tinyui_app_event, LV_EVENT_PRESSED, (void *)(uintptr_t)index);
 	lv_obj_add_event_cb(icon, tinyui_app_event, LV_EVENT_PRESSING, (void *)(uintptr_t)index);
@@ -575,9 +567,7 @@ static void tinyui_create(void)
 	lv_obj_set_style_border_width(screen, 0, 0);
 	lv_obj_set_style_pad_all(screen, 0, 0);
 	lv_obj_set_scrollable(screen, 0);
-	tinyui.root = tinyui_box(screen, 0, 0, TINYUI_WIDTH, TINYUI_HEIGHT, 0x030407, 0);
-	lv_obj_set_style_bg_grad_color(tinyui.root, lv_color_hex(0x10192A), 0);
-	lv_obj_set_style_bg_grad_dir(tinyui.root, LV_GRAD_DIR_VER, 0);
+	tinyui.root = tinyui_box(screen, 0, 0, TINYUI_WIDTH, TINYUI_HEIGHT, 0x0A0E18, 0);
 
 	status = tinyui_box(tinyui.root, 0, 0, TINYUI_WIDTH, TINYUI_STATUS_HEIGHT, 0x111827, 0);
 	lv_obj_set_style_bg_opa(status, LV_OPA_70, 0);
