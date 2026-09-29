@@ -4,9 +4,9 @@ menuconfig PKG_LVGL
 	help
 		Enable the lvgl package.
 
-config CMD_LVGL
-	bool "Enable lvgl command"
+config CMD_TINYUI
+	bool "Enable lvgl tinyui command"
 	depends on PKG_LVGL
 	default y
 	help
-		Enable the lvgl command for demo.
+		Enable the lvgl tinyui command for demo.
