@@ -126,6 +126,8 @@ static lv_obj_t * tinyui_box(lv_obj_t * parent, int x, int y, int width, int hei
 	lv_obj_set_style_bg_color(obj, lv_color_hex(color), 0);
 	lv_obj_set_style_border_width(obj, 0, 0);
 	lv_obj_set_style_pad_all(obj, 0, 0);
+	lv_obj_set_style_pad_row(obj, 0, 0);
+	lv_obj_set_style_pad_column(obj, 0, 0);
 	lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
 	lv_obj_set_scrollable(obj, 0);
 	return obj;
@@ -168,11 +170,13 @@ static void tinyui_update_dots(int page)
 
 static void tinyui_pages_event(lv_event_t * event)
 {
+	lv_point_t end;
 	int page;
 
 	if(lv_event_get_code(event) != LV_EVENT_SCROLL)
 		return;
-	page = (lv_obj_get_scroll_x(tinyui.pages) + TINYUI_WIDTH / 2) / TINYUI_WIDTH;
+	lv_obj_get_scroll_end(tinyui.pages, &end);
+	page = (end.x + TINYUI_WIDTH / 2) / TINYUI_WIDTH;
 	if(page != tinyui.page)
 		tinyui_update_dots(page);
 }
@@ -184,8 +188,8 @@ static void tinyui_dot_event(lv_event_t * event)
 	if(lv_event_get_code(event) != LV_EVENT_CLICKED)
 		return;
 	page = (int)(uintptr_t)lv_event_get_user_data(event);
-	lv_obj_scroll_to_x(tinyui.pages, page * TINYUI_WIDTH, LV_ANIM_ON);
-	tinyui_update_dots(page);
+	if(page != tinyui.page)
+		lv_obj_scroll_to_x(tinyui.pages, page * TINYUI_WIDTH, LV_ANIM_ON);
 }
 
 static void tinyui_appview_back_event(lv_event_t * event)
