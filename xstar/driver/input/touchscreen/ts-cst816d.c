@@ -192,7 +192,7 @@ static int cst816d_timer_function(struct timer_t * timer, void * data)
 	struct input_t * input = (struct input_t *)data;
 
 	cst816d_report(input);
-	timer_forward(timer, ms_to_ktime(20));
+	timer_forward(timer, ms_to_ktime(10));
 	return 1;
 }
 
@@ -275,7 +275,7 @@ static struct device_t * ts_cst816d_probe(struct driver_t * drv, struct dtnode_t
 	else
 	{
 		timer_init(&pdat->timer, cst816d_timer_function, input);
-		timer_start(&pdat->timer, ms_to_ktime(20));
+		timer_start(&pdat->timer, ms_to_ktime(10));
 	}
 
 	if(!(dev = register_input(input, drv)))
