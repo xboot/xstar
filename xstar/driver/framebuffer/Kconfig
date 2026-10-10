@@ -40,6 +40,11 @@ config DRV_FRAMEBUFFER_SSD1308
 	bool
 	default n
 
+config DRV_FRAMEBUFFER_SSD1315
+	prompt "Enable SSD1315 framebuffer driver"
+	bool
+	default n
+
 config DRV_FRAMEBUFFER_ST7735P3
 	prompt "Enable ST7735P3 framebuffer driver"
 	bool

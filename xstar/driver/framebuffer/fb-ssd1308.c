@@ -32,6 +32,7 @@
  *
  * Optional properties:
  * - slave-address: i2c slave address (default: 0x3c)
+ * - dither: enable bayer 8x8 ordered dithering, false for luma threshold, true for bayer
  * - physical-width: display physical width in millimeters
  * - physical-height: display physical height in millimeters
  *
@@ -39,6 +40,7 @@
  *   "fb-ssd1308": {
  *       "i2c-bus": "i2c-gpio.0",
  *       "slave-address": 60,
+ *		 "dither": true,
  *		 "physical-width": 22,
  *		 "physical-height": 11
  *   }
@@ -47,6 +49,7 @@
 struct fb_ssd1308_pdata_t {
 	struct i2c_device_t * dev;
 	uint8_t buffer[128 * 64 / 8];
+	int dither;
 	int brightness;
 };
 
@@ -107,14 +110,48 @@ static void ssd1308_initial(struct fb_ssd1308_pdata_t * pdat)
 	ssd1308_write(pdat->dev, 0x80, (uint8_t[]){ 0xaf }, 1);
 }
 
-static void ssd1308_refresh(struct fb_ssd1308_pdata_t * pdat)
+static void ssd1308_convert(struct fb_ssd1308_pdata_t * pdat, uint32_t * p, int stride, int x0, int y0, int x1, int y1)
 {
-	for(int i = 0; i < 8; i++)
+	static const uint8_t bayer8[8][8] = {
+		{  0, 32,  8, 40,  2, 34, 10, 42 },
+		{ 48, 16, 56, 24, 50, 18, 58, 26 },
+		{ 12, 44,  4, 36, 14, 46,  6, 38 },
+		{ 60, 28, 52, 20, 62, 30, 54, 22 },
+		{  3, 35, 11, 43,  1, 33,  9, 41 },
+		{ 51, 19, 59, 27, 49, 17, 57, 25 },
+		{ 15, 47,  7, 39, 13, 45,  5, 37 },
+		{ 63, 31, 55, 23, 61, 29, 53, 21 },
+	};
+	for(int y = y0; y < y1; y++)
+	{
+		for(int x = x0; x < x1; x++)
+		{
+			uint32_t v = p[y * stride + x];
+			int luma = ((v >> 16) & 0xff) * 299 + ((v >> 8) & 0xff) * 587 + (v & 0xff) * 114;
+			int lit;
+			if(pdat->dither)
+				lit = (luma > (bayer8[y & 7][x & 7] * 4 + 2) * 1000);
+			else
+				lit = (luma >= 128000);
+			if(lit)
+				pdat->buffer[((y >> 3) << 7) + x] |= (1 << (y & 0x7));
+			else
+				pdat->buffer[((y >> 3) << 7) + x] &= ~(1 << (y & 0x7));
+		}
+	}
+}
+
+static void ssd1308_refresh(struct fb_ssd1308_pdata_t * pdat, int x, int y, int w, int h)
+{
+	int p0 = y >> 3;
+	int p1 = (y + h - 1) >> 3;
+
+	for(int i = p0; i <= p1; i++)
 	{
 		ssd1308_write(pdat->dev, 0x80, (uint8_t[]){ 0xb0 + i }, 1);
-		ssd1308_write(pdat->dev, 0x80, (uint8_t[]){ 0x00 }, 1);
-		ssd1308_write(pdat->dev, 0x80, (uint8_t[]){ 0x10 }, 1);
-		ssd1308_write(pdat->dev, 0x40, &pdat->buffer[128 * i], 128);
+		ssd1308_write(pdat->dev, 0x80, (uint8_t[]){ 0x00 | (x & 0x0f) }, 1);
+		ssd1308_write(pdat->dev, 0x80, (uint8_t[]){ 0x10 | ((x >> 4) & 0x07) }, 1);
+		ssd1308_write(pdat->dev, 0x40, &pdat->buffer[128 * i + x], w);
 	}
 }
 
@@ -154,18 +191,24 @@ static int fb_present(struct framebuffer_t * fb, struct surface_t * s, struct di
 {
 	struct fb_ssd1308_pdata_t * pdat = (struct fb_ssd1308_pdata_t *)fb->priv;
 	uint32_t * p = s->pixels;
+	int stride = s->stride >> 2;
 
-	for(int y = 0; y < 64; y++)
+	if(l && (l->nitems > 0))
 	{
-		for(int x = 0; x < 128; x++)
+		for(unsigned int i = 0; i < l->nitems; i++)
 		{
-			if((*p++) & 0x00ffffff)
-				pdat->buffer[((y >> 3) << 7) + x] |= (1 << (y & 0x7));
-			else
-				pdat->buffer[((y >> 3) << 7) + x] &= ~(1 << (y & 0x7));
+			struct region_t * r = &l->items[i];
+			int x0 = (r->x > 0) ? r->x : 0;
+			int y0 = (r->y > 0) ? r->y : 0;
+			int x1 = (r->x + r->w < 128) ? (r->x + r->w) : 128;
+			int y1 = (r->y + r->h < 64) ? (r->y + r->h) : 64;
+			if((x0 < x1) && (y0 < y1))
+			{
+				ssd1308_convert(pdat, p, stride, x0, y0, x1, y1);
+				ssd1308_refresh(pdat, x0, y0, x1 - x0, y1 - y0);
+			}
 		}
 	}
-	ssd1308_refresh(pdat);
 	return 0;
 }
 
@@ -207,6 +250,7 @@ static struct device_t * fb_ssd1308_probe(struct driver_t * drv, struct dtnode_t
 
 	xos_memset(pdat, 0, sizeof(struct fb_ssd1308_pdata_t));
 	pdat->dev = i2cdev;
+	pdat->dither = dt_read_bool(n, "dither", 0);
 	pdat->brightness = -1;
 
 	fb->name = alloc_device_name(dt_read_name(n), dt_read_id(n));
@@ -223,7 +267,7 @@ static struct device_t * fb_ssd1308_probe(struct driver_t * drv, struct dtnode_t
 	fb->priv = pdat;
 
 	ssd1308_initial(pdat);
-	ssd1308_refresh(pdat);
+	ssd1308_refresh(pdat, 0, 0, 128, 64);
 
 	if(!(dev = register_framebuffer(fb, drv)))
 	{
@@ -253,18 +297,10 @@ static void fb_ssd1308_remove(struct device_t * dev)
 
 static void fb_ssd1308_suspend(struct device_t * dev)
 {
-	struct framebuffer_t * fb = (struct framebuffer_t *)dev->priv;
-	struct fb_ssd1308_pdata_t * pdat = (struct fb_ssd1308_pdata_t *)fb->priv;
-
-	ssd1308_write(pdat->dev, 0x80, (uint8_t[]){ 0xae }, 1);
 }
 
 static void fb_ssd1308_resume(struct device_t * dev)
 {
-	struct framebuffer_t * fb = (struct framebuffer_t *)dev->priv;
-	struct fb_ssd1308_pdata_t * pdat = (struct fb_ssd1308_pdata_t *)fb->priv;
-
-	ssd1308_write(pdat->dev, 0x80, (uint8_t[]){ 0xaf }, 1);
 }
 
 static struct driver_t fb_ssd1308 = {
