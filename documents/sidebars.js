@@ -53,6 +53,7 @@ const sidebars = {
     'libx/breathing-light',
     'libx/byteorder-conversion',
     'libx/charset',
+    'libx/cobs',
     'libx/complex-number',
     'libx/arctangent-lookup-table',
     'libx/cosine-lookup-table',

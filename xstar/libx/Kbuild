@@ -6,6 +6,7 @@ obj-y += base64.o
 obj-y += biquad.o
 obj-y += breathing.o
 obj-y += charset.o
+obj-y += cobs.o
 obj-y += complex.o
 obj-y += costab.o
 obj-y += crc16.o

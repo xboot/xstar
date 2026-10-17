@@ -16,6 +16,7 @@ extern "C" {
 #include <libx/breathing.h>
 #include <libx/byteorder.h>
 #include <libx/charset.h>
+#include <libx/cobs.h>
 #include <libx/complex.h>
 #include <libx/costab.h>
 #include <libx/crc16.h>
