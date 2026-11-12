@@ -30,11 +30,13 @@ void freertos_timer_exit(void)
 
 void freertos_timer_next(uint64_t time, void (*cb)(void *), void * data)
 {
+	uint64_t ms = (time + 999999ULL) / 1000000ULL;
+
+	if(ms == 0)
+		ms = 1;
 	tctx.tcd.cb = cb;
 	tctx.tcd.data = data;
-	xTimerChangePeriod(tctx.timer, pdMS_TO_TICKS(time / 1000000ULL), portMAX_DELAY);
-	if(xTimerIsTimerActive(tctx.timer) == pdFALSE)
-		xTimerStart(tctx.timer, 0);
+	xTimerChangePeriod(tctx.timer, pdMS_TO_TICKS(ms), portMAX_DELAY);
 }
 
 uint64_t freertos_timer_count(void)
