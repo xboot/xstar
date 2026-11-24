@@ -29,8 +29,8 @@ struct gpio_ch347_pdata_t {
 	int base;
 	int ngpio;
 	int oirq;
-	uint8_t dir;
-	uint8_t dat;
+	uint64_t dir;
+	uint64_t dat;
 };
 
 static void gpio_ch347_set_cfg(struct gpiochip_t * chip, int offset, int cfg)
@@ -72,24 +72,26 @@ static enum gpio_rate_t gpio_ch347_get_rate(struct gpiochip_t * chip, int offset
 static void gpio_ch347_set_dir(struct gpiochip_t * chip, int offset, enum gpio_direction_t dir)
 {
 	struct gpio_ch347_pdata_t * pdat = (struct gpio_ch347_pdata_t *)chip->priv;
+	mGPIO_Cfg cfg[pdat->ngpio];
+	uint64_t mask;
 
 	if(offset >= chip->ngpio)
 		return;
 
+	mask = 1ULL << offset;
+	if(dir == GPIO_DIRECTION_OUTPUT)
+		pdat->dir |= mask;
+	else
+		pdat->dir &= ~mask;
+
+	xos_memset(cfg, 0, sizeof(cfg));
+	cfg[offset].GPIO_Channel = offset;
+	cfg[offset].GPIO_Direction = (pdat->dir & mask) ? 1 : 0;
+	cfg[offset].GPIO_PinLevel = (pdat->dat & mask) ? 1 : 0;
+
 	ch347_lock();
 	{
-		switch(dir)
-		{
-		case GPIO_DIRECTION_INPUT:
-			pdat->dir &= ~(1 << offset);
-			break;
-		case GPIO_DIRECTION_OUTPUT:
-			pdat->dir |= (1 << offset);
-			break;
-		default:
-			break;
-		}
-		CH347GPIO_Set(pdat->fd, 0xff, pdat->dir, pdat->dat);
+		CH34X_GPIOInit(pdat->fd, mask, cfg);
 	}
 	ch347_unlock();
 }
@@ -97,44 +99,49 @@ static void gpio_ch347_set_dir(struct gpiochip_t * chip, int offset, enum gpio_d
 static enum gpio_direction_t gpio_ch347_get_dir(struct gpiochip_t * chip, int offset)
 {
 	struct gpio_ch347_pdata_t * pdat = (struct gpio_ch347_pdata_t *)chip->priv;
-	uint8_t dir, dat;
-	int ret;
+	mGPIO_Cfg cfg[pdat->ngpio];
+	enum gpio_direction_t dir = GPIO_DIRECTION_INPUT;
 
 	if(offset >= chip->ngpio)
 		return GPIO_DIRECTION_INPUT;
 
+	xos_memset(cfg, 0, sizeof(cfg));
 	ch347_lock();
 	{
-		ret = CH347GPIO_Get(pdat->fd, &dir, &dat);
+		if(CH34X_GetInfo_GPIO(pdat->fd, cfg) == 0)
+			dir = cfg[offset].GPIO_Direction ? GPIO_DIRECTION_OUTPUT : GPIO_DIRECTION_INPUT;
 	}
 	ch347_unlock();
-	if(ret)
-		return (dir & (1 << offset)) ? GPIO_DIRECTION_OUTPUT : GPIO_DIRECTION_INPUT;
-	return GPIO_DIRECTION_INPUT;
+	return dir;
 }
 
 static void gpio_ch347_set_value(struct gpiochip_t * chip, int offset, int value)
 {
 	struct gpio_ch347_pdata_t * pdat = (struct gpio_ch347_pdata_t *)chip->priv;
+	uint64_t mask;
 
 	if(offset >= chip->ngpio)
 		return;
 
-	ch347_lock();
+	mask = 1ULL << offset;
+	if(value)
+		pdat->dat |= mask;
+	else
+		pdat->dat &= ~mask;
+	if(pdat->dir & mask)
 	{
-		if(value)
-			pdat->dat |= (1 << offset);
-		else
-			pdat->dat &= ~(1 << offset);
-		CH347GPIO_Set(pdat->fd, 0xff, pdat->dir, pdat->dat);
+		ch347_lock();
+		{
+			CH34X_GPIOSet(pdat->fd, mask, value ? mask : 0);
+		}
+		ch347_unlock();
 	}
-	ch347_unlock();
 }
 
 static int gpio_ch347_get_value(struct gpiochip_t * chip, int offset)
 {
 	struct gpio_ch347_pdata_t * pdat = (struct gpio_ch347_pdata_t *)chip->priv;
-	uint8_t dir, dat;
+	uint64_t level = 0;
 	int ret;
 
 	if(offset >= chip->ngpio)
@@ -142,11 +149,11 @@ static int gpio_ch347_get_value(struct gpiochip_t * chip, int offset)
 
 	ch347_lock();
 	{
-		ret = CH347GPIO_Get(pdat->fd, &dir, &dat);
+		ret = CH34X_GPIOGet(pdat->fd, &level);
 	}
 	ch347_unlock();
-	if(ret)
-		return !!(dat & (1 << offset));
+	if(ret == 0)
+		return (int)((level >> offset) & 0x1);
 	return 0;
 }
 
@@ -164,10 +171,10 @@ static struct device_t * gpio_ch347_probe(struct driver_t * drv, struct dtnode_t
 	struct gpio_ch347_pdata_t * pdat;
 	struct gpiochip_t * chip;
 	struct device_t * dev;
-	int fd;
 
-	fd = ch347_detect();
-	if(fd <= 0)
+	int fd = ch347_detect();
+	int ngpio = dt_read_int(n, "gpio-count", -1);
+	if((fd <= 0) || (ngpio <= 0))
 		return NULL;
 
 	pdat = xos_mem_malloc(sizeof(struct gpio_ch347_pdata_t));
@@ -183,9 +190,9 @@ static struct device_t * gpio_ch347_probe(struct driver_t * drv, struct dtnode_t
 
 	pdat->fd = fd;
 	pdat->base = dt_read_int(n, "gpio-base", 1024);
-	pdat->ngpio = 8;
+	pdat->ngpio = ngpio;
 	pdat->oirq = dt_read_int(n, "interrupt-offset", -1);
-	pdat->dir = 0xff;
+	pdat->dir = (1ULL << ngpio) - 1;
 	pdat->dat = 0x00;
 
 	chip->name = alloc_device_name(dt_read_name(n), dt_read_id(n));

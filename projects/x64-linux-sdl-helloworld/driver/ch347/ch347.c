@@ -26,35 +26,42 @@
 
 static struct mutex_t __ch347_lock = { 0 };
 static int __ch347_fd = -1;
+static int __ch347_ngpio = 0;
 
 int ch347_detect(void)
 {
 	if(__ch347_fd < 0)
 	{
-		int fd = CH347OpenDevice("/dev/ch34x_pis");
-		if(fd < 0)
+		CH34X_DEVICE_INFO * infolist;
+		uint8_t num = 0;
+		int fd = -1;
+
+		infolist = xos_mem_calloc(CH34X_MAX_NUMBER, sizeof(CH34X_DEVICE_INFO));
+		if(infolist)
 		{
-			char path[64];
-			for(int i = 0; i < 10; i++)
+			if(CH34X_GetDeviceInfoList(infolist, &num) == 0)
 			{
-				xos_snprintf(path, sizeof(path), "/dev/ch34x_pis%d", i);
-				fd = CH347OpenDevice(path);
-				if(fd >= 0)
-					break;
+				for(int i = 0; (i < num) && (fd < 0); i++)
+				{
+					if((infolist[i].ChipType == CHIP_CH347T_VENDOR) || (infolist[i].ChipType == CHIP_CH347F_VENDOR))
+					{
+						fd = CH34X_OpenDevice(infolist[i].iIndex);
+						if(fd >= 0)
+							__ch347_ngpio = infolist[i].MaxGPIOChannel;
+					}
+				}
 			}
+			xos_mem_free(infolist);
 		}
 		if(fd >= 0)
 		{
-			CHIP_TYPE chip;
-			if(CH34x_GetChipType(fd, &chip) && ((chip == CHIP_CH347T) || (chip == CHIP_CH347F)))
+			if(CH34X_SetUSBTimeout(fd, 20, 20) == 0)
 			{
-				CH34xSetTimeout(fd, 20, 20);
-				CH347_OE_Enable(fd);
 				xos_mutex_init(&__ch347_lock);
 				__ch347_fd = fd;
 			}
 			else
-				CH347CloseDevice(fd);
+				CH34X_CloseDevice(fd);
 		}
 	}
 	return __ch347_fd;
@@ -72,16 +79,21 @@ int ch347_unlock(void)
 
 static void ch347_device_init(void)
 {
-	const char * json = X({
+	char json[256];
+	int length;
+
+	ch347_detect();
+	length = xos_snprintf(json, sizeof(json), X({
 		"gpio-ch347:0": {
 			"gpio-base": 1024,
+			"gpio-count": %d,
 			"interrupt-offset": -1
 		},
 		"i2c-ch347:0": {
 		},
 		"spi-ch347:0": {
 		}
-	});
-	probe_device(json, xos_strlen(json));
+	}), __ch347_ngpio);
+	probe_device(json, length);
 }
 late_initcall(ch347_device_init);

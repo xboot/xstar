@@ -6,7 +6,13 @@ extern "C" {
 #endif
 
 #include <xstar.h>
-#include <inc/ch347_lib.h>
+#pragma push_macro("offsetof")
+#pragma push_macro("container_of")
+#undef offsetof
+#undef container_of
+#include <inc/ch34x_lib.h>
+#pragma pop_macro("container_of")
+#pragma pop_macro("offsetof")
 
 int ch347_detect(void);
 int ch347_lock(void);

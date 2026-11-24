@@ -12,7 +12,7 @@ CXXFLAGS	+= -D_GNU_SOURCE
 CFLAGS		+= -I $(PRJDIR)/driver/ch347
 CXXFLAGS	+= -I $(PRJDIR)/driver/ch347
 LIBDIRS		+= -L $(PRJDIR)/driver/ch347/lib
-LIBS 		+= -lch347
+LIBS 		+= -lch34x
 
 #
 # sdl

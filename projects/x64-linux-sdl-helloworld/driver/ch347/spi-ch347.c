@@ -25,32 +25,39 @@
 #include <ch347.h>
 
 struct spi_ch347_pdata_t {
-	mSpiCfgS cfg;
+	mSPI_Master_Cfg cfg;
 	uint64_t rate;
 	int bits;
-	int cs;
 	int fd;
+	unsigned char buf[SPI_MAX_LENGTH];
 };
+
+static const uint64_t ch347_spi_rate_tab[] = { 60000000, 30000000, 15000000, 7500000, 3750000, 1875000, 937500, 468750 };
+
+static void ch347_spi_apply(struct spi_ch347_pdata_t * pdat)
+{
+	CH34X_SPIMasterInit(pdat->fd, &pdat->cfg);
+	CH34X_SPISetDefaultCS(pdat->fd, 0);
+}
 
 static void ch347_spi_init(struct spi_ch347_pdata_t * pdat)
 {
-	CH347SPI_GetCfg(pdat->fd, &pdat->cfg);
-	pdat->cfg.iMode = 0;
-	pdat->cfg.iClock = 1;
-	pdat->cfg.iByteOrder = 1;
-	pdat->cfg.iSpiWriteReadInterval = 1;
-	pdat->cfg.iSpiOutDefaultData = 0xff;
-	pdat->cfg.iChipSelect = 1 << 7;
-	pdat->cfg.CS1Polarity = 0;
-	pdat->cfg.CS2Polarity = 0;
-	pdat->cfg.iIsAutoDeativeCS = 0;
-	pdat->cfg.iActiveDelay = 1;
-	pdat->cfg.iDelayDeactive = 1;
+	xos_memset(&pdat->cfg, 0, sizeof(pdat->cfg));
+	pdat->cfg.SPI_Clock = 30000000;
+	pdat->cfg.SPI_OutDefaultData = 0xff;
+	pdat->cfg.SPI_Mode = 0;
+	pdat->cfg.SPI_CS0Init = 1;
+	pdat->cfg.SPI_CS1Init = 1;
+	pdat->cfg.SPI_DataBits = 0;
+	pdat->cfg.SPI_BitOrder = 0;
+	pdat->cfg.SPI_CS0Polar = 0;
+	pdat->cfg.SPI_CS1Polar = 0;
+	pdat->cfg.SPI_DataToDataDelay = 0;
+	pdat->cfg.SPI_CsToDataDelay = 1;
+	pdat->cfg.SPI_DataToCsDelay = 1;
 	pdat->rate = 30000000;
 	pdat->bits = 8;
-	pdat->cs = 0;
-	CH347SPI_SetDataBits(pdat->fd, 0);
-	CH347SPI_Init(pdat->fd, &pdat->cfg);
+	ch347_spi_apply(pdat);
 }
 
 static void ch347_spi_set_bits(struct spi_ch347_pdata_t * pdat, int bits)
@@ -58,10 +65,8 @@ static void ch347_spi_set_bits(struct spi_ch347_pdata_t * pdat, int bits)
 	if(pdat->bits != bits)
 	{
 		pdat->bits = bits;
-		if(pdat->bits == 8)
-			CH347SPI_SetDataBits(pdat->fd, 0);
-		else if(pdat->bits == 16)
-			CH347SPI_SetDataBits(pdat->fd, 1);
+		pdat->cfg.SPI_DataBits = (pdat->bits == 16) ? 1 : 0;
+		ch347_spi_apply(pdat);
 	}
 }
 
@@ -71,83 +76,93 @@ static void ch347_spi_set_rate_mode(struct spi_ch347_pdata_t * pdat, uint64_t ra
 
 	if(pdat->rate != rate)
 	{
-		const uint64_t rtab[] = { 60000000, 30000000, 15000000, 7500000, 3750000, 1875000, 937500, 468750 };
-		for(int i = 0; i < ARRAY_SIZE(rtab); i++)
+		for(int i = 0; i < ARRAY_SIZE(ch347_spi_rate_tab); i++)
 		{
-			if(rate >= rtab[i])
+			if(rate >= ch347_spi_rate_tab[i])
 			{
-				pdat->cfg.iClock = i;
+				pdat->cfg.SPI_Clock = ch347_spi_rate_tab[i];
 				pdat->rate = rate;
 				changed = 1;
 				break;
 			}
 		}
 	}
-	if(pdat->cfg.iMode != mode)
+	if(pdat->cfg.SPI_Mode != mode)
 	{
-		pdat->cfg.iMode = mode;
+		pdat->cfg.SPI_Mode = mode;
 		changed = 1;
 	}
 	if(changed)
-		CH347SPI_Init(pdat->fd, &pdat->cfg);
+		ch347_spi_apply(pdat);
 }
 
 static int ch347_spi_xfer(struct spi_ch347_pdata_t * pdat, struct spi_msg_t * msg)
 {
-	if(msg->len > 0)
+	unsigned char * tx;
+	unsigned char * rx;
+	int len, n, ret = 0;
+
+	if(msg->len <= 0)
+		return 0;
+	tx = (unsigned char *)msg->txbuf;
+	rx = (unsigned char *)msg->rxbuf;
+	len = msg->len;
+	while(len > 0)
 	{
-		unsigned char buf[msg->len];
-		if(msg->txbuf)
-			xos_memcpy(buf, msg->txbuf, msg->len);
-		if(CH347SPI_WriteRead(pdat->fd, 1, 0, msg->len, buf))
-		{
-			if(msg->rxbuf)
-				xos_memcpy(msg->rxbuf, buf, msg->len);
-			return msg->len;
-		}
+		n = (len > SPI_MAX_LENGTH) ? SPI_MAX_LENGTH : len;
+		if(tx)
+			xos_memcpy(pdat->buf, tx, n);
+		else
+			xos_memset(pdat->buf, pdat->cfg.SPI_OutDefaultData, n);
+		if(CH34X_SPIWriteRead(pdat->fd, 0, 0, pdat->buf, n) != 0)
+			break;
+		if(rx)
+			xos_memcpy(rx, pdat->buf, n);
+		if(tx)
+			tx += n;
+		if(rx)
+			rx += n;
+		len -= n;
+		ret += n;
 	}
-	return 0;
+	return ret;
 }
 
 static int spi_ch347_transfer(struct spi_t * spi, struct spi_msg_t * msg)
 {
 	struct spi_ch347_pdata_t * pdat = (struct spi_ch347_pdata_t *)spi->priv;
+	int ret;
 
-	ch347_spi_set_bits(pdat, msg->bits);
-	ch347_spi_set_rate_mode(pdat, (msg->speed > 0) ? msg->speed : 30000000, msg->mode);
-	return ch347_spi_xfer(pdat, msg);
+	ch347_lock();
+	{
+		ch347_spi_set_bits(pdat, msg->bits);
+		ch347_spi_set_rate_mode(pdat, (msg->speed > 0) ? msg->speed : 30000000, msg->mode);
+		ret = ch347_spi_xfer(pdat, msg);
+	}
+	ch347_unlock();
+	return ret;
 }
 
 static void spi_ch347_select(struct spi_t * spi, int cs)
 {
 	struct spi_ch347_pdata_t * pdat = (struct spi_ch347_pdata_t *)spi->priv;
 
-	if(pdat->cs != cs)
+	ch347_lock();
 	{
-		pdat->cs = cs;
-		if(pdat->cs == 0)
-			pdat->cfg.iChipSelect = 1 << 7;
-		else if(pdat->cs == 1)
-			pdat->cfg.iChipSelect = 1 << 15;
-		CH347SPI_Init(pdat->fd, &pdat->cfg);
+		CH34X_SPIChangeCS(pdat->fd, cs, 1);
 	}
-	CH347SPI_ChangeCS(pdat->fd, 0);
+	ch347_unlock();
 }
 
 static void spi_ch347_deselect(struct spi_t * spi, int cs)
 {
 	struct spi_ch347_pdata_t * pdat = (struct spi_ch347_pdata_t *)spi->priv;
 
-	if(pdat->cs != cs)
+	ch347_lock();
 	{
-		pdat->cs = cs;
-		if(pdat->cs == 0)
-			pdat->cfg.iChipSelect = 1 << 7;
-		else if(pdat->cs == 1)
-			pdat->cfg.iChipSelect = 1 << 15;
-		CH347SPI_Init(pdat->fd, &pdat->cfg);
+		CH34X_SPIChangeCS(pdat->fd, cs, 0);
 	}
-	CH347SPI_ChangeCS(pdat->fd, 1);
+	ch347_unlock();
 }
 
 static struct device_t * spi_ch347_probe(struct driver_t * drv, struct dtnode_t * n)

@@ -32,6 +32,7 @@ static int i2c_ch347_xfer(struct i2c_t * i2c, struct i2c_msg_t * msgs, int num)
 {
 	struct i2c_ch347_pdata_t * pdat = (struct i2c_ch347_pdata_t *)i2c->priv;
 	unsigned char wbuf[256 + 1];
+	uint32_t ack = 0;
 	int wlen = 0;
 	void * rbuf = NULL;
 	int rlen = 0;
@@ -63,7 +64,7 @@ static int i2c_ch347_xfer(struct i2c_t * i2c, struct i2c_msg_t * msgs, int num)
 	}
 	ch347_lock();
 	{
-		ret = CH347StreamI2C(pdat->fd, wlen, wbuf, rlen, rbuf) ? num : 0;
+		ret = (CH34X_StreamI2C(pdat->fd, 1, 1, 0, wbuf, wlen, rbuf, rlen, &ack) == 0) ? num : 0;
 	}
 	ch347_unlock();
 	return ret;
@@ -74,14 +75,19 @@ static struct device_t * i2c_ch347_probe(struct driver_t * drv, struct dtnode_t 
 	struct i2c_ch347_pdata_t * pdat;
 	struct i2c_t * i2c;
 	struct device_t * dev;
+	mI2C_Master_Cfg cfg;
 	int fd;
 
 	fd = ch347_detect();
 	if(fd <= 0)
 		return NULL;
-	CH347I2C_Set(fd, 0x1);
-	CH347I2C_SetStretch(fd, 1);
-	CH347I2C_SetDriveMode(fd, 1);
+
+	xos_memset(&cfg, 0, sizeof(cfg));
+	cfg.I2C_Clock = 100 * 1000;
+	cfg.I2C_Disable_Stretch = 0;
+	cfg.I2C_DriverMode = 0;
+	if(CH34X_I2CMasterInit(fd, &cfg) != 0)
+		return NULL;
 
 	pdat = xos_mem_malloc(sizeof(struct i2c_ch347_pdata_t));
 	if(!pdat)
